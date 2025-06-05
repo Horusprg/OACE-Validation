@@ -3,6 +3,7 @@ import torch.nn as nn
 from typing import List
 import random
 
+
 class ResNetInputLayer(nn.Module):
     """
     Camada inicial da ResNet.
@@ -10,8 +11,17 @@ class ResNetInputLayer(nn.Module):
     Aplica uma convolução inicial, normalização em lote (opcional) e função de ativação
     para processar a entrada da rede (ex.: imagens RGB do CIFAR-10).
     """
-    def __init__(self, in_channels: int, out_channels: int, kernel_size: int = 3, stride: int = 1, padding: int = 1,
-                 activation_fn: nn.Module = nn.ReLU, batch_norm: bool = True):
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int = 3,
+        stride: int = 1,
+        padding: int = 1,
+        activation_fn: nn.Module = nn.ReLU,
+        batch_norm: bool = True,
+    ):
         """
         Inicializa a camada inicial.
 
@@ -25,7 +35,9 @@ class ResNetInputLayer(nn.Module):
             batch_norm: Se True, aplica normalização em lote.
         """
         super().__init__()
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=not batch_norm)
+        self.conv = nn.Conv2d(
+            in_channels, out_channels, kernel_size, stride, padding, bias=not batch_norm
+        )
         self.batch_norm = nn.BatchNorm2d(out_channels) if batch_norm else None
         self.activation = activation_fn()
         self._initialize_weights(activation_fn)
@@ -41,7 +53,7 @@ class ResNetInputLayer(nn.Module):
             activation_fn: Função de ativação usada na camada.
         """
         if isinstance(activation_fn, (nn.ReLU, nn.LeakyReLU, nn.ELU, nn.SELU)):
-            nn.init.kaiming_normal_(self.conv.weight, nonlinearity='relu')
+            nn.init.kaiming_normal_(self.conv.weight, nonlinearity="relu")
         else:
             nn.init.xavier_normal_(self.conv.weight)
         if self.conv.bias is not None:
@@ -64,6 +76,7 @@ class ResNetInputLayer(nn.Module):
             x = self.batch_norm(x)
         return self.activation(x)
 
+
 class BasicBlock(nn.Module):
     """
     Bloco residual básico para ResNet-18/34.
@@ -71,10 +84,18 @@ class BasicBlock(nn.Module):
     Contém duas convoluções 3x3 com conexão residual, suportando dropout,
     normalização em lote e ativação customizada.
     """
+
     expansion = 1
 
-    def __init__(self, in_channels: int, out_channels: int, stride: int = 1, activation_fn: nn.Module = nn.ReLU,
-                 dropout_rate: float = 0.0, batch_norm: bool = True):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        stride: int = 1,
+        activation_fn: nn.Module = nn.ReLU,
+        dropout_rate: float = 0.0,
+        batch_norm: bool = True,
+    ):
         """
         Inicializa o bloco residual básico.
 
@@ -87,17 +108,41 @@ class BasicBlock(nn.Module):
             batch_norm: Se True, aplica normalização em lote.
         """
         super().__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=not batch_norm)
+        self.conv1 = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            bias=not batch_norm,
+        )
         self.bn1 = nn.BatchNorm2d(out_channels) if batch_norm else None
         self.activation = activation_fn()
         self.dropout = nn.Dropout2d(dropout_rate) if dropout_rate > 0 else None
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=not batch_norm)
+        self.conv2 = nn.Conv2d(
+            out_channels,
+            out_channels,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            bias=not batch_norm,
+        )
         self.bn2 = nn.BatchNorm2d(out_channels) if batch_norm else None
         self.shortcut = nn.Sequential()
         if stride != 1 or in_channels != out_channels * self.expansion:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels * self.expansion, kernel_size=1, stride=stride, bias=not batch_norm),
-                nn.BatchNorm2d(out_channels * self.expansion) if batch_norm else nn.Identity()
+                nn.Conv2d(
+                    in_channels,
+                    out_channels * self.expansion,
+                    kernel_size=1,
+                    stride=stride,
+                    bias=not batch_norm,
+                ),
+                (
+                    nn.BatchNorm2d(out_channels * self.expansion)
+                    if batch_norm
+                    else nn.Identity()
+                ),
             )
         self._initialize_weights(activation_fn)
 
@@ -112,7 +157,7 @@ class BasicBlock(nn.Module):
         """
         for conv in [self.conv1, self.conv2]:
             if isinstance(activation_fn, (nn.ReLU, nn.LeakyReLU, nn.ELU, nn.SELU)):
-                nn.init.kaiming_normal_(conv.weight, nonlinearity='relu')
+                nn.init.kaiming_normal_(conv.weight, nonlinearity="relu")
             else:
                 nn.init.xavier_normal_(conv.weight)
             if conv.bias is not None:
@@ -144,6 +189,7 @@ class BasicBlock(nn.Module):
         x += identity
         return self.activation(x)
 
+
 class Bottleneck(nn.Module):
     """
     Bloco Bottleneck para ResNet-50/101/152.
@@ -151,10 +197,18 @@ class Bottleneck(nn.Module):
     Contém três convoluções (1x1, 3x3, 1x1) com conexão residual, suportando
     dropout, normalização em lote e ativação customizada.
     """
+
     expansion = 4
 
-    def __init__(self, in_channels: int, out_channels: int, stride: int = 1, activation_fn: nn.Module = nn.ReLU,
-                 dropout_rate: float = 0.0, batch_norm: bool = True):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        stride: int = 1,
+        activation_fn: nn.Module = nn.ReLU,
+        dropout_rate: float = 0.0,
+        batch_norm: bool = True,
+    ):
         """
         Inicializa o bloco Bottleneck.
 
@@ -167,19 +221,43 @@ class Bottleneck(nn.Module):
             batch_norm: Se True, aplica normalização em lote.
         """
         super().__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=not batch_norm)
+        self.conv1 = nn.Conv2d(
+            in_channels, out_channels, kernel_size=1, bias=not batch_norm
+        )
         self.bn1 = nn.BatchNorm2d(out_channels) if batch_norm else None
         self.activation = activation_fn()
         self.dropout = nn.Dropout2d(dropout_rate) if dropout_rate > 0 else None
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=not batch_norm)
+        self.conv2 = nn.Conv2d(
+            out_channels,
+            out_channels,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            bias=not batch_norm,
+        )
         self.bn2 = nn.BatchNorm2d(out_channels) if batch_norm else None
-        self.conv3 = nn.Conv2d(out_channels, out_channels * self.expansion, kernel_size=1, bias=not batch_norm)
+        self.conv3 = nn.Conv2d(
+            out_channels,
+            out_channels * self.expansion,
+            kernel_size=1,
+            bias=not batch_norm,
+        )
         self.bn3 = nn.BatchNorm2d(out_channels * self.expansion) if batch_norm else None
         self.shortcut = nn.Sequential()
         if stride != 1 or in_channels != out_channels * self.expansion:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels * self.expansion, kernel_size=1, stride=stride, bias=not batch_norm),
-                nn.BatchNorm2d(out_channels * self.expansion) if batch_norm else nn.Identity()
+                nn.Conv2d(
+                    in_channels,
+                    out_channels * self.expansion,
+                    kernel_size=1,
+                    stride=stride,
+                    bias=not batch_norm,
+                ),
+                (
+                    nn.BatchNorm2d(out_channels * self.expansion)
+                    if batch_norm
+                    else nn.Identity()
+                ),
             )
         self._initialize_weights(activation_fn)
 
@@ -194,7 +272,7 @@ class Bottleneck(nn.Module):
         """
         for conv in [self.conv1, self.conv2, self.conv3]:
             if isinstance(activation_fn, (nn.ReLU, nn.LeakyReLU, nn.ELU, nn.SELU)):
-                nn.init.kaiming_normal_(conv.weight, nonlinearity='relu')
+                nn.init.kaiming_normal_(conv.weight, nonlinearity="relu")
             else:
                 nn.init.xavier_normal_(conv.weight)
             if conv.bias is not None:
@@ -232,6 +310,7 @@ class Bottleneck(nn.Module):
         x += identity
         return self.activation(x)
 
+
 class ResNetOutputLayer(nn.Module):
     """
     Camada de saída da ResNet.
@@ -239,6 +318,7 @@ class ResNetOutputLayer(nn.Module):
     Aplica average pooling global e uma camada linear para mapear as features
     para o espaço de classes.
     """
+
     def __init__(self, in_channels: int, num_classes: int):
         """
         Inicializa a camada de saída.
@@ -277,6 +357,7 @@ class ResNetOutputLayer(nn.Module):
         x = x.view(x.size(0), -1)
         return self.linear(x)
 
+
 class ResNet(nn.Module):
     """
     Implementação da Residual Network (ResNet).
@@ -284,8 +365,18 @@ class ResNet(nn.Module):
     Consiste em uma camada inicial, quatro estágios residuais (com blocos BasicBlock
     ou Bottleneck) e uma camada de saída. Suporta configurações flexíveis.
     """
-    def __init__(self, in_channels: int, base_channels: int, block_type: nn.Module, layers: List[int], num_classes: int,
-                 activation_fn: nn.Module = nn.ReLU, dropout_rate: float = 0.0, batch_norm: bool = True):
+
+    def __init__(
+        self,
+        in_channels: int,
+        base_channels: int,
+        block_type: nn.Module,
+        layers: List[int],
+        num_classes: int,
+        activation_fn: nn.Module = nn.ReLU,
+        dropout_rate: float = 0.0,
+        batch_norm: bool = True,
+    ):
         """
         Inicializa a ResNet.
 
@@ -312,15 +403,59 @@ class ResNet(nn.Module):
             raise ValueError("block_type deve ser BasicBlock ou Bottleneck")
 
         self.in_channels = base_channels
-        self.input_layer = ResNetInputLayer(in_channels, base_channels, 3, 1, 1, activation_fn, batch_norm)
-        self.stage1 = self._make_stage(block_type, base_channels, layers[0], 1, activation_fn, dropout_rate, batch_norm)
-        self.stage2 = self._make_stage(block_type, base_channels * 2, layers[1], 2, activation_fn, dropout_rate, batch_norm)
-        self.stage3 = self._make_stage(block_type, base_channels * 4, layers[2], 2, activation_fn, dropout_rate, batch_norm)
-        self.stage4 = self._make_stage(block_type, base_channels * 8, layers[3], 2, activation_fn, dropout_rate, batch_norm)
-        self.output_layer = ResNetOutputLayer(base_channels * 8 * block_type.expansion, num_classes)
+        self.input_layer = ResNetInputLayer(
+            in_channels, base_channels, 3, 1, 1, activation_fn, batch_norm
+        )
+        self.stage1 = self._make_stage(
+            block_type,
+            base_channels,
+            layers[0],
+            1,
+            activation_fn,
+            dropout_rate,
+            batch_norm,
+        )
+        self.stage2 = self._make_stage(
+            block_type,
+            base_channels * 2,
+            layers[1],
+            2,
+            activation_fn,
+            dropout_rate,
+            batch_norm,
+        )
+        self.stage3 = self._make_stage(
+            block_type,
+            base_channels * 4,
+            layers[2],
+            2,
+            activation_fn,
+            dropout_rate,
+            batch_norm,
+        )
+        self.stage4 = self._make_stage(
+            block_type,
+            base_channels * 8,
+            layers[3],
+            2,
+            activation_fn,
+            dropout_rate,
+            batch_norm,
+        )
+        self.output_layer = ResNetOutputLayer(
+            base_channels * 8 * block_type.expansion, num_classes
+        )
 
-    def _make_stage(self, block_type: nn.Module, out_channels: int, num_blocks: int, stride: int,
-                    activation_fn: nn.Module, dropout_rate: float, batch_norm: bool) -> nn.Sequential:
+    def _make_stage(
+        self,
+        block_type: nn.Module,
+        out_channels: int,
+        num_blocks: int,
+        stride: int,
+        activation_fn: nn.Module,
+        dropout_rate: float,
+        batch_norm: bool,
+    ) -> nn.Sequential:
         """
         Cria um estágio da ResNet com blocos residuais.
 
@@ -337,10 +472,28 @@ class ResNet(nn.Module):
             nn.Sequential contendo os blocos residuais.
         """
         layers = []
-        layers.append(block_type(self.in_channels, out_channels, stride, activation_fn, dropout_rate, batch_norm))
+        layers.append(
+            block_type(
+                self.in_channels,
+                out_channels,
+                stride,
+                activation_fn,
+                dropout_rate,
+                batch_norm,
+            )
+        )
         self.in_channels = out_channels * block_type.expansion
         for _ in range(1, num_blocks):
-            layers.append(block_type(self.in_channels, out_channels, 1, activation_fn, dropout_rate, batch_norm))
+            layers.append(
+                block_type(
+                    self.in_channels,
+                    out_channels,
+                    1,
+                    activation_fn,
+                    dropout_rate,
+                    batch_norm,
+                )
+            )
         return nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -363,11 +516,19 @@ class ResNet(nn.Module):
         x = self.stage4(x)
         return self.output_layer(x)
 
+
 def generate_resnet_architecture(
-    in_channels: int = 3, num_classes: int = 10, num_stages: int = 4, min_blocks_per_stage: int = 1,
-    max_blocks_per_stage: int = 4, min_base_channels: int = 16, max_base_channels: int = 64,
-    block_type_choice: str = 'basic', activation_function_choice: str = 'relu', dropout_rate: float = 0.0,
-    batch_norm: bool = True
+    in_channels: int = 3,
+    num_classes: int = 10,
+    num_stages: int = 4,
+    min_blocks_per_stage: int = 1,
+    max_blocks_per_stage: int = 4,
+    min_base_channels: int = 16,
+    max_base_channels: int = 64,
+    block_type_choice: str = "basic",
+    activation_function_choice: str = "relu",
+    dropout_rate: float = 0.0,
+    batch_norm: bool = True,
 ) -> ResNet:
     """
     Gera uma instância da ResNet com configuração randomizada.
@@ -396,29 +557,50 @@ def generate_resnet_architecture(
     """
     if not (0 <= dropout_rate <= 1):
         raise ValueError("dropout_rate deve estar entre 0 e 1")
-    if min_blocks_per_stage > max_blocks_per_stage or min_base_channels > max_base_channels:
+    if (
+        min_blocks_per_stage > max_blocks_per_stage
+        or min_base_channels > max_base_channels
+    ):
         raise ValueError("Intervalos inválidos para blocos ou canais")
 
-    activation_map = {'relu': nn.ReLU, 'leaky_relu': nn.LeakyReLU, 'elu': nn.ELU, 'selu': nn.SELU, 'gelu': nn.GELU}
-    block_map = {'basic': BasicBlock, 'bottleneck': Bottleneck}
-    
+    activation_map = {
+        "relu": nn.ReLU,
+        "leaky_relu": nn.LeakyReLU,
+        "elu": nn.ELU,
+        "selu": nn.SELU,
+        "gelu": nn.GELU,
+    }
+    block_map = {"basic": BasicBlock, "bottleneck": Bottleneck}
+
     activation_fn = activation_map.get(activation_function_choice.lower(), nn.ReLU)
-    block_type = random.choice([BasicBlock, Bottleneck]) if block_type_choice.lower() == 'random' else block_map.get(block_type_choice.lower(), BasicBlock)
-    
-    layers = [random.randint(min_blocks_per_stage, max_blocks_per_stage) for _ in range(num_stages)]
+    block_type = (
+        random.choice([BasicBlock, Bottleneck])
+        if block_type_choice.lower() == "random"
+        else block_map.get(block_type_choice.lower(), BasicBlock)
+    )
+
+    layers = [
+        random.randint(min_blocks_per_stage, max_blocks_per_stage)
+        for _ in range(num_stages)
+    ]
     base_channels = random.randint(min_base_channels, max_base_channels)
-    
-    print(f"ResNet: Bloco={block_type.__name__}, Camadas={layers}, Canais={base_channels}, Ativação={activation_function_choice}, Dropout={dropout_rate}, BatchNorm={batch_norm}")
-    
-    return ResNet(in_channels, 
-                  base_channels, 
-                  block_type, 
-                  layers, 
-                  num_classes, 
-                  activation_fn, 
-                  dropout_rate, 
-                  batch_norm)
-    
+
+    print(
+        f"ResNet: Bloco={block_type.__name__}, Camadas={layers}, Canais={base_channels}, Ativação={activation_function_choice}, Dropout={dropout_rate}, BatchNorm={batch_norm}"
+    )
+
+    return ResNet(
+        in_channels,
+        base_channels,
+        block_type,
+        layers,
+        num_classes,
+        activation_fn,
+        dropout_rate,
+        batch_norm,
+    )
+
+
 """
 def test_resnet_specific_layers(layers: List[int], model_name: str, block_type_choice: str = 'bottleneck', num_classes: int = 10, input_size: int = 224):
     #Testa a ResNet com um número específico de camadas.
