@@ -1,12 +1,9 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from torch.utils.data import DataLoader
 from sklearn.metrics import precision_recall_fscore_support
 import numpy as np
 import time
-import psutil
-import os
 from torchinfo import summary
 from thop import profile
 from typing import List, Dict
