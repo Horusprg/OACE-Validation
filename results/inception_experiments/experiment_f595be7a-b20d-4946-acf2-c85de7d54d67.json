@@ -1,0 +1,52 @@
+{
+    "experiment_id": "f595be7a-b20d-4946-acf2-c85de7d54d67",
+    "timestamp": "2025-06-11_14-34-23",
+    "model": "InceptionV3",
+    "train_metrics": [
+        {
+            "epoch": 1,
+            "train_loss": 1.5576987986564637,
+            "train_acc": 44.84,
+            "valid_loss": 1.341112327003479,
+            "valid_acc": 52.15
+        },
+        {
+            "epoch": 2,
+            "train_loss": 1.0167890392303467,
+            "train_acc": 64.335,
+            "valid_loss": 0.9640820610046387,
+            "valid_acc": 65.8
+        },
+        {
+            "epoch": 3,
+            "train_loss": 0.8253874682903289,
+            "train_acc": 71.665,
+            "valid_loss": 0.7883951775550843,
+            "valid_acc": 72.9
+        }
+    ],
+    "test_metrics": {
+        "loss": 0.7842268157958985,
+        "top1_acc": 73.89,
+        "top5_acc": 98.36,
+        "precision_macro": 0.7593596449975787,
+        "recall_macro": 0.7389,
+        "f1_macro": 0.7390757804207639,
+        "total_params": 3449578.0,
+        "avg_inference_time": 0.003855873824684483,
+        "memory_used_mb": 703.6083984375,
+        "gflops": 0.523887232
+    },
+    "classes": [
+        "airplane",
+        "automobile",
+        "bird",
+        "cat",
+        "deer",
+        "dog",
+        "frog",
+        "horse",
+        "ship",
+        "truck"
+    ]
+}
