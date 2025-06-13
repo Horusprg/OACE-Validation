@@ -5,7 +5,7 @@ import os
 import json
 import uuid
 from datetime import datetime
-from models.vgg.vgg_architecture import generate_vgg_architecture, VGG
+from models.VGG.vgg_architecture import generate_vgg_architecture, VGG
 from utils.training_utils import train_model
 from utils.evaluate_utils import evaluate_model
 
