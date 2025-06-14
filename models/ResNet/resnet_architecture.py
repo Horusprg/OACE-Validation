@@ -316,7 +316,7 @@ class ResNetOutputLayer(nn.Module):
     Camada de saída da ResNet.
 
     Aplica average pooling global e uma camada linear para mapear as features
-    para o espaço de classes
+    para o espaço de classes.
     """
 
     def __init__(self, in_channels: int, num_classes: int):
