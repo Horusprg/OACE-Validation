@@ -36,24 +36,38 @@ def calculate_oace_score(
         raise ValueError("O parâmetro lambda_param deve estar no intervalo [0, 1].")
 
     # 1. Normalização das Métricas ---
+    print("\nNormalizando métricas de assertividade...\n")
     normalized_assertiveness = {}
     for metric, value in assertiveness_metrics.items():
+        print("metric:", metric)
+        print("value:", value)
         min_val = assertiveness_min_max[metric]['min']
         max_val = assertiveness_min_max[metric]['max']
         if max_val == min_val:
             normalized_assertiveness[metric] = 1.0 if value >= min_val else 0.0
         else:
             normalized_assertiveness[metric] = (value - min_val) / (max_val - min_val)
+        print("normalized_assertiveness[metric]:", normalized_assertiveness[metric])
 
+    print("\nNormalizando métricas de custo...\n")
     normalized_cost = {}
     for metric, value in cost_metrics.items():
+        print("metric:", metric)
+        print("value:", value)
         min_val = cost_min_max[metric]['min']
         max_val = cost_min_max[metric]['max']
         if max_val == min_val:
             normalized_cost[metric] = 0.0
         else:
+            print("max_val:", max_val)
+            print("min_val:", min_val)
             normalized_cost[metric] = (value - min_val) / (max_val - min_val)
-
+            
+            
+        print("normalized_cost[metric]:", normalized_cost[metric])
+        
+    print("normalized_assertiveness:", normalized_assertiveness)
+    print("normalized_cost:", normalized_cost)
     # 2. Cálculo da Função de Assertividade Agregada A(m) 
     a_m = sum(normalized_assertiveness[m] * assertiveness_weights[m] for m in assertiveness_metrics)
 
