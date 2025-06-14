@@ -21,7 +21,7 @@ def warm_up_resnet(
     device: torch.device,
 ) -> None:
     """
-    Script warm_up para treinar e avaliar uma ResNet gerada aleatoriamente no CIFAR-10.
+    Script warm_up para treinar e avaliar uma ResNet gerada aleatoriamente no CIFAR-10
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = generate_resnet_architecture().to(device)
