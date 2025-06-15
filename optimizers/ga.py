@@ -186,7 +186,6 @@ class GA:
     def optimize(self):
         """
         Executa o processo de otimização do GA.
-        
         Returns:
             tuple: (melhor posição encontrada, melhor valor de fitness)
         """
