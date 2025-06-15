@@ -78,9 +78,15 @@ class AFSAGAPSO:
             afsa_params = {"visual": 0.5, "step": 0.1, "try_times": 5, "max_iter": 50}
         self.afsa_params = afsa_params
 
-        # Parâmetros padrão para o PSO
+        # Parâmetros padrão para o PSO (ajustados para mais diversidade)
         if pso_params is None:
-            pso_params = {"c1": 0.5, "c2": 0.3, "w": 0.9, "k": 2, "p": 2}
+            pso_params = {
+                "c1": 1.5,    # Aumentado para mais exploração individual
+                "c2": 1.5,    # Aumentado para mais exploração social
+                "w": 0.7,     # Reduzido um pouco para mais controle
+                "k": 2, 
+                "p": 2
+            }
         self.pso_params = pso_params
 
         # Parâmetros padrão para o GA
@@ -103,6 +109,11 @@ class AFSAGAPSO:
         # Métricas e limites
         self.metrics_history = []
         self.metrics_ranges = None
+        
+        # Cache para evitar re-avaliação de candidatos idênticos
+        self.candidates_cache = {}
+        self.cache_hits = 0
+        self.cache_misses = 0
 
     def _get_unified_param_bounds(self) -> Dict[str, Tuple[float, float]]:
         """
@@ -352,6 +363,7 @@ class AFSAGAPSO:
     def _warm_up_candidate(self, candidate_vector: np.ndarray) -> Dict[str, float]:
         """
         Realiza o warm-up de um candidato e retorna suas métricas.
+        Implementa cache para evitar re-avaliação de candidatos idênticos.
 
         Args:
             candidate_vector (np.ndarray): Vetor completo do candidato.
@@ -359,6 +371,18 @@ class AFSAGAPSO:
         Returns:
             Dict[str, float]: Métricas do candidato após o warm-up.
         """
+        # Cria uma chave única para o candidato baseada nos valores arredondados
+        # Isso evita problemas de precisão de ponto flutuante
+        candidate_key = tuple(np.round(candidate_vector, decimals=4))
+        
+        # Verifica se já avaliamos este candidato
+        if candidate_key in self.candidates_cache:
+            self.cache_hits += 1
+            print(f"🎯 Cache HIT! Candidato já avaliado (total hits: {self.cache_hits})")
+            return self.candidates_cache[candidate_key]
+        
+        self.cache_misses += 1
+        
         # Extrai arquitetura e parâmetros do vetor
         architecture_name, architecture_params = self._convert_to_architecture_params(
             candidate_vector
@@ -381,6 +405,11 @@ class AFSAGAPSO:
             device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             params=params,
         )
+
+        # Salva no cache
+        self.candidates_cache[candidate_key] = test_metrics
+        
+        print(f"💾 Resultado salvo no cache. Total cached: {len(self.candidates_cache)}")
 
         return test_metrics
 
@@ -577,6 +606,15 @@ class AFSAGAPSO:
         print("="*60)
         print(f"Melhor arquitetura: {best_architecture_name}")
         print(f"Score OACE final: {best_fitness:.6f}")
+        
+        # Estatísticas de cache
+        total_evaluations = self.cache_hits + self.cache_misses
+        cache_efficiency = (self.cache_hits / total_evaluations * 100) if total_evaluations > 0 else 0
+        print(f"\n📊 Estatísticas de Cache:")
+        print(f"   Total de avaliações: {total_evaluations}")
+        print(f"   Cache hits: {self.cache_hits} ({cache_efficiency:.1f}%)")
+        print(f"   Cache misses: {self.cache_misses}")
+        print(f"   Candidatos únicos avaliados: {len(self.candidates_cache)}")
 
         return best_architecture_name, best_architecture_params, self.best_fitness
 
