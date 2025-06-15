@@ -5,25 +5,24 @@ import os
 import json
 import uuid
 from datetime import datetime
-from cnn_architectue import generate_cnn_architecture, GenericCNN
+from models.CNN.cnn_architectue import generate_cnn_architecture, GenericCNN
 from utils.training_utils import train_model
 from utils.evaluate_utils import evaluate_model
 
 
 def warm_up_cnn(
-    model_params: dict,  # Parâmetros para gerar a CNN
     train_loader: torch.utils.data.DataLoader,
     val_loader: torch.utils.data.DataLoader,
     test_loader: torch.utils.data.DataLoader,
     classes: list,
     num_epochs: int,
     device: torch.device,
-) -> None:
+    params=None
+) -> dict:
     """
     Script warm_up para treinar e avaliar uma CNN genérica no CIFAR-10.
 
     Args:
-        model_params: Dicionário de parâmetros para a função generate_cnn_architecture.
         train_loader: DataLoader para o conjunto de treinamento.
         val_loader: DataLoader para o conjunto de validação.
         test_loader: DataLoader para o conjunto de teste.
@@ -37,7 +36,7 @@ def warm_up_cnn(
     # Gera uma nova instância da CNN com base nos parâmetros
     # Assume que generate_cnn_architecture está acessível.
     try:
-        model = generate_cnn_architecture(**model_params).to(device)
+        model = generate_cnn_architecture(params).to(device)
     except NameError:
         print(
             "Erro: A função 'generate_cnn_architecture' não está definida ou acessível."
@@ -72,7 +71,7 @@ def warm_up_cnn(
         "experiment_id": str(uuid.uuid4()),
         "timestamp": datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
         "model_architecture": "GenericCNN",
-        "model_parameters": model_params,
+        "model_parameters": params.model_dump() if hasattr(params, 'model_dump') else params.dict() if hasattr(params, 'dict') else params,
         "train_metrics": train_metrics,
         "test_metrics": test_metrics,
         "classes": classes,
@@ -90,6 +89,9 @@ def warm_up_cnn(
 
     print(f"Resultados salvos em: {results_file}")
     print("--- Warm-up da CNN Genérica Concluído ---")
+    
+    # Retorna as métricas de teste para uso no otimizador
+    return test_metrics
 
 
 def specialized_training_cnn(

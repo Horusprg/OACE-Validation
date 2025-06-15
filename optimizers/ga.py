@@ -1,6 +1,12 @@
 import numpy as np
 from deap import base, creator, tools, algorithms
 
+# Corrige a criação dos tipos do DEAP para evitar múltiplas criações
+if not hasattr(creator, "FitnessMin"):
+    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+if not hasattr(creator, "Individual"):
+    creator.create("Individual", np.ndarray, fitness=creator.FitnessMin)
+
 class GA:
     """
     Implementa o Algoritmo Genético (GA) usando a biblioteca DEAP para otimização global.
@@ -42,10 +48,6 @@ class GA:
         """
         Configura os componentes do DEAP (tipos, toolbox, etc.).
         """
-        # Criar tipos para fitness e indivíduo
-        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-        creator.create("Individual", np.ndarray, fitness=creator.FitnessMin)
-        
         # Configurar o toolbox
         self.toolbox = base.Toolbox()
         
@@ -77,6 +79,9 @@ class GA:
         Returns:
             tuple: Valor da função objetivo (DEAP requer uma tupla).
         """
+        # Converte para numpy array se necessário
+        if not isinstance(individual, np.ndarray):
+            individual = np.array(individual)
         return (np.sum(individual**2),)
 
     def _crossover_operation(self, ind1, ind2):
@@ -99,19 +104,26 @@ class GA:
         child1 = np.clip(child1, self.lower_bound, self.upper_bound)
         child2 = np.clip(child2, self.lower_bound, self.upper_bound)
         
+        # Converte para o tipo Individual
+        child1 = creator.Individual(child1)
+        child2 = creator.Individual(child2)
+        
         return child1, child2
 
-    def _mutation_operation(self, individual, indpb):
+    def _mutation_operation(self, individual, indpb=None):
         """
         Operação de mutação gaussiana (fórmulas 19 e 20).
         
         Args:
             individual (np.ndarray): Indivíduo a ser mutado.
-            indpb (float): Probabilidade de mutação por gene.
+            indpb (float, optional): Probabilidade de mutação por gene. Se None, usa a taxa adaptativa.
             
         Returns:
             tuple: Indivíduo mutado (DEAP requer uma tupla).
         """
+        if indpb is None:
+            indpb = self.initial_mutation_rate  # Usa a taxa inicial como padrão
+
         for i in range(len(individual)):
             if np.random.random() < indpb:
                 # Mutação gaussiana

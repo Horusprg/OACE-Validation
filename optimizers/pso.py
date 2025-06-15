@@ -93,22 +93,24 @@ class PSO:
 
     def optimize(self):
         """
-        Executa o processo de otimização usando PSO com inicialização pelo AFSA.
+        Executa o processo de otimização usando PSO.
+        
+        Se as posições iniciais já foram definidas externamente, usa essas posições.
+        Caso contrário, inicializa usando AFSA.
 
         Returns:
             tuple: (melhor posição encontrada, melhor valor de fitness)
         """
-        # Inicializa as partículas usando AFSA
-        initial_positions = self.initialize_with_afsa()
-        
-        # Configura as posições iniciais no otimizador
-        self.optimizer.swarm.position = initial_positions
+        # Se as posições não foram inicializadas externamente, usa AFSA
+        if self.optimizer.swarm.position is None:
+            initial_positions = self.initialize_with_afsa()
+            self.optimizer.swarm.position = initial_positions
         
         # Executa a otimização
         cost, pos = self.optimizer.optimize(
             self.fitness_function,
             iters=self.max_iter,
-            verbose=True
+            verbose=False  # Reduz verbosidade para melhor apresentação
         )
         
         return pos, cost

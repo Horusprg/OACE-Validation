@@ -81,12 +81,17 @@ def evaluate_model(model: nn.Module, test_loader: DataLoader, criterion: nn.Modu
         activation_memory = (128 * 3 * 32 * 32 * 4) / 1024**2  # Entrada em MB
         memory_used = param_memory + buffer_memory + activation_memory
     
-    # FLOPs
-    sample_input = torch.randn(1, 3, 32, 32).to(device)
+    # FLOPs - Usa batch_size=2 para evitar problemas com BatchNorm
+    sample_input = torch.randn(2, 3, 32, 32).to(device)
     if isinstance(model, (nn.Sequential)) or 'MLP' in model.__class__.__name__ or 'DBN' in model.__class__.__name__:
-        sample_input = sample_input.view(1, -1)
-    flops, _ = profile(model, inputs=(sample_input,), verbose=False)
-    gflops = flops / 1e9
+        sample_input = sample_input.view(2, -1)
+    
+    # Garante que o modelo está em modo de avaliação para o profiling
+    model.eval()
+    with torch.no_grad():
+        flops, _ = profile(model, inputs=(sample_input,), verbose=False)
+    # Converte para GFLOPs e divide por 2 para obter FLOPs por amostra
+    gflops = (flops / 1e9) / 2
     
     test_metrics = {
         # Métricas de assertividade

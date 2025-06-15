@@ -89,9 +89,44 @@ class AFSA:
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
         
-        # Inicializa a população de forma aleatória dentro dos limites
-        self.population = np.random.uniform(lower_bound, upper_bound, (population_size, n_dim))
+        # Inicializa a população de forma mais diversificada
+        self.population = self._initialize_diverse_population()
         self.fitness = np.array([self.fitness_function(fish) for fish in self.population])
+
+    def _initialize_diverse_population(self):
+        """
+        Inicializa a população de forma mais diversificada para garantir
+        melhor exploração do espaço de busca.
+        """
+        population = np.zeros((self.population_size, self.n_dim))
+        
+        # Primeira metade: distribuição uniforme aleatória
+        half_size = self.population_size // 2
+        population[:half_size] = np.random.uniform(
+            self.lower_bound, self.upper_bound, (half_size, self.n_dim)
+        )
+        
+        # Segunda metade: distribuição mais estruturada
+        remaining = self.population_size - half_size
+        for i in range(remaining):
+            fish = np.zeros(self.n_dim)
+            for j in range(self.n_dim):
+                # Alterna entre valores próximos aos extremos e valores centrais
+                if (i + j) % 3 == 0:
+                    # Valores próximos ao mínimo
+                    fish[j] = np.random.uniform(self.lower_bound, 
+                                              self.lower_bound + 0.3 * (self.upper_bound - self.lower_bound))
+                elif (i + j) % 3 == 1:
+                    # Valores próximos ao máximo
+                    fish[j] = np.random.uniform(self.lower_bound + 0.7 * (self.upper_bound - self.lower_bound), 
+                                              self.upper_bound)
+                else:
+                    # Valores centrais
+                    fish[j] = np.random.uniform(self.lower_bound + 0.3 * (self.upper_bound - self.lower_bound),
+                                              self.lower_bound + 0.7 * (self.upper_bound - self.lower_bound))
+            population[half_size + i] = fish
+        
+        return population
 
     def fitness_function(self, position):
         """

@@ -1,4 +1,5 @@
-import json
+import numpy as np
+import pandas as pd
 from typing import Dict, Union
 
 def calculate_oace_score(
@@ -11,73 +12,54 @@ def calculate_oace_score(
     cost_min_max: Dict[str, Dict[str, Union[int, float]]]
 ) -> float:
     """
-    Calcula o score OACE para uma arquitetura de modelo de ML.
+    Calcula o score OACE para uma arquitetura de modelo de ML de forma otimizada usando pandas.
 
     Args:
-        assertiveness_metrics (Dict): Dicionário com os valores brutos das métricas
-            de assertividade (ex: {'accuracy': 0.85, 'precision': 0.88}).
-        cost_metrics (Dict): Dicionário com os valores brutos das métricas de custo
-            (ex: {'MTP': 25000000, 'TPI': 0.05}).
-        lambda_param (float): O parâmetro λ (lambda), que controla o peso entre
-            assertividade e custo. Varia de 0 a 1.
-        assertiveness_weights (Dict): Pesos para cada métrica de assertividade,
-            geralmente definidos pelo método AHP.
-        cost_weights (Dict): Pesos para cada métrica de custo, definidos pelo AHP.
-        assertiveness_min_max (Dict): Dicionário contendo os valores 'min' e 'max'
-            para cada métrica de assertividade, necessários para a normalização.
-        cost_min_max (Dict): Dicionário contendo os valores 'min' e 'max'
-            para cada métrica de custo, necessários para a normalização.
+        assertiveness_metrics (Dict): Valores brutos das métricas de assertividade.
+        cost_metrics (Dict): Valores brutos das métricas de custo.
+        lambda_param (float): Parâmetro de trade-off λ (entre 0 e 1).
+        assertiveness_weights (Dict): Pesos para as métricas de assertividade.
+        cost_weights (Dict): Pesos para as métricas de custo.
+        assertiveness_min_max (Dict): Valores 'min' e 'max' para normalização da assertividade.
+        cost_min_max (Dict): Valores 'min' e 'max' para normalização do custo.
 
     Returns:
-        float: O score final Sϕ(m), um valor entre 0 e 1, onde valores mais
-               altos indicam uma melhor avaliação geral da arquitetura.
+        float: O score final Sϕ(m) entre 0 e 1.
     """
     if not 0.0 <= lambda_param <= 1.0:
         raise ValueError("O parâmetro lambda_param deve estar no intervalo [0, 1].")
 
-    # 1. Normalização das Métricas ---
-    print("\nNormalizando métricas de assertividade...\n")
-    normalized_assertiveness = {}
-    for metric, value in assertiveness_metrics.items():
-        print("metric:", metric)
-        print("value:", value)
-        min_val = assertiveness_min_max[metric]['min']
-        max_val = assertiveness_min_max[metric]['max']
-        if max_val == min_val:
-            normalized_assertiveness[metric] = 1.0 if value >= min_val else 0.0
-        else:
-            normalized_assertiveness[metric] = (value - min_val) / (max_val - min_val)
-        print("normalized_assertiveness[metric]:", normalized_assertiveness[metric])
+    # --- 1. Preparação dos Dados com Pandas ---
+    # Converte os dicionários em pandas Series para facilitar os cálculos vetorizados.
+    s_metrics = pd.Series(assertiveness_metrics)
+    s_weights = pd.Series(assertiveness_weights)
+    s_min = pd.Series({k: v['min'] for k, v in assertiveness_min_max.items()})
+    s_max = pd.Series({k: v['max'] for k, v in assertiveness_min_max.items()})
 
-    print("\nNormalizando métricas de custo...\n")
-    normalized_cost = {}
-    for metric, value in cost_metrics.items():
-        print("metric:", metric)
-        print("value:", value)
-        min_val = cost_min_max[metric]['min']
-        max_val = cost_min_max[metric]['max']
-        if max_val == min_val:
-            normalized_cost[metric] = 0.0
-        else:
-            print("max_val:", max_val)
-            print("min_val:", min_val)
-            normalized_cost[metric] = (value - min_val) / (max_val - min_val)
-            
-            
-        print("normalized_cost[metric]:", normalized_cost[metric])
-        
-    print("normalized_assertiveness:", normalized_assertiveness)
-    print("normalized_cost:", normalized_cost)
-    # 2. Cálculo da Função de Assertividade Agregada A(m) 
-    a_m = sum(normalized_assertiveness[m] * assertiveness_weights[m] for m in assertiveness_metrics)
+    c_metrics = pd.Series(cost_metrics)
+    c_weights = pd.Series(cost_weights)
+    c_min = pd.Series({k: v['min'] for k, v in cost_min_max.items()})
+    c_max = pd.Series({k: v['max'] for k, v in cost_min_max.items()})
 
-    # 3. Cálculo da Função de Custo Agregada C(m) ---
-    c_m_normalized = sum((1.0 - normalized_cost[m]) * cost_weights[m] for m in cost_metrics)
+    # --- 2. Normalização Vetorizada ---
+    # Evita divisão por zero. Onde max == min, a normalização é 1 se o valor for >= min, senão 0.
+    s_range = s_max - s_min
+    c_range = c_max - c_min
+
+    # A normalização é feita de uma só vez para todas as métricas.
+    norm_s = np.where(s_range == 0, np.where(s_metrics >= s_min, 1.0, 0.0), (s_metrics - s_min) / s_range)
+    norm_c = np.where(c_range == 0, 0.0, (c_metrics - c_min) / c_range)
+
+    # --- 3. Cálculo Agregado Vetorizado ---
+    # Multiplicação elemento a elemento e soma, tudo em uma única operação.
+    a_m = np.sum(norm_s * s_weights)
+    c_m_normalized = np.sum((1.0 - norm_c) * c_weights)
 
     # --- 4. Cálculo do Score Final Sϕ(m) ---
     s_phi_score = (lambda_param * a_m) + ((1 - lambda_param) * c_m_normalized)
 
-    return s_phi_score, a_m, c_m_normalized
+    return s_phi_score
+
 
 # --- Exemplo de Uso ---
 if __name__ == '__main__':
@@ -113,22 +95,18 @@ if __name__ == '__main__':
 
     # Cenário 1: Priorizando Assertividade (λ = 0.5) 
     lambda_assertiveness = 0.5
-    score_robust_assertiveness, a_m, c_m_normalized = calculate_oace_score(
+    score_robust_assertiveness = calculate_oace_score(
         robust_model_assertiveness, robust_model_cost, lambda_assertiveness,
         assertiveness_weights, cost_weights, assertiveness_ranges, cost_ranges
     )
-    score_light_assertiveness, a_m_light, c_m_normalized_light = calculate_oace_score(
+    score_light_assertiveness = calculate_oace_score(
         light_model_assertiveness, light_model_cost, lambda_assertiveness,
         assertiveness_weights, cost_weights, assertiveness_ranges, cost_ranges
     )
     
     print(f"Modelo Robusto:")
-    print(f"A(m) = {a_m}")
-    print(f"C(m) = {c_m_normalized}")
     print(f"Sϕ(m) = {score_robust_assertiveness}")
     
     print(f"Modelo Leve:")
-    print(f"A(m) = {a_m_light}")
-    print(f"C(m) = {c_m_normalized_light}")
     print(f"Sϕ(m) = {score_light_assertiveness}")
     

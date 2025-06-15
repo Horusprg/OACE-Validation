@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from typing import List, Union
 import random
+from pydantic import BaseModel
 
 
 class CNNBlock(nn.Module):
@@ -208,19 +209,23 @@ class GenericCNN(nn.Module):
         # Precisamos de um forward pass temporário para determinar o número de features após as convoluções
         # Este é um truque comum para determinar o tamanho de entrada para as camadas FC dinamicamente
         with torch.no_grad():
+            # Coloca o modelo em modo de avaliação para evitar problemas com BatchNorm
+            self.features.eval()
             dummy_input = torch.randn(
-                1, in_channels, 32, 32
-            )  # Assumindo 32x32 para um tamanho inicial
+                2, in_channels, 32, 32
+            )  # Usando batch_size=2 para evitar problemas com BatchNorm
             dummy_output = self.features(dummy_input)
             dummy_output = self.avgpool(dummy_output)
             flattened_features = dummy_output.view(dummy_output.size(0), -1).shape[1]
+            # Retorna ao modo de treinamento
+            self.features.train()
 
         prev_fc_size = flattened_features
         if fc_layers:
             for fc_size in fc_layers:
                 fc_layers_list.append(nn.Linear(prev_fc_size, fc_size))
                 if batch_norm:  # Opcional: Batch norm em camadas densas
-                    fc_layers_list.append(nn.BatchNorm1d(fc_size))
+                    fc_layers_list.append(nn.BatchNorm1d(fc_size, track_running_stats=True))
                 fc_layers_list.append(activation_fn())
                 if dropout_rate > 0:
                     fc_layers_list.append(nn.Dropout(dropout_rate))
@@ -260,229 +265,122 @@ class GenericCNN(nn.Module):
         return self.output_layer(x)
 
 
-def generate_cnn_architecture(
-    in_channels: int = 3,
-    num_classes: int = 10,
-    num_conv_blocks: int = 3,
-    min_channels_per_block: int = 32,
-    max_channels_per_block: int = 256,
-    kernel_size_choice: Union[int, List[int], str] = "random",
-    stride_choice: Union[int, List[int], str] = 1,
-    padding_choice: Union[int, List[int], str] = "same",
-    pooling_type_choice: str = "max",
-    pooling_kernel_size: int = 2,
-    pooling_stride: int = 2,
-    activation_function_choice: str = "relu",
-    dropout_rate: float = 0.0,
-    batch_norm: bool = True,
-    num_fc_layers: int = 1,
-    min_fc_neurons: int = 64,
-    max_fc_neurons: int = 512,
-) -> GenericCNN:
-    """
-    Gera uma instância de uma CNN genérica com configuração randomizada.
+class CNNParams(BaseModel):
+    num_classes: int = 10
+    min_channels: int = 32
+    max_channels: int = 256
+    dropout_rate: float = 0.0
+    num_layers: int = 3
+    batch_norm: bool = True
 
+
+def generate_cnn_architecture(params: CNNParams) -> GenericCNN:
+    """
+    Gera uma instância de CNN com parâmetros simplificados.
+    
     Args:
-        in_channels: Número de canais de entrada (padrão: 3).
-        num_classes: Número de classes de saída (padrão: 10).
-        num_conv_blocks: Número de blocos convolucionais na rede (padrão: 3).
-        min_channels_per_block: Mínimo de canais de saída por bloco convolucional.
-        max_channels_per_block: Máximo de canais de saída por bloco convolucional.
-        kernel_size_choice: Escolha para o tamanho do kernel ('random', 'fixed', ou uma lista).
-                            'random' escolhe entre 3, 5, 7. 'fixed' usa 3.
-        stride_choice: Escolha para o stride ('random', 'fixed', ou uma lista).
-                       'random' escolhe entre 1, 2. 'fixed' usa 1.
-        padding_choice: Escolha para o padding ('same', 'valid', ou um int/lista).
-                        'same' calcula padding para manter o tamanho. 'valid' usa 0.
-        pooling_type_choice: Tipo de pooling ('max', 'avg', 'none'; padrão: 'max').
-        pooling_kernel_size: Tamanho do kernel para as camadas de pooling (padrão: 2).
-        pooling_stride: Stride para as camadas de pooling (padrão: 2).
-        activation_function_choice: Função de ativação ('relu', 'leaky_relu', 'elu', 'selu', 'gelu'; padrão: 'relu').
-        dropout_rate: Taxa de dropout (0-1, padrão: 0).
-        batch_norm: Se True, aplica normalização em lote (padrão: True).
-        num_fc_layers: Número de camadas densas após as convoluções (padrão: 1).
-        min_fc_neurons: Mínimo de neurônios por camada densa.
-        max_fc_neurons: Máximo de neurônios por camada densa.
-
-    Returns:
-        GenericCNN: Instância configurada da CNN genérica.
-
-    Raises:
-        ValueError: Se dropout_rate, intervalos ou escolhas de parâmetros forem inválidos.
+        params: Parâmetros da arquitetura contendo:
+            - num_classes: Número de classes de saída
+            - min_channels: Número mínimo de canais
+            - max_channels: Número máximo de canais
+            - dropout_rate: Taxa de dropout
+            - num_layers: Número de camadas convolucionais
+            - batch_norm: Se deve usar batch normalization
     """
-    if not (0 <= dropout_rate <= 1):
-        raise ValueError("dropout_rate deve estar entre 0 e 1.")
-    if (
-        min_channels_per_block > max_channels_per_block
-        or min_fc_neurons > max_fc_neurons
-    ):
-        raise ValueError("Intervalos inválidos para canais ou neurônios FC.")
+    # Calcula o número de canais para cada camada
+    channels = []
+    step = (params.max_channels - params.min_channels) / (params.num_layers - 1)
+    for i in range(params.num_layers):
+        channels.append(int(params.min_channels + step * i))
 
-    activation_map = {
-        "relu": nn.ReLU,
-        "leaky_relu": nn.LeakyReLU,
-        "elu": nn.ELU,
-        "selu": nn.SELU,
-        "gelu": nn.GELU,
-    }
-    activation_fn = activation_map.get(activation_function_choice.lower(), nn.ReLU)
-
-    block_channels = [
-        random.randint(min_channels_per_block, max_channels_per_block)
-        for _ in range(num_conv_blocks)
-    ]
-
-    # Configuração de kernel_sizes
-    if isinstance(kernel_size_choice, str):
-        if kernel_size_choice.lower() == "random":
-            kernel_sizes = [random.choice([3, 5, 7]) for _ in range(num_conv_blocks)]
-        elif kernel_size_choice.lower() == "fixed":
-            kernel_sizes = [3] * num_conv_blocks
-        else:
-            raise ValueError(
-                "kernel_size_choice inválido. Use 'random', 'fixed' ou uma lista de ints."
-            )
-    else:  # Assume que é uma lista de ints ou um int
-        kernel_sizes = kernel_size_choice
-
-    # Configuração de strides
-    if isinstance(stride_choice, str):
-        if stride_choice.lower() == "random":
-            strides = [random.choice([1, 2]) for _ in range(num_conv_blocks)]
-        elif stride_choice.lower() == "fixed":
-            strides = [1] * num_conv_blocks
-        else:
-            raise ValueError(
-                "stride_choice inválido. Use 'random', 'fixed' ou uma lista de ints."
-            )
-    else:  # Assume que é uma lista de ints ou um int
-        strides = stride_choice
-
-    # Configuração de paddings
-    paddings = []
-    if isinstance(padding_choice, str):
-        if padding_choice.lower() == "same":
-            # Para 'same' padding, padding = (kernel_size - 1) // 2
-            paddings = [(k - 1) // 2 for k in kernel_sizes]
-        elif padding_choice.lower() == "valid":
-            paddings = [0] * num_conv_blocks
-        else:
-            raise ValueError(
-                "padding_choice inválido. Use 'same', 'valid' ou um int/lista de ints."
-            )
-    else:  # Assume que é uma lista de ints ou um int
-        paddings = padding_choice
-
-    # Configuração das camadas Fully Connected
-    fc_layers = []
-    for _ in range(num_fc_layers):
-        fc_layers.append(random.randint(min_fc_neurons, max_fc_neurons))
-
-    print(
-        f"CNN Gerada: Canais={block_channels}, Kernels={kernel_sizes}, Strides={strides}, Paddings={paddings}, "
-        f"Pooling={pooling_type_choice}, Ativação={activation_function_choice}, Dropout={dropout_rate}, "
-        f"BatchNorm={batch_norm}, FC Layers={fc_layers}"
-    )
-
+    print(f"CNN: channels={channels}, dropout={params.dropout_rate}, num_layers={params.num_layers}")
+    
+    # Usa uma estratégia inteligente de pooling baseada no número de camadas
+    # Para evitar que a resolução fique muito pequena
+    if params.num_layers <= 4:
+        # Poucas camadas: pode usar pooling normal
+        pooling_type = "max"
+    else:
+        # Muitas camadas: reduz o pooling para evitar resolução muito pequena
+        # Usa pooling apenas a cada 2-3 camadas ou sem pooling
+        pooling_type = None  # Sem pooling, usa stride nas convoluções
+    
+    # Ajusta strides baseado no número de camadas
+    if params.num_layers <= 4:
+        strides = 1  # Stride normal com pooling
+    else:
+        # Para muitas camadas, usa stride 2 em algumas camadas para reduzir resolução
+        strides = [2 if i in [1, 3, 5] else 1 for i in range(params.num_layers)]
+    
     return GenericCNN(
-        in_channels=in_channels,
-        num_classes=num_classes,
-        block_channels=block_channels,
-        kernel_sizes=kernel_sizes,
+        in_channels=3,
+        num_classes=params.num_classes,
+        block_channels=channels,
+        kernel_sizes=3,
         strides=strides,
-        paddings=paddings,
-        pooling_type=pooling_type_choice,
-        pooling_kernel_size=pooling_kernel_size,
-        pooling_stride=pooling_stride,
-        activation_fn=activation_fn,
-        batch_norm=batch_norm,
-        dropout_rate=dropout_rate,
-        fc_layers=fc_layers,
+        paddings=1,
+        pooling_type=pooling_type,
+        pooling_kernel_size=2,
+        pooling_stride=2,
+        activation_fn=nn.ReLU,
+        batch_norm=params.batch_norm,
+        dropout_rate=params.dropout_rate,
+        fc_layers=[128],
     )
 
 
 if __name__ == "__main__":
     print("--- Testando a arquitetura CNN Genérica ---")
 
-    # Teste 1: CNN básica com 3 blocos convolucionais
+    # Teste 1: CNN básica com configuração padrão
     print("\n--- Teste 1: CNN Básica ---")
     try:
-        model1 = generate_cnn_architecture(
-            in_channels=3,
-            num_classes=10,
-            num_conv_blocks=3,
-            min_channels_per_block=16,
-            max_channels_per_block=32,
-            kernel_size_choice=3,  # Kernel size fixo
-            stride_choice=1,  # Stride fixo
-            padding_choice="same",  # Padding 'same'
-            pooling_type_choice="max",
-            dropout_rate=0.1,
-            batch_norm=True,
-            num_fc_layers=1,
-            min_fc_neurons=128,
-            max_fc_neurons=128,
-        )
-        x1 = torch.randn(1, 3, 32, 32)
+        params_padrao = CNNParams()
+        model1 = generate_cnn_architecture(params_padrao)
+        x1 = torch.randn(2, 3, 32, 32)  # batch_size=2
         output1 = model1(x1)
         print(f"Saída CNN Básica: {output1.shape}")
-        assert output1.shape == torch.Size(
-            [1, 10]
-        ), "Erro no formato de saída da CNN Básica."
+        assert output1.shape == torch.Size([2, 10]), "Erro no formato de saída da CNN Básica."
         print("CNN Básica testada com sucesso.")
     except Exception as e:
         print(f"Erro ao testar CNN Básica: {e}")
 
-    # Teste 2: CNN com mais blocos, diferentes tamanhos de kernel e sem pooling
-    print("\n--- Teste 2: CNN Complexa (sem pooling, kernels variados) ---")
+    # Teste 2: CNN com configuração personalizada
+    print("\n--- Teste 2: CNN Complexa ---")
     try:
-        model2 = generate_cnn_architecture(
-            in_channels=3,
+        params_custom = CNNParams(
             num_classes=100,
-            num_conv_blocks=5,
-            min_channels_per_block=64,
-            max_channels_per_block=128,
-            kernel_size_choice="random",  # Kernel size aleatório
-            stride_choice=1,
-            padding_choice="same",
-            pooling_type_choice="none",  # Sem pooling
-            activation_function_choice="leaky_relu",
+            min_channels=64,
+            max_channels=512,
             dropout_rate=0.2,
-            batch_norm=True,
-            num_fc_layers=2,
-            min_fc_neurons=256,
-            max_fc_neurons=512,
+            num_layers=5,
+            batch_norm=True
         )
-        x2 = torch.randn(1, 3, 64, 64)  # Entrada maior para rede mais profunda
+        model2 = generate_cnn_architecture(params_custom)
+        x2 = torch.randn(2, 3, 64, 64)  # batch_size=2
         output2 = model2(x2)
         print(f"Saída CNN Complexa: {output2.shape}")
-        assert output2.shape == torch.Size(
-            [1, 100]
-        ), "Erro no formato de saída da CNN Complexa."
+        assert output2.shape == torch.Size([2, 100]), "Erro no formato de saída da CNN Complexa."
         print("CNN Complexa testada com sucesso.")
     except Exception as e:
         print(f"Erro ao testar CNN Complexa: {e}")
 
-    # Teste 3: CNN com AvgPooling e menos camadas FC
-    print("\n--- Teste 3: CNN com AvgPooling e FC mínima ---")
+    # Teste 3: CNN com configuração mínima
+    print("\n--- Teste 3: CNN Mínima ---")
     try:
-        model3 = generate_cnn_architecture(
-            in_channels=3,
+        params_min = CNNParams(
             num_classes=5,
-            num_conv_blocks=2,
-            min_channels_per_block=8,
-            max_channels_per_block=16,
-            pooling_type_choice="avg",
+            min_channels=8,
+            max_channels=16,
             dropout_rate=0.0,
-            batch_norm=False,  # Sem Batch Norm
-            num_fc_layers=0,  # Nenhuma camada FC extra
+            num_layers=2,
+            batch_norm=False
         )
-        x3 = torch.randn(1, 3, 28, 28)
+        model3 = generate_cnn_architecture(params_min)
+        x3 = torch.randn(2, 3, 28, 28)  # batch_size=2
         output3 = model3(x3)
-        print(f"Saída CNN AvgPooling: {output3.shape}")
-        assert output3.shape == torch.Size(
-            [1, 5]
-        ), "Erro no formato de saída da CNN AvgPooling."
-        print("CNN AvgPooling testada com sucesso.")
+        print(f"Saída CNN Mínima: {output3.shape}")
+        assert output3.shape == torch.Size([2, 5]), "Erro no formato de saída da CNN Mínima."
+        print("CNN Mínima testada com sucesso.")
     except Exception as e:
-        print(f"Erro ao testar CNN AvgPooling: {e}")
+        print(f"Erro ao testar CNN Mínima: {e}")

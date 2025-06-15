@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-from torch.utils.data import DataLoader
 import torchvision
 from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
