@@ -401,12 +401,8 @@ class AFSAGAPSO:
         # Salva no histórico
         self.metrics_history.extend(candidates_metrics)
 
-        # Calcula os limites para cada métrica
+        # Calcula os limites para cada métrica (excluindo loss por comportamento inverso)
         assertiveness_ranges = {
-            "loss": {
-                "min": min(m["loss"] for m in all_metrics),
-                "max": max(m["loss"] for m in all_metrics),
-            },
             "top1_acc": {
                 "min": min(m["top1_acc"] for m in all_metrics),
                 "max": max(m["top1_acc"] for m in all_metrics),
@@ -694,16 +690,16 @@ class AFSAGAPSO:
             metrics: Dicionário com as métricas
             
         Returns:
-            float: Score OACE
+            float: Score OACE (entre 0 e 1)
         """
-        # Pesos definidos pelo AHP - CORRIGIDO: alinhado com as métricas disponíveis
+        # CORRIGIDO: Usa apenas métricas positivas para assertividade (não inclui loss)
+        # Loss tem comportamento inverso e pode causar problemas na normalização
         assertiveness_weights = {
-            "loss": 0.1,
-            "top1_acc": 0.25,
-            "top5_acc": 0.1,
+            "top1_acc": 0.4,        # Peso maior para acurácia principal
+            "top5_acc": 0.15,       
             "precision_macro": 0.25,
             "recall_macro": 0.15,
-            "f1_macro": 0.15,
+            "f1_macro": 0.05,       # Peso menor pois f1 é derivado de precision/recall
         }
         cost_weights = {
             "total_params": 0.25,
@@ -712,10 +708,12 @@ class AFSAGAPSO:
             "gflops": 0.25,
         }
 
-        # Calcula o score OACE usando os limites calculados
+        # CORRIGIDO: Atualiza os limites dinamicamente para incluir novos valores
+        self._update_metrics_ranges(metrics)
+
+        # Calcula o score OACE usando os limites atualizados
         score = calculate_oace_score(
             assertiveness_metrics={
-                "loss": metrics["loss"],
                 "top1_acc": metrics["top1_acc"], 
                 "top5_acc": metrics["top5_acc"],
                 "precision_macro": metrics["precision_macro"],
@@ -735,7 +733,59 @@ class AFSAGAPSO:
             cost_min_max=self.metrics_ranges["cost"],
         )
         
+        # VALIDAÇÃO: Garante que o score está no range correto
+        if not (0.0 <= score <= 1.0):
+            print(f"⚠️  AVISO: Score OACE fora do range [0,1]: {score:.6f}")
+            print(f"   Métricas de assertividade:")
+            for key in ["top1_acc", "top5_acc", "precision_macro", "recall_macro", "f1_macro"]:
+                if key in metrics:
+                    print(f"     {key}: {metrics[key]:.4f}")
+            print(f"   Métricas de custo:")
+            for key in ["total_params", "avg_inference_time", "memory_used_mb", "gflops"]:
+                if key in metrics:
+                    print(f"     {key}: {metrics[key]:.4f}")
+            print(f"   Limites de assertividade: {self.metrics_ranges['assertiveness']}")
+            print(f"   Limites de custo: {self.metrics_ranges['cost']}")
+            # Clipa o valor para o range válido
+            score = max(0.0, min(1.0, score))
+            print(f"   Score corrigido: {score:.6f}")
+        
         return score
+
+    def _update_metrics_ranges(self, new_metrics):
+        """
+        Atualiza os limites min/max das métricas dinamicamente para incluir novos valores.
+        Isso evita que candidatos fiquem fora do range e gerem scores negativos.
+        
+        Args:
+            new_metrics: Dicionário com novas métricas a serem incluídas nos limites
+        """
+        if self.metrics_ranges is None:
+            return
+            
+        # Atualiza limites de assertividade
+        assertiveness_metrics = ["top1_acc", "top5_acc", "precision_macro", "recall_macro", "f1_macro"]
+        for metric in assertiveness_metrics:
+            if metric in new_metrics and metric in self.metrics_ranges["assertiveness"]:
+                current_min = self.metrics_ranges["assertiveness"][metric]["min"]
+                current_max = self.metrics_ranges["assertiveness"][metric]["max"]
+                new_value = new_metrics[metric]
+                
+                # Atualiza min/max se necessário
+                self.metrics_ranges["assertiveness"][metric]["min"] = min(current_min, new_value)
+                self.metrics_ranges["assertiveness"][metric]["max"] = max(current_max, new_value)
+        
+        # Atualiza limites de custo
+        cost_metrics = ["total_params", "avg_inference_time", "memory_used_mb", "gflops"]
+        for metric in cost_metrics:
+            if metric in new_metrics and metric in self.metrics_ranges["cost"]:
+                current_min = self.metrics_ranges["cost"][metric]["min"]
+                current_max = self.metrics_ranges["cost"][metric]["max"]
+                new_value = new_metrics[metric]
+                
+                # Atualiza min/max se necessário
+                self.metrics_ranges["cost"][metric]["min"] = min(current_min, new_value)
+                self.metrics_ranges["cost"][metric]["max"] = max(current_max, new_value)
 
 
 # Exemplo de uso:
