@@ -35,49 +35,42 @@ def calculate_oace_score(
     s_weights = pd.Series(assertiveness_weights)
     s_min = pd.Series({k: v['min'] for k, v in assertiveness_min_max.items()})
     s_max = pd.Series({k: v['max'] for k, v in assertiveness_min_max.items()})
-    
-    print(s_metrics)
-    print(s_weights)
-    print(s_min)
-    print(s_max)
 
     c_metrics = pd.Series(cost_metrics)
     c_weights = pd.Series(cost_weights)
     c_min = pd.Series({k: v['min'] for k, v in cost_min_max.items()})
     c_max = pd.Series({k: v['max'] for k, v in cost_min_max.items()})
 
-    print(c_metrics)
-    print(c_weights)
-    print(c_min)
-    print(c_max)
+    print("\nAvaliação OACE:\n")
+    print("s_min: ", s_min)
+    print("s_max: ", s_max)
+    print("c_min: ", c_min)
+    print("c_max: ", c_max)
 
     # --- 2. Normalização Vetorizada ---
     # Evita divisão por zero. Onde max == min, a normalização é 1 se o valor for >= min, senão 0.
     s_range = s_max - s_min
     c_range = c_max - c_min
-    
-    print(s_range)
-    print(c_range)
 
     # A normalização é feita de uma só vez para todas as métricas.
     norm_s = np.where(s_range == 0, np.where(s_metrics >= s_min, 1.0, 0.0), (s_metrics - s_min) / s_range)
     norm_c = np.where(c_range == 0, 0.0, (c_metrics - c_min) / c_range)
     
-    print(norm_s)
-    print(norm_c)
+    print("norm_s: ", norm_s)
+    print("norm_c: ", norm_c)
 
     # --- 3. Cálculo Agregado Vetorizado ---
     # Multiplicação elemento a elemento e soma, tudo em uma única operação.
     a_m = np.sum(norm_s * s_weights)
     c_m_normalized = np.sum((1.0 - norm_c) * c_weights)
 
-    print(a_m)
-    print(c_m_normalized)
+    print("a_m: ", a_m)
+    print("c_m_normalized: ", c_m_normalized)
 
     # --- 4. Cálculo do Score Final Sϕ(m) ---
     s_phi_score = (lambda_param * a_m) + ((1 - lambda_param) * c_m_normalized)
 
-    print(s_phi_score)
+    print("s_phi_score: ", s_phi_score)
 
     return s_phi_score
 

@@ -71,6 +71,7 @@ def evaluate_model(model: nn.Module, test_loader: DataLoader, criterion: nn.Modu
     avg_inference_time = np.mean(inference_times)
     
     # Memória usada
+    """
     if device.type == 'cuda':
         memory_used = torch.cuda.max_memory_allocated(device) / 1024**2  # Em MB
     else:
@@ -80,6 +81,9 @@ def evaluate_model(model: nn.Module, test_loader: DataLoader, criterion: nn.Modu
         # Aproximação para ativações (assume batch_size=128, imagem 32x32)
         activation_memory = (128 * 3 * 32 * 32 * 4) / 1024**2  # Entrada em MB
         memory_used = param_memory + buffer_memory + activation_memory
+    """
+        
+    memory_used = sum(p.element_size() * p.numel() for p in model.parameters()) / (1024 ** 2)
     
     # FLOPs - Usa batch_size=2 para evitar problemas com BatchNorm
     sample_input = torch.randn(2, 3, 32, 32).to(device)

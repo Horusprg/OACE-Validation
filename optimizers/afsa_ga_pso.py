@@ -13,7 +13,6 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.data_loader import get_cifar10_dataloaders
 from utils.optimization_logger import OptimizationLogger
-from utils.log_analyzer import OptimizationLogAnalyzer
 
 class AFSAGAPSO:
     """
@@ -60,6 +59,8 @@ class AFSAGAPSO:
         else:
             self.architectures_to_optimize = architectures_to_optimize
 
+        print(f"📋 Arquiteturas para otimização: {self.architectures_to_optimize}")
+
         # Todas as arquiteturas e informações
         self.all_architectures = {
             name: archictectures[name] for name in self.architectures_to_optimize
@@ -78,6 +79,9 @@ class AFSAGAPSO:
         self.param_bounds = self._get_unified_param_bounds()
         # +1 dimensão para escolha da arquitetura (architecture_index)
         self.n_dim = len(self.param_bounds) + 1
+        
+        print(f"🎯 Dimensões do espaço de busca: {self.n_dim}")
+        print(f"📏 Limites dos parâmetros: {self.param_bounds}")
         
         # Parâmetros padrão para o AFSA
         if afsa_params is None:
@@ -356,15 +360,20 @@ class AFSAGAPSO:
                             similarity_penalty += (0.3 - distance) * 5
 
             # Score final: maximiza diversidade e minimiza similaridade
-            return diversity_score - similarity_penalty
+            final_score = diversity_score - similarity_penalty
 
+            return final_score
+
+        print(f"\n🐟 Configurando função de fitness do AFSA (baseada em diversidade)")
         afsa.fitness_function = afsa_fitness
 
         # Executa o AFSA para gerar candidatos
+        print(f"\n🐟 Executando AFSA por {self.afsa_params['max_iter']} iterações...")
         candidates = afsa.optimize()
 
-                # Exibe resumo da diversidade dos candidatos gerados
-        print(f"  • {len(candidates)} candidatos gerados com diversidade de arquiteturas")
+        # Exibe resumo da diversidade dos candidatos gerados
+        print(f"\n✅ AFSA concluído!")
+        print(f"   • {len(candidates)} candidatos gerados com diversidade de arquiteturas")
         architectures_used = set()
         for candidate in candidates:
             architecture_name, _ = self._convert_to_architecture_params(candidate)
@@ -373,7 +382,8 @@ class AFSAGAPSO:
         print(f"  • Parâmetros otimizados: {len(self.param_bounds)} parâmetros")
 
         # Realiza o warm-up dos candidatos para obter suas métricas
-        print("  • Executando warm-up dos candidatos para avaliação...")
+        print(f"\n🔥 WARM-UP: Treinando e avaliando candidatos AFSA")
+        print("-" * 50)
         candidates_metrics = []
         for candidate in tqdm(candidates, desc="Warm-up"):
             metrics = self._warm_up_candidate(candidate)
@@ -408,6 +418,9 @@ class AFSAGAPSO:
         architecture_name, architecture_params = self._convert_to_architecture_params(
             candidate_vector
         )
+
+        print(f"   🏗️  Arquitetura: {architecture_name}")
+        print(f"   ⚙️  Parâmetros: {architecture_params}")
 
         # Obtém informações da arquitetura
         architecture_info = self.all_architectures[architecture_name]
@@ -608,12 +621,17 @@ class AFSAGAPSO:
             print("\n→ Gerando população inicial diversificada com AFSA...")
             initial_population, candidates_metrics = self._generate_initial_candidates()
             
+            print("initial_population: ", initial_population)
+            print("candidates_metrics: ", candidates_metrics)
+
             # Calcula limites das métricas usando as métricas já calculadas
             self._calculate_metrics_ranges(candidates_metrics)
             
             # Executa PSO com população inicial do AFSA
             print("\n→ Executando PSO com população inicial diversificada...")
             phase1_solutions = self._execute_afsa_pso_phase(initial_population, candidates_metrics)
+            
+            print("\nphase1_solutions: ", phase1_solutions)
             
             print(f"\n✓ Fase 1 concluída! Geradas {len(phase1_solutions)} soluções de otimização inicial.")
 
@@ -625,6 +643,9 @@ class AFSAGAPSO:
             # Usa as melhores soluções da Fase 1 como população inicial para GA-PSO
             print("\n→ Refinando soluções com GA-PSO usando operadores genéticos...")
             best_position, best_fitness = self._execute_ga_pso_phase(phase1_solutions)
+            
+            print("best_position: ", best_position)
+            print("best_fitness: ", best_fitness)
             
             print(f"\n✓ Fase 2 concluída! Solução de otimização global encontrada.")
 
@@ -639,12 +660,29 @@ class AFSAGAPSO:
 
             # Obtém as métricas finais
             final_metrics = self._warm_up_candidate(best_position)
+            
+            print(f"\nfinal_metrics da melhor solução: {final_metrics}\n")
 
             print("\n" + "="*60)
-            print("OTIMIZAÇÃO HÍBRIDA AFSA-GA-PSO CONCLUÍDA")
+            print("🎉 OTIMIZAÇÃO HÍBRIDA AFSA-GA-PSO CONCLUÍDA")
             print("="*60)
-            print(f"Melhor arquitetura: {best_architecture_name}")
-            print(f"Score OACE final: {best_fitness:.6f}")
+            print(f"🏆 RESULTADO FINAL:")
+            print(f"   • Melhor arquitetura: {best_architecture_name}")
+            print(f"   • Score OACE final: {best_fitness:.6f}")
+            print(f"   • Parâmetros da melhor arquitetura:")
+            for key, value in best_architecture_params.items():
+                print(f"     - {key}: {value}")
+            
+            print(f"\n📊 MÉTRICAS FINAIS DA MELHOR ARQUITETURA:")
+            print(f"   • Top-1 Accuracy: {final_metrics['top1_acc']:.4f}")
+            print(f"   • Top-5 Accuracy: {final_metrics['top5_acc']:.4f}")
+            print(f"   • Precision Macro: {final_metrics['precision_macro']:.4f}")
+            print(f"   • Recall Macro: {final_metrics['recall_macro']:.4f}")
+            print(f"   • F1 Macro: {final_metrics['f1_macro']:.4f}")
+            print(f"   • Total Parâmetros: {final_metrics['total_params']:,}")
+            print(f"   • Tempo Inferência: {final_metrics['avg_inference_time']:.4f}s")
+            print(f"   • Memória: {final_metrics['memory_used_mb']:.2f} MB")
+            print(f"   • GFLOPs: {final_metrics['gflops']:.2f}")
             
             # Estatísticas de cache
             total_evaluations = self.cache_hits + self.cache_misses
@@ -690,17 +728,24 @@ class AFSAGAPSO:
         Returns:
             np.ndarray: Soluções de otimização inicial para a Fase 2
         """
+        print("\nAFSA-PSO: Inicializando PSO com soluções da Fase 1...")
         # Calcula fitness dos candidatos iniciais usando métricas já calculadas
         print("  • Calculando fitness dos candidatos iniciais...")
         initial_fitness = []
         for candidate, metrics in candidates_metrics:
+            print(f"\nAvaliando candidato {candidate} com OACE\n")
             score = self._calculate_oace_score(metrics)
             initial_fitness.append(score)
 
         initial_fitness = np.array(initial_fitness)
         
+        print("\ninitial_fitness do AFSA para entrada no PSO: ", initial_fitness)
+        
         # Registra a iteração inicial
         best_idx = np.argmax(initial_fitness)  # Alterado para argmax pois OACE é maximizado
+        
+        print("\nMelhor dos candidatos AFSA best_idx: ", best_idx)
+        
         self.logger.log_iteration(
             iteration=0,
             phase="AFSA-PSO",
@@ -735,7 +780,10 @@ class AFSAGAPSO:
         print("  • PSO explorando espaço de busca e gerando novos candidatos...")
         best_pos, best_cost = self.pso.optimize()
         
-        # Registra cada iteração do PSO
+        print("\nbest_pos PSO: ", best_pos)
+        print("\nbest_cost PSO: ", best_cost)
+        
+        # Registra cada iteração do PSO (acho que o registro deve está dentro do optimize do PSO)
         for i in range(self.max_iter):
             current_population = self.pso.optimizer.swarm.position
             current_fitness = np.array([self.fitness_function(x) for x in current_population])
@@ -770,6 +818,8 @@ class AFSAGAPSO:
         # Pega as melhores soluções da população final do PSO (que podem ser diferentes das iniciais)
         final_population = self.pso.optimizer.swarm.position
         
+        print("final_population PSO: ", final_population)
+        
         print(f"  • Avaliando {len(final_population)} soluções finais do PSO...")
         final_fitness = []
         for pos in final_population:
@@ -779,10 +829,12 @@ class AFSAGAPSO:
         
         # Seleciona as melhores soluções para a próxima fase (OACE é maximizado)
         best_indices = np.argsort(final_fitness)[-self.population_size:]  # Alterado para pegar os maiores valores
+        print("\nbest_indices PSO: ", best_indices)
         phase1_solutions = final_population[best_indices]
         
-        print(f"  • Melhor score da Fase 1: {np.max(final_fitness):.6f}")
-        print(f"  • {len(phase1_solutions)} soluções selecionadas para Fase 2")
+        
+        print(f"\n  • Melhor score da Fase 1: {np.max(final_fitness):.6f}")
+        print(f"\n  • {len(phase1_solutions)} soluções selecionadas para Fase 2")
         
         return phase1_solutions
 
@@ -801,9 +853,24 @@ class AFSAGAPSO:
             tuple: (melhor posição, melhor fitness)
         """
         # Registra a iteração inicial do GA
+        print("📊 Avaliando soluções iniciais da Fase 1...")
         initial_fitness = np.array([self.fitness_function(x) for x in phase1_solutions])
         best_idx = np.argmax(initial_fitness)
+        print("\nGA-PSO: best_idx GA: ", best_idx)
         best_metrics = self._warm_up_candidate(phase1_solutions[best_idx])
+        
+        print(f"\n🏆 Melhor solução inicial da Fase 1:")
+        print(f"   • Índice: {best_idx}")
+        print(f"   • Score OACE: {initial_fitness[best_idx]:.6f}")
+        
+        best_architecture, _ = self._convert_to_architecture_params(phase1_solutions[best_idx])
+        print(f"   • Arquitetura: {best_architecture}")
+        
+        # Mostra todas as soluções iniciais
+        print(f"\n📋 Soluções iniciais da Fase 1:")
+        for i, (solution, fitness) in enumerate(zip(phase1_solutions, initial_fitness)):
+            architecture_name, _ = self._convert_to_architecture_params(solution)
+            print(f"   {i+1}. {architecture_name} - Score OACE: {fitness:.6f}")
         
         self.logger.log_iteration(
             iteration=0,
@@ -823,15 +890,24 @@ class AFSAGAPSO:
         # Atualiza a função de fitness do GA
         self.ga.fitness_function = ga_fitness_function
         
-        print("  • Inicializando GA com soluções da Fase 1...")
+        print(f"\n🧬 Inicializando GA com soluções da Fase 1...")
         # Inicializa o GA com as soluções da Fase 1
         self.ga.initialize_population(phase1_solutions)
         
-        print("  • Aplicando operadores genéticos (crossover e mutação)...")
+        print(f"\n🧬 Aplicando operadores genéticos (crossover e mutação)...")
+        print(f"   • Taxa crossover inicial: {self.ga_params['initial_crossover_rate']}")
+        print(f"   • Taxa mutação inicial: {self.ga_params['initial_mutation_rate']}")
+        print(f"   • Tamanho torneio: {self.ga_params['tournament_size']}")
+        
         # Executa a otimização com GA
         best_position, best_fitness = self.ga.optimize()
         
+        print(f"\n✅ GA concluído!")
+        print(f"   • Melhor posição encontrada: {best_position}")
+        print(f"   • Melhor fitness (GA): {best_fitness}")
+        
         # Registra cada iteração do GA
+        print(f"\n📊 Avaliando população final do GA...")
         for i in range(self.max_iter):
             current_population = np.array([ind for ind in self.ga.population])
             current_fitness = np.array([ind.fitness.values[0] for ind in self.ga.population])
@@ -862,6 +938,14 @@ class AFSAGAPSO:
                     best_fitness=current_fitness[best_idx]
                 )
 
+        print(f"\n✅ Fase GA concluída!")
+        print(f"   • Melhor score OACE final: {best_fitness:.6f}")
+        
+        # Mostra a arquitetura final
+        final_architecture, final_params = self._convert_to_architecture_params(best_position)
+        print(f"   • Arquitetura final: {final_architecture}")
+        print(f"   • Parâmetros finais: {final_params}")
+
         return best_position, best_fitness
 
     def _calculate_oace_score(self, metrics):
@@ -874,6 +958,8 @@ class AFSAGAPSO:
         Returns:
             float: Score OACE (entre 0 e 1)
         """
+        print(f"   📊 Calculando score OACE...")
+        
         # CORRIGIDO: Usa apenas métricas positivas para assertividade (não inclui loss)
         # Loss tem comportamento inverso e pode causar problemas na normalização
         assertiveness_weights = {
@@ -892,6 +978,10 @@ class AFSAGAPSO:
 
         # CORRIGIDO: Atualiza os limites dinamicamente para incluir novos valores
         self._update_metrics_ranges(metrics)
+        
+        print(f"      • Limites assertividade: {self.metrics_ranges['assertiveness']}")
+        print(f"      • Limites custo: {self.metrics_ranges['cost']}")
+        print(f"      • Lambda (trade-off): {self.lambda_param}")
 
         # Calcula o score OACE usando os limites atualizados
         score = calculate_oace_score(
@@ -914,6 +1004,8 @@ class AFSAGAPSO:
             assertiveness_min_max=self.metrics_ranges["assertiveness"],
             cost_min_max=self.metrics_ranges["cost"],
         )
+        
+        print(f"      • Score OACE calculado: {score:.6f}")
         
         # VALIDAÇÃO: Garante que o score está no range correto
         if not (0.0 <= score <= 1.0):
@@ -996,17 +1088,4 @@ if __name__ == "__main__":
     print(f"Melhor valor de fitness (OACE): {best_fitness}")
     
     print("results: ", results)
-    # Analisa os resultados
-    analyzer = OptimizationLogAnalyzer(log_dir="results")
-    experiments = analyzer.list_experiments()
-    
-    
-    """
-    if experiments:
-        # Plota os gráficos
-        analyzer.plot_fitness_history(experiments[-1])
-        analyzer.plot_metrics_history(experiments[-1])
-        
-        # Gera resumo
-        summary = analyzer.generate_summary(experiments[-1])
-        print(summary)"""
+

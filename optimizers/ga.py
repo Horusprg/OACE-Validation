@@ -2,11 +2,15 @@ import numpy as np
 from deap import base, creator, tools, algorithms
 
 # Corrige a criação dos tipos do DEAP para evitar múltiplas criações
-if not hasattr(creator, "FitnessMin"):
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+#if not hasattr(creator, "FitnessMin"):
+#    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+#if not hasattr(creator, "Individual"):
+#    creator.create("Individual", np.ndarray, fitness=creator.FitnessMin)
+if not hasattr(creator, "FitnessMax"):
+    creator.create("FitnessMax", base.Fitness, weights=(1.0,))  # ✅ POSITIVO
 if not hasattr(creator, "Individual"):
-    creator.create("Individual", np.ndarray, fitness=creator.FitnessMin)
-
+    creator.create("Individual", np.ndarray, fitness=creator.FitnessMax)  # ✅ FitnessMax
+    
 class GA:
     """
     Implementa o Algoritmo Genético (GA) usando a biblioteca DEAP para otimização global.
