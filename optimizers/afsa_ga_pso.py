@@ -553,7 +553,7 @@ class AFSAGAPSO:
             upper_bound=1.0,
         )
         
-        # Inicializa o PSO
+        # Inicializa o PSO com logger
         self.pso = PSO(
             population_size=self.population_size,
             n_dim=self.n_dim,
@@ -562,6 +562,7 @@ class AFSAGAPSO:
             upper_bound=1.0,
             afsa_params=self.afsa_params,
             pso_options=self.pso_params,
+            logger=self.logger
         )
         
         # Inicializa o GA
@@ -717,19 +718,8 @@ class AFSAGAPSO:
     def _execute_afsa_pso_phase(self, initial_population, candidates_metrics):
         """
         Executa a Fase 1: AFSA-PSO (Otimização Inicial)
-        
-        O AFSA diversifica os movimentos do enxame de partículas e o PSO 
-        explora o espaço de busca para gerar "soluções de otimização inicial".
-        
-        Args:
-            initial_population: População inicial gerada pelo AFSA
-            candidates_metrics: Métricas já calculadas dos candidatos
-            
-        Returns:
-            np.ndarray: Soluções de otimização inicial para a Fase 2
         """
         print("\nAFSA-PSO: Inicializando PSO com soluções da Fase 1...")
-        # Calcula fitness dos candidatos iniciais usando métricas já calculadas
         print("  • Calculando fitness dos candidatos iniciais...")
         initial_fitness = []
         for candidate, metrics in candidates_metrics:
@@ -738,14 +728,9 @@ class AFSAGAPSO:
             initial_fitness.append(score)
 
         initial_fitness = np.array(initial_fitness)
-        
         print("\ninitial_fitness do AFSA para entrada no PSO: ", initial_fitness)
-        
-        # Registra a iteração inicial
-        best_idx = np.argmax(initial_fitness)  # Alterado para argmax pois OACE é maximizado
-        
+        best_idx = np.argmax(initial_fitness)
         print("\nMelhor dos candidatos AFSA best_idx: ", best_idx)
-        
         self.logger.log_iteration(
             iteration=0,
             phase="AFSA-PSO",
@@ -756,86 +741,36 @@ class AFSAGAPSO:
             metrics=candidates_metrics[best_idx][1]
         )
 
-        # Configura a função de fitness para o PSO que irá gerar novos candidatos
         def pso_fitness_function(x):
-            """Função de fitness para o PSO na Fase 1 - avalia novos candidatos"""
             if x.ndim == 1:
-                # Caso de um único candidato - chama warm-up
-                return -self.fitness_function(x)  # Negativo pois PSO minimiza
+                return -self.fitness_function(x)
             else:
-                # Caso de múltiplos candidatos - chama warm-up para cada um
                 scores = []
                 for xi in x:
                     score = self.fitness_function(xi)
-                    scores.append(-score)  # Negativo pois PSO minimiza
+                    scores.append(-score)
                 return np.array(scores)
 
-        # Atualiza a função de fitness do PSO
         self.pso.fitness_function = pso_fitness_function
-
-        # Inicializa o PSO com a população diversificada pelo AFSA
         self.pso.optimizer.swarm.position = initial_population.copy()
-        
-        # Executa a otimização PSO
         print("  • PSO explorando espaço de busca e gerando novos candidatos...")
-        best_pos, best_cost = self.pso.optimize()
-        
+        best_pos, best_cost = self.pso.optimize(metrics_function=self._warm_up_candidate)
         print("\nbest_pos PSO: ", best_pos)
         print("\nbest_cost PSO: ", best_cost)
-        
-        # Registra cada iteração do PSO (acho que o registro deve está dentro do optimize do PSO)
-        for i in range(self.max_iter):
-            current_population = self.pso.optimizer.swarm.position
-            current_fitness = np.array([self.fitness_function(x) for x in current_population])
-            best_idx = np.argmax(current_fitness)  # Alterado para argmax pois OACE é maximizado
-            
-            # Obtém as métricas do melhor candidato
-            best_candidate = current_population[best_idx]
-            best_metrics = self._warm_up_candidate(best_candidate)
-            
-            self.logger.log_iteration(
-                iteration=i + 1,
-                phase="PSO",
-                population=current_population,
-                fitness_values=current_fitness,
-                best_position=best_candidate,
-                best_fitness=current_fitness[best_idx],
-                metrics=best_metrics
-            )
-            
-            # Cria checkpoint a cada 10 iterações
-            if (i + 1) % 10 == 0:
-                self.logger.log_checkpoint(
-                    iteration=i + 1,
-                    phase="PSO",
-                    population=current_population,
-                    fitness_values=current_fitness,
-                    best_position=best_candidate,
-                    best_fitness=current_fitness[best_idx]
-                )
 
-        # Retorna as melhores soluções encontradas pelo AFSA-PSO
-        # Pega as melhores soluções da população final do PSO (que podem ser diferentes das iniciais)
         final_population = self.pso.optimizer.swarm.position
-        
         print("final_population PSO: ", final_population)
-        
         print(f"  • Avaliando {len(final_population)} soluções finais do PSO...")
         final_fitness = []
         for pos in final_population:
             fitness = self.fitness_function(pos)
             final_fitness.append(fitness)
         final_fitness = np.array(final_fitness)
-        
-        # Seleciona as melhores soluções para a próxima fase (OACE é maximizado)
-        best_indices = np.argsort(final_fitness)[-self.population_size:]  # Alterado para pegar os maiores valores
+        best_indices = np.argsort(final_fitness)[-self.population_size:]
         print("\nbest_indices PSO: ", best_indices)
         phase1_solutions = final_population[best_indices]
-        
-        
         print(f"\n  • Melhor score da Fase 1: {np.max(final_fitness):.6f}")
         print(f"\n  • {len(phase1_solutions)} soluções selecionadas para Fase 2")
-        
         return phase1_solutions
 
     def _execute_ga_pso_phase(self, phase1_solutions):

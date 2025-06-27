@@ -3,6 +3,9 @@ import os
 from datetime import datetime
 from typing import Dict, Any, List
 import numpy as np
+import csv
+from optimizers.pso import PSO
+import pandas as pd
 
 class OptimizationLogger:
     """
@@ -33,7 +36,7 @@ class OptimizationLogger:
             "final_results": {}
         }
         
-        # Cria o diretório de logs se não existir
+        # Cria o diretório de logs 
         os.makedirs(log_dir, exist_ok=True)
     
     def start_experiment(self, config: Dict[str, Any]):
@@ -73,18 +76,13 @@ class OptimizationLogger:
                      fitness_values: np.ndarray,
                      best_position: np.ndarray,
                      best_fitness: float,
-                     metrics: Dict[str, float] = None):
+                     metrics: Dict[str, float] = None,
+                     pbest_pos=None,
+                     pbest_cost=None,
+                     gbest_pos=None,
+                     gbest_cost=None):
         """
-        Registra uma iteração do algoritmo.
-        
-        Args:
-            iteration (int): Número da iteração
-            phase (str): Fase do algoritmo (AFSA, PSO, GA)
-            population (np.ndarray): População atual
-            fitness_values (np.ndarray): Valores de fitness da população
-            best_position (np.ndarray): Melhor posição encontrada
-            best_fitness (float): Melhor valor de fitness
-            metrics (Dict[str, float]): Métricas da arquitetura
+        Registra uma iteração do algoritmo, incluindo histórico de pbest/gbest se fornecido.
         """
         iteration_data = {
             "iteration": iteration,
@@ -96,10 +94,17 @@ class OptimizationLogger:
             "best_fitness": float(best_fitness),
             "metrics": metrics
         }
-        
+        if pbest_pos is not None:
+            iteration_data["pbest_pos"] = pbest_pos.tolist() if isinstance(pbest_pos, np.ndarray) else pbest_pos
+        if pbest_cost is not None:
+            iteration_data["pbest_cost"] = pbest_cost.tolist() if isinstance(pbest_cost, np.ndarray) else pbest_cost
+        if gbest_pos is not None:
+            iteration_data["gbest_pos"] = gbest_pos.tolist() if isinstance(gbest_pos, np.ndarray) else gbest_pos
+        if gbest_cost is not None:
+            iteration_data["gbest_cost"] = float(gbest_cost)
         self.log_data["iterations"].append(iteration_data)
         
-        # Registra como melhor solução se for a melhor até agora
+        # Registra como melhor solução 
         if not self.log_data["best_solutions"] or best_fitness > self.log_data["best_solutions"][-1]["fitness"]:
             self.log_data["best_solutions"].append({
                 "iteration": iteration,
@@ -198,4 +203,38 @@ class OptimizationLogger:
             Dict[str, Any]: Dados do checkpoint
         """
         with open(checkpoint_file, 'r') as f:
-            return json.load(f) 
+            return json.load(f)
+
+    def export_to_csv(self, filename=None):
+        """
+        Exporta todas as arquiteturas avaliadas, métricas e scores OACE para um CSV legível.
+        """
+        if filename is None:
+            filename = os.path.join(self.log_dir, self.current_experiment, "avaliacoes_arquiteturas.csv")
+        fieldnames = [
+            "iteration", "phase", "best_fitness", "best_position", "metrics"
+        ]
+        with open(filename, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for it in self.log_data["iterations"]:
+                row = {
+                    "iteration": it.get("iteration"),
+                    "phase": it.get("phase"),
+                    "best_fitness": it.get("best_fitness"),
+                    "best_position": it.get("best_position"),
+                    "metrics": json.dumps(it.get("metrics")) if it.get("metrics") else ""
+                }
+                writer.writerow(row)
+
+# Caminho do checkpoint salvo automaticamente
+checkpoint_path = "results/experiment_20240610_153000/pso_checkpoint_10.json"
+
+pso = PSO()
+pso.load_state(checkpoint_path)
+
+pso.optimize()
+
+csv_path = "results/experiment_20240610_153000/avaliacoes_arquiteturas.csv"
+df = pd.read_csv(csv_path)
+print(df.head()) 
