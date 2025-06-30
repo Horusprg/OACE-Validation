@@ -9,18 +9,19 @@ import pandas as pd
 
 class OptimizationLogger:
     """
-    Classe para registrar o progresso da otimização AFSA-GA-PSO.
-    Armazena informações sobre cada iteração, incluindo:
-    - Configurações das arquiteturas
-    - Métricas de assertividade e custo
-    - Scores OACE
-    - Histórico de pbest e gbest
+    Classe aprimorada para registrar o progresso da otimização AFSA-GA-PSO.
+    Armazena informações completas sobre cada iteração, incluindo:
+    - Configurações detalhadas das arquiteturas
+    - Métricas completas de assertividade e custo
+    - Scores OACE calculados
+    - Histórico completo de pbest e gbest
     - Checkpoints para retomada de experimentos
+    - Dados estruturados para análise posterior
     """
     
     def __init__(self, log_dir: str = "results"):
         """
-        Inicializa o logger de otimização.
+        Inicializa o logger de otimização aprimorado.
         
         Args:
             log_dir (str): Diretório base para salvar os logs
@@ -34,76 +35,92 @@ class OptimizationLogger:
             "metrics_history": [],
             "checkpoints": [],
             "final_results": {},
-            "architecture_evaluations": [],  # Novo: histórico de todas as arquiteturas avaliadas
-            "pbest_history": [],             # Novo: histórico completo de pbest
-            "gbest_history": [],             # Novo: histórico completo de gbest
+            "architecture_evaluations": [],  # Histórico completo de todas as arquiteturas avaliadas
+            "pbest_history": [],             # Histórico detalhado de pbest
+            "gbest_history": [],             # Histórico detalhado de gbest
+            "oace_scores_history": [],       # Histórico de scores OACE calculados
             "optimization_summary": {
                 "total_iterations": 0,
                 "total_evaluations": 0,
+                "total_architectures_tested": 0,
                 "start_time": None,
                 "end_time": None,
-                "best_fitness": float('inf'),
-                "best_position": None
+                "best_fitness": float('-inf'),  # Maximizar OACE
+                "best_position": None,
+                "best_oace_score": float('-inf'),
+                "convergence_iteration": None,
+                "optimization_phases": []
             }
+        }
+        
+        # Estatísticas de cache e performance
+        self.cache_stats = {
+            "total_evaluations": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "unique_architectures": set(),
+            "evaluation_times": [],
+            "phase_statistics": {}
         }
         
         # Criar estrutura de pastas
         self._create_directory_structure()
     
     def _create_directory_structure(self):
-        """Cria a estrutura de pastas organizada"""
-        # Pasta principal de resultados
+        """Cria a estrutura de pastas organizadas"""
         os.makedirs(self.log_dir, exist_ok=True)
-        
-        # Pasta principal do experimento (será criada quando start_experiment for chamado)
-        # Por enquanto, apenas define os caminhos base
         self.experiment_dir = None
         self.logs_dir = None
         self.csv_dir = None
         self.checkpoints_dir = None
+        self.analysis_dir = None
     
     def start_experiment(self, config: Dict[str, Any]):
         """
-        Inicia um novo experimento de otimização.
+        Inicia um novo experimento de otimização com configuração aprimorada.
         
         Args:
-            config (Dict[str, Any]): Configuração do experimento
+            config (Dict[str, Any]): Configuração completa do experimento
         """
-        # Gera nome único para o experimento
+        # Gera nome único para o experimento  
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.current_experiment = f"experiment_{timestamp}"
         
-        # Cria pasta principal do experimento
+        # Cria estrutura de pastas organizada
         self.experiment_dir = os.path.join(self.log_dir, self.current_experiment)
-        
-        # Cria subpastas organizadas dentro do experimento
         self.logs_dir = os.path.join(self.experiment_dir, "logs")
         self.csv_dir = os.path.join(self.experiment_dir, "csv")
         self.checkpoints_dir = os.path.join(self.experiment_dir, "checkpoints")
+        self.analysis_dir = os.path.join(self.experiment_dir, "analysis")
         
-        os.makedirs(self.experiment_dir, exist_ok=True)
-        os.makedirs(self.logs_dir, exist_ok=True)
-        os.makedirs(self.csv_dir, exist_ok=True)
-        os.makedirs(self.checkpoints_dir, exist_ok=True)
+        for directory in [self.experiment_dir, self.logs_dir, self.csv_dir, 
+                         self.checkpoints_dir, self.analysis_dir]:
+            os.makedirs(directory, exist_ok=True)
         
-        # Inicializa dados do experimento
+        # Inicializa dados do experimento com informações detalhadas
         self.log_data["experiment_info"] = {
             "experiment_name": self.current_experiment,
             "start_time": datetime.now().isoformat(),
-            "config": config
+            "config": config,
+            "system_info": {
+                "python_version": f"{os.sys.version}",
+                "working_directory": os.getcwd(),
+                "log_directory": self.experiment_dir
+            }
         }
         
         self.log_data["optimization_summary"]["start_time"] = datetime.now().isoformat()
-        self.log_data["optimization_summary"]["best_fitness"] = float('inf')  # Será convertido para string no JSON
+        self.log_data["optimization_summary"]["best_fitness"] = float('-inf')
         
-        # Cria arquivo CSV inicial
-        self._create_summary_csv()
+        # Cria arquivos CSV iniciais
+        self._create_all_csv_files()
         
         print(f"🚀 Experimento iniciado: {self.current_experiment}")
         print(f"📁 Pasta do experimento: {self.experiment_dir}")
-        print(f"   ├── 📄 logs/ (arquivos JSON)")
-        print(f"   ├── 📊 csv/ (arquivos CSV)")
-        print(f"   └── 💾 checkpoints/ (checkpoints)")
+        print(f"   ├── 📄 logs/ (arquivos JSON detalhados)")
+        print(f"   ├── 📊 csv/ (dados estruturados)")
+        print(f"   ├── 💾 checkpoints/ (estados de otimização)")
+        print(f"   └── 📈 analysis/ (análises e gráficos)")
     
     def log_iteration(self, 
                      iteration: int,
@@ -117,77 +134,112 @@ class OptimizationLogger:
                      pbest_cost=None,
                      gbest_pos=None,
                      gbest_cost=None,
-                     architecture_config: Dict[str, Any] = None):
+                     architecture_config: Dict[str, Any] = None,
+                     oace_score: float = None,
+                     evaluation_time: float = None):
         """
-        Registra uma iteração do algoritmo, incluindo histórico de pbest/gbest se fornecido.
+        Registra uma iteração completa com todas as informações relevantes.
         """
+        start_time = datetime.now()
+        
+        # Dados básicos da iteração
         iteration_data = {
             "iteration": iteration,
             "phase": phase,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": start_time.isoformat(),
             "population": population.tolist() if isinstance(population, np.ndarray) else population,
             "fitness_values": fitness_values.tolist() if isinstance(fitness_values, np.ndarray) else fitness_values,
             "best_position": best_position.tolist() if isinstance(best_position, np.ndarray) else best_position,
             "best_fitness": float(best_fitness),
-            "metrics": metrics,
-            "architecture_config": architecture_config
+            "metrics": metrics or {},
+            "architecture_config": architecture_config or {},
+            "oace_score": float(oace_score) if oace_score is not None else None,
+            "evaluation_time": float(evaluation_time) if evaluation_time is not None else None
         }
         
         # Adiciona dados de pbest/gbest se fornecidos
         if pbest_pos is not None:
-            iteration_data["pbest_pos"] = pbest_pos.tolist() if isinstance(pbest_pos, np.ndarray) else pbest_pos
+            iteration_data["pbest_positions"] = pbest_pos.tolist() if isinstance(pbest_pos, np.ndarray) else pbest_pos
         if pbest_cost is not None:
-            iteration_data["pbest_cost"] = pbest_cost.tolist() if isinstance(pbest_cost, np.ndarray) else pbest_cost
+            iteration_data["pbest_costs"] = pbest_cost.tolist() if isinstance(pbest_cost, np.ndarray) else pbest_cost
         if gbest_pos is not None:
-            iteration_data["gbest_pos"] = gbest_pos.tolist() if isinstance(gbest_pos, np.ndarray) else gbest_pos
+            iteration_data["gbest_position"] = gbest_pos.tolist() if isinstance(gbest_pos, np.ndarray) else gbest_pos
         if gbest_cost is not None:
             iteration_data["gbest_cost"] = float(gbest_cost)
             
         self.log_data["iterations"].append(iteration_data)
         
         # Registra como melhor solução se for melhor que a anterior
-        if not self.log_data["best_solutions"] or best_fitness > self.log_data["best_solutions"][-1]["fitness"]:
-            self.log_data["best_solutions"].append({
+        if best_fitness > self.log_data["optimization_summary"]["best_fitness"]:
+            best_solution = {
                 "iteration": iteration,
                 "phase": phase,
                 "position": best_position.tolist() if isinstance(best_position, np.ndarray) else best_position,
                 "fitness": float(best_fitness),
-                "metrics": metrics,
-                "architecture_config": architecture_config
-            })
+                "metrics": metrics or {},
+                "architecture_config": architecture_config or {},
+                "oace_score": float(oace_score) if oace_score is not None else None,
+                "timestamp": start_time.isoformat()
+            }
+            
+            self.log_data["best_solutions"].append(best_solution)
             
             # Atualiza o resumo da otimização
-            self.log_data["optimization_summary"]["best_score"] = float(best_fitness)
-            self.log_data["optimization_summary"]["best_architecture"] = architecture_config
+            self.log_data["optimization_summary"]["best_fitness"] = float(best_fitness)
+            self.log_data["optimization_summary"]["best_position"] = best_position.tolist() if isinstance(best_position, np.ndarray) else best_position
             self.log_data["optimization_summary"]["convergence_iteration"] = iteration
+            if oace_score is not None:
+                self.log_data["optimization_summary"]["best_oace_score"] = float(oace_score)
         
-        # Atualiza histórico de métricas
+        # Registra histórico de métricas
         if metrics:
             self.log_data["metrics_history"].append({
                 "iteration": iteration,
                 "phase": phase,
                 "metrics": metrics,
-                "architecture_config": architecture_config
+                "architecture_config": architecture_config or {},
+                "timestamp": start_time.isoformat()
             })
         
-        # Registra avaliação da arquitetura
+        # Registra avaliação completa da arquitetura
         if architecture_config and metrics:
-            self.log_data["architecture_evaluations"].append({
+            arch_eval = {
                 "iteration": iteration,
                 "phase": phase,
                 "architecture_config": architecture_config,
                 "metrics": metrics,
                 "fitness": float(best_fitness),
-                "position": best_position.tolist() if isinstance(best_position, np.ndarray) else best_position
+                "oace_score": float(oace_score) if oace_score is not None else None,
+                "position": best_position.tolist() if isinstance(best_position, np.ndarray) else best_position,
+                "timestamp": start_time.isoformat(),
+                "evaluation_id": f"{phase}_{iteration}_{len(self.log_data['architecture_evaluations'])}"
+            }
+            self.log_data["architecture_evaluations"].append(arch_eval)
+            
+            # Atualiza estatísticas
+            arch_key = str(architecture_config)
+            self.cache_stats["unique_architectures"].add(arch_key)
+            self.log_data["optimization_summary"]["total_architectures_tested"] = len(self.cache_stats["unique_architectures"])
+        
+        # Registra histórico de OACE se disponível
+        if oace_score is not None:
+            self.log_data["oace_scores_history"].append({
+                "iteration": iteration,
+                "phase": phase,
+                "oace_score": float(oace_score),
+                "position": best_position.tolist() if isinstance(best_position, np.ndarray) else best_position,
+                "architecture_config": architecture_config or {},
+                "timestamp": start_time.isoformat()
             })
         
-        # Registra histórico de pbest/gbest
+        # Registra histórico detalhado de pbest/gbest
         if pbest_pos is not None and pbest_cost is not None:
             self.log_data["pbest_history"].append({
                 "iteration": iteration,
                 "phase": phase,
                 "pbest_positions": pbest_pos.tolist() if isinstance(pbest_pos, np.ndarray) else pbest_pos,
-                "pbest_costs": pbest_cost.tolist() if isinstance(pbest_cost, np.ndarray) else pbest_cost
+                "pbest_costs": pbest_cost.tolist() if isinstance(pbest_cost, np.ndarray) else pbest_cost,
+                "timestamp": start_time.isoformat()
             })
         
         if gbest_pos is not None and gbest_cost is not None:
@@ -195,17 +247,17 @@ class OptimizationLogger:
                 "iteration": iteration,
                 "phase": phase,
                 "gbest_position": gbest_pos.tolist() if isinstance(gbest_pos, np.ndarray) else gbest_pos,
-                "gbest_cost": float(gbest_cost)
+                "gbest_cost": float(gbest_cost),
+                "timestamp": start_time.isoformat()
             })
         
-        # Atualiza contador de avaliações
+        # Atualiza contadores
+        self.log_data["optimization_summary"]["total_iterations"] = len(self.log_data["iterations"])
         self.log_data["optimization_summary"]["total_evaluations"] += 1
         
-        # Salva o log após cada iteração
+        # Salva o log e atualiza CSVs
         self._save_log()
-        
-        # Atualiza o CSV de resumo
-        self._update_summary_csv(iteration, phase, best_fitness, metrics, architecture_config)
+        self._update_all_csv_files(iteration_data)
     
     def log_checkpoint(self, 
                       iteration: int,
@@ -214,18 +266,10 @@ class OptimizationLogger:
                       fitness_values: np.ndarray,
                       best_position: np.ndarray,
                       best_fitness: float,
-                      optimizer_state: Dict[str, Any] = None):
+                      optimizer_state: Dict[str, Any] = None,
+                      metadata: Dict[str, Any] = None):
         """
-        Cria um checkpoint do estado atual da otimização.
-        
-        Args:
-            iteration (int): Número da iteração
-            phase (str): Fase do algoritmo
-            population (np.ndarray): População atual
-            fitness_values (np.ndarray): Valores de fitness
-            best_position (np.ndarray): Melhor posição
-            best_fitness (float): Melhor valor de fitness
-            optimizer_state (Dict[str, Any]): Estado interno do otimizador (opcional)
+        Cria um checkpoint completo do estado atual da otimização.
         """
         checkpoint_data = {
             "iteration": iteration,
@@ -235,53 +279,79 @@ class OptimizationLogger:
             "fitness_values": fitness_values.tolist() if isinstance(fitness_values, np.ndarray) else fitness_values,
             "best_position": best_position.tolist() if isinstance(best_position, np.ndarray) else best_position,
             "best_fitness": float(best_fitness),
-            "optimizer_state": optimizer_state
+            "optimizer_state": optimizer_state or {},
+            "metadata": metadata or {},
+            "cache_stats": self.cache_stats.copy(),
+            "experiment_summary": self.log_data["optimization_summary"].copy()
         }
         
-        self.log_data["checkpoints"].append(checkpoint_data)
+        self.log_data["checkpoints"].append({
+            "iteration": iteration,
+            "phase": phase,
+            "timestamp": datetime.now().isoformat(),
+            "checkpoint_file": f"checkpoint_iter_{iteration}_{phase}.json"
+        })
         
-        # Salva o checkpoint em um arquivo separado
+        # Salva o checkpoint em arquivo separado
         checkpoint_file = os.path.join(
             self.checkpoints_dir,
             f"{self.current_experiment}_checkpoint_iter_{iteration}_{phase}.json"
         )
         
+        def json_encoder(obj):
+            if isinstance(obj, set):
+                return list(obj)
+            if isinstance(obj, float):
+                if obj == float('inf'): return "Infinity"
+                elif obj == float('-inf'): return "-Infinity"
+                elif obj != obj: return "NaN"  # NaN check
+            return obj
+        
         with open(checkpoint_file, 'w') as f:
-            json.dump(checkpoint_data, f, indent=2)
+            json.dump(checkpoint_data, f, indent=2, default=json_encoder)
         
         print(f"💾 Checkpoint salvo: {checkpoint_file}")
+        return checkpoint_file
     
     def log_final_results(self, best_architecture, best_params, best_fitness, final_metrics):
-        """Registra os resultados finais do experimento"""
+        """Registra os resultados finais do experimento com informações completas"""
+        end_time = datetime.now()
+        
         self.log_data["final_results"] = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": end_time.isoformat(),
             "best_architecture": best_architecture,
             "best_params": best_params,
             "best_fitness": float(best_fitness),
             "final_metrics": final_metrics,
             "total_iterations": len(self.log_data["iterations"]),
-            "total_evaluations": self.log_data["optimization_summary"]["total_evaluations"]
+            "total_evaluations": self.log_data["optimization_summary"]["total_evaluations"],
+            "total_architectures_tested": len(self.cache_stats["unique_architectures"]),
+            "experiment_duration": (end_time - datetime.fromisoformat(self.log_data["experiment_info"]["start_time"])).total_seconds(),
+            "cache_efficiency": self.cache_stats["cache_hits"] / max(1, self.cache_stats["total_evaluations"]) * 100
         }
+        
+        # Atualiza o resumo final
+        self.log_data["optimization_summary"]["end_time"] = end_time.isoformat()
         
         # Salva o log final
         self._save_log()
         
-        # Exporta dados finais em CSV
+        # Exporta todos os dados finais
         self.export_final_results()
     
     def _save_log(self):
-        """Salva o log atual em um arquivo JSON."""
+        """Salva o log atual em um arquivo JSON com encoding apropriado."""
         if not self.current_experiment:
             return
             
-        # Salva na pasta logs
         log_file = os.path.join(
             self.logs_dir,
             f"{self.current_experiment}_log.json"
         )
         
-        # Função para lidar com valores especiais no JSON
         def json_encoder(obj):
+            if isinstance(obj, set):
+                return list(obj)
             if isinstance(obj, float):
                 if obj == float('inf'):
                     return "Infinity"
@@ -291,15 +361,15 @@ class OptimizationLogger:
                     return "NaN"
             return obj
         
-        with open(log_file, 'w') as f:
-            json.dump(self.log_data, f, indent=2, default=json_encoder)
+        with open(log_file, 'w', encoding='utf-8') as f:
+            json.dump(self.log_data, f, indent=2, default=json_encoder, ensure_ascii=False)
     
-    def _create_summary_csv(self):
-        """Cria arquivo CSV para resumo das avaliações"""
+    def _create_all_csv_files(self):
+        """Cria todos os arquivos CSV necessários para o experimento"""
         if not self.current_experiment:
             return
             
-        # Salva na pasta results diretamente
+        # 1. Arquivo CSV para resumo das avaliações
         summary_file = os.path.join(
             self.csv_dir,
             f"{self.current_experiment}_avaliacoes.csv"
@@ -309,19 +379,51 @@ class OptimizationLogger:
             "iteration", "phase", "best_fitness", "architecture_type", 
             "top1_acc", "top5_acc", "precision_macro", "recall_macro", "f1_macro",
             "total_params", "avg_inference_time", "memory_used_mb", "gflops",
-            "architecture_config"
+            "oace_score", "architecture_config"
         ]
         
         with open(summary_file, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
+        
+        # 2. Arquivo CSV para histórico detalhado de métricas
+        metrics_file = os.path.join(
+            self.csv_dir,
+            f"{self.current_experiment}_detailed_metrics.csv"
+        )
+        
+        metrics_fieldnames = [
+            "iteration", "phase", "timestamp", "evaluation_id",
+            "top1_acc", "top5_acc", "precision_macro", "recall_macro", "f1_macro",
+            "total_params", "avg_inference_time", "memory_used_mb", "gflops",
+            "oace_score", "fitness", "model_type", "architecture_params"
+        ]
+        
+        with open(metrics_file, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=metrics_fieldnames)
+            writer.writeheader()
+        
+        # 3. Arquivo CSV para histórico de OACE scores
+        oace_file = os.path.join(
+            self.csv_dir,
+            f"{self.current_experiment}_oace_scores.csv"
+        )
+        
+        oace_fieldnames = [
+            "iteration", "phase", "timestamp", "oace_score", "fitness",
+            "model_type", "position", "architecture_config"
+        ]
+        
+        with open(oace_file, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=oace_fieldnames)
+            writer.writeheader()
     
-    def _update_summary_csv(self, iteration, phase, best_fitness, metrics, architecture_config):
-        """Atualiza o arquivo CSV de resumo com nova iteração"""
+    def _update_all_csv_files(self, iteration_data):
+        """Atualiza todos os arquivos CSV com nova iteração"""
         if not self.current_experiment:
             return
             
-        # Salva na pasta results diretamente
+        # 1. Atualiza CSV de resumo das avaliações
         summary_file = os.path.join(
             self.csv_dir,
             f"{self.current_experiment}_avaliacoes.csv"
@@ -329,33 +431,87 @@ class OptimizationLogger:
         
         # Determina o tipo de arquitetura
         architecture_type = "Unknown"
-        if architecture_config and "model_type" in architecture_config:
-            architecture_type = architecture_config["model_type"]
+        if iteration_data["architecture_config"] and "model_type" in iteration_data["architecture_config"]:
+            architecture_type = iteration_data["architecture_config"]["model_type"]
         
         row = {
-            "iteration": iteration,
-            "phase": phase,
-            "best_fitness": best_fitness,
+            "iteration": iteration_data["iteration"],
+            "phase": iteration_data["phase"],
+            "best_fitness": iteration_data["best_fitness"],
             "architecture_type": architecture_type,
-            "top1_acc": metrics.get("top1_acc", 0.0) if metrics else 0.0,
-            "top5_acc": metrics.get("top5_acc", 0.0) if metrics else 0.0,
-            "precision_macro": metrics.get("precision_macro", 0.0) if metrics else 0.0,
-            "recall_macro": metrics.get("recall_macro", 0.0) if metrics else 0.0,
-            "f1_macro": metrics.get("f1_macro", 0.0) if metrics else 0.0,
-            "total_params": metrics.get("total_params", 0) if metrics else 0,
-            "avg_inference_time": metrics.get("avg_inference_time", 0.0) if metrics else 0.0,
-            "memory_used_mb": metrics.get("memory_used_mb", 0.0) if metrics else 0.0,
-            "gflops": metrics.get("gflops", 0.0) if metrics else 0.0,
-            "architecture_config": json.dumps(architecture_config) if architecture_config else ""
+            "top1_acc": iteration_data["metrics"].get("top1_acc", 0.0) if iteration_data["metrics"] else 0.0,
+            "top5_acc": iteration_data["metrics"].get("top5_acc", 0.0) if iteration_data["metrics"] else 0.0,
+            "precision_macro": iteration_data["metrics"].get("precision_macro", 0.0) if iteration_data["metrics"] else 0.0,
+            "recall_macro": iteration_data["metrics"].get("recall_macro", 0.0) if iteration_data["metrics"] else 0.0,
+            "f1_macro": iteration_data["metrics"].get("f1_macro", 0.0) if iteration_data["metrics"] else 0.0,
+            "total_params": iteration_data["metrics"].get("total_params", 0) if iteration_data["metrics"] else 0,
+            "avg_inference_time": iteration_data["metrics"].get("avg_inference_time", 0.0) if iteration_data["metrics"] else 0.0,
+            "memory_used_mb": iteration_data["metrics"].get("memory_used_mb", 0.0) if iteration_data["metrics"] else 0.0,
+            "gflops": iteration_data["metrics"].get("gflops", 0.0) if iteration_data["metrics"] else 0.0,
+            "oace_score": iteration_data.get("oace_score", 0.0),
+            "architecture_config": json.dumps(iteration_data["architecture_config"]) if iteration_data["architecture_config"] else ""
         }
         
         with open(summary_file, 'a', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=row.keys())
             writer.writerow(row)
+        
+        # 2. Atualiza CSV de métricas detalhadas se há dados de arquitetura
+        if iteration_data["architecture_config"] and iteration_data["metrics"]:
+            metrics_file = os.path.join(
+                self.csv_dir,
+                f"{self.current_experiment}_detailed_metrics.csv"
+            )
+            
+            metrics_row = {
+                "iteration": iteration_data["iteration"],
+                "phase": iteration_data["phase"],
+                "timestamp": iteration_data["timestamp"],
+                "evaluation_id": f"{iteration_data['phase']}_{iteration_data['iteration']}",
+                "top1_acc": iteration_data["metrics"].get("top1_acc", 0.0),
+                "top5_acc": iteration_data["metrics"].get("top5_acc", 0.0),
+                "precision_macro": iteration_data["metrics"].get("precision_macro", 0.0),
+                "recall_macro": iteration_data["metrics"].get("recall_macro", 0.0),
+                "f1_macro": iteration_data["metrics"].get("f1_macro", 0.0),
+                "total_params": iteration_data["metrics"].get("total_params", 0),
+                "avg_inference_time": iteration_data["metrics"].get("avg_inference_time", 0.0),
+                "memory_used_mb": iteration_data["metrics"].get("memory_used_mb", 0.0),
+                "gflops": iteration_data["metrics"].get("gflops", 0.0),
+                "oace_score": iteration_data.get("oace_score", 0.0),
+                "fitness": iteration_data["best_fitness"],
+                "model_type": architecture_type,
+                "architecture_params": json.dumps(iteration_data["architecture_config"])
+            }
+            
+            with open(metrics_file, 'a', newline='', encoding='utf-8') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=metrics_row.keys())
+                writer.writerow(metrics_row)
+        
+        # 3. Atualiza CSV de OACE scores se disponível
+        if iteration_data.get("oace_score") is not None:
+            oace_file = os.path.join(
+                self.csv_dir,
+                f"{self.current_experiment}_oace_scores.csv"
+            )
+            
+            oace_row = {
+                "iteration": iteration_data["iteration"],
+                "phase": iteration_data["phase"],
+                "timestamp": iteration_data["timestamp"],
+                "oace_score": iteration_data["oace_score"],
+                "fitness": iteration_data["best_fitness"],
+                "model_type": architecture_type,
+                "position": json.dumps(iteration_data["best_position"]),
+                "architecture_config": json.dumps(iteration_data["architecture_config"])
+            }
+            
+            with open(oace_file, 'a', newline='', encoding='utf-8') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=oace_row.keys())
+                writer.writerow(oace_row)
     
     def load_checkpoint(self, checkpoint_file: str) -> Dict[str, Any]:
         """
-        Carrega um checkpoint salvo.
+        Carrega um checkpoint salvo com validação.
         
         Args:
             checkpoint_file (str): Caminho do arquivo de checkpoint
@@ -363,54 +519,74 @@ class OptimizationLogger:
         Returns:
             Dict[str, Any]: Dados do checkpoint
         """
-        with open(checkpoint_file, 'r') as f:
-            return json.load(f)
+        if not os.path.exists(checkpoint_file):
+            raise FileNotFoundError(f"Checkpoint não encontrado: {checkpoint_file}")
+            
+        with open(checkpoint_file, 'r', encoding='utf-8') as f:
+            checkpoint_data = json.load(f)
+        
+        # Valida estrutura básica do checkpoint
+        required_fields = ["iteration", "phase", "timestamp", "best_position", "best_fitness"]
+        for field in required_fields:
+            if field not in checkpoint_data:
+                raise ValueError(f"Campo obrigatório '{field}' não encontrado no checkpoint")
+        
+        return checkpoint_data
     
-    def resume_from_checkpoint(self, checkpoint_file: str, optimizer: PSO) -> Tuple[int, str]:
+    def resume_from_checkpoint(self, checkpoint_file: str, optimizer) -> Tuple[int, str]:
         """
-        Resume a otimização a partir de um checkpoint.
+        Resume a otimização a partir de um checkpoint com validação aprimorada.
         
         Args:
             checkpoint_file (str): Caminho do arquivo de checkpoint
-            optimizer (PSO): Instância do otimizador PSO
+            optimizer: Instância do otimizador (PSO, AFSA, etc.)
             
         Returns:
             Tuple[int, str]: (iteração, fase) para continuar a otimização
         """
         checkpoint_data = self.load_checkpoint(checkpoint_file)
         
-        # Carrega o estado do otimizador
-        if "optimizer_state" in checkpoint_data:
+        # Carrega o estado do otimizador se disponível
+        if "optimizer_state" in checkpoint_data and hasattr(optimizer, 'load_state_from_dict'):
             optimizer.load_state_from_dict(checkpoint_data["optimizer_state"])
+            print(f"🔄 Estado do otimizador carregado do checkpoint")
         
+        # Restaura estatísticas de cache se disponíveis
+        if "cache_stats" in checkpoint_data:
+            self.cache_stats.update(checkpoint_data["cache_stats"])
+            # Converte unique_architectures de volta para set se necessário
+            if isinstance(self.cache_stats["unique_architectures"], list):
+                self.cache_stats["unique_architectures"] = set(self.cache_stats["unique_architectures"])
+        
+        # Restaura resumo do experimento se disponível
+        if "experiment_summary" in checkpoint_data:
+            self.log_data["optimization_summary"].update(checkpoint_data["experiment_summary"])
+        
+        print(f"✅ Checkpoint carregado: Iteração {checkpoint_data['iteration']}, Fase {checkpoint_data['phase']}")
         return checkpoint_data["iteration"], checkpoint_data["phase"]
     
     def export_final_results(self):
-        """Exporta resultados finais em múltiplos formatos"""
+        """Exporta resultados finais em múltiplos formatos organizados"""
         if not self.current_experiment:
             return
             
-        # Salva na pasta results diretamente
-        results_dir = self.log_dir
+        print(f"📊 Exportando resultados finais...")
         
-        # 1. Exporta histórico de pbest/gbest
-        self._export_pbest_gbest_history(results_dir)
+        # Exporta históricos específicos
+        self._export_pbest_gbest_history()
+        self._export_convergence_analysis()
+        self._export_architecture_comparison()
+        self._export_optimization_summary()
         
-        # 2. Exporta métricas detalhadas
-        self._export_detailed_metrics(results_dir)
-        
-        # 3. Exporta resumo da otimização
-        self._export_optimization_summary(results_dir)
-        
-        print(f"📊 Resultados exportados para: {results_dir}")
+        print(f"✅ Todos os resultados exportados para: {self.experiment_dir}")
     
-    def _export_pbest_gbest_history(self, results_dir: str):
-        """Exporta histórico de pbest e gbest"""
+    def _export_pbest_gbest_history(self):
+        """Exporta histórico completo de pbest e gbest"""
         # Pbest history
-        pbest_file = os.path.join(self.csv_dir, f"{self.current_experiment}_pbest_history.csv")
         if self.log_data["pbest_history"]:
+            pbest_file = os.path.join(self.csv_dir, f"{self.current_experiment}_pbest_history.csv")
             with open(pbest_file, 'w', newline='', encoding='utf-8') as csvfile:
-                fieldnames = ["iteration", "phase", "particle_id", "pbest_position", "pbest_cost"]
+                fieldnames = ["iteration", "phase", "timestamp", "particle_id", "pbest_position", "pbest_cost"]
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
                 
@@ -419,16 +595,17 @@ class OptimizationLogger:
                         writer.writerow({
                             "iteration": entry["iteration"],
                             "phase": entry["phase"],
+                            "timestamp": entry["timestamp"],
                             "particle_id": i,
                             "pbest_position": json.dumps(pos),
                             "pbest_cost": cost
                         })
         
         # Gbest history
-        gbest_file = os.path.join(self.csv_dir, f"{self.current_experiment}_gbest_history.csv")
         if self.log_data["gbest_history"]:
+            gbest_file = os.path.join(self.csv_dir, f"{self.current_experiment}_gbest_history.csv")
             with open(gbest_file, 'w', newline='', encoding='utf-8') as csvfile:
-                fieldnames = ["iteration", "phase", "gbest_position", "gbest_cost"]
+                fieldnames = ["iteration", "phase", "timestamp", "gbest_position", "gbest_cost"]
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
                 
@@ -436,62 +613,179 @@ class OptimizationLogger:
                     writer.writerow({
                         "iteration": entry["iteration"],
                         "phase": entry["phase"],
+                        "timestamp": entry["timestamp"],
                         "gbest_position": json.dumps(entry["gbest_position"]),
                         "gbest_cost": entry["gbest_cost"]
                     })
     
-    def _export_detailed_metrics(self, results_dir: str):
-        """Exporta métricas detalhadas"""
-        metrics_file = os.path.join(self.csv_dir, f"{self.current_experiment}_detailed_metrics.csv")
+    def _export_convergence_analysis(self):
+        """Exporta análise de convergência"""
+        if not self.log_data["iterations"]:
+            return
+            
+        convergence_file = os.path.join(self.analysis_dir, f"{self.current_experiment}_convergence_analysis.csv")
         
-        if self.log_data["iterations"]:
-            with open(metrics_file, 'w', newline='', encoding='utf-8') as csvfile:
-                fieldnames = ["iteration", "phase", "best_fitness", "best_position", "metrics"]
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writeheader()
+        with open(convergence_file, 'w', newline='', encoding='utf-8') as csvfile:
+            fieldnames = ["iteration", "phase", "best_fitness", "oace_score", "improvement", "cumulative_improvement"]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            
+            previous_fitness = float('-inf')
+            cumulative_improvement = 0
+            
+            for iteration in self.log_data["iterations"]:
+                current_fitness = iteration["best_fitness"]
+                improvement = current_fitness - previous_fitness if previous_fitness != float('-inf') else 0
+                cumulative_improvement += max(0, improvement)
                 
-                for iteration in self.log_data["iterations"]:
-                    writer.writerow({
-                        "iteration": iteration["iteration"],
-                        "phase": iteration["phase"],
-                        "best_fitness": iteration["best_fitness"],
-                        "best_position": json.dumps(iteration["best_position"]),
-                        "metrics": json.dumps(iteration.get("metrics", {}))
-                    })
+                writer.writerow({
+                    "iteration": iteration["iteration"],
+                    "phase": iteration["phase"],
+                    "best_fitness": current_fitness,
+                    "oace_score": iteration.get("oace_score", 0),
+                    "improvement": improvement,
+                    "cumulative_improvement": cumulative_improvement
+                })
+                
+                previous_fitness = current_fitness
     
-    def _export_optimization_summary(self, results_dir: str):
-        """Exporta resumo da otimização"""
-        summary_file = os.path.join(self.logs_dir, f"{self.current_experiment}_summary.json")
+    def _export_architecture_comparison(self):
+        """Exporta comparação detalhada entre arquiteturas testadas"""
+        if not self.log_data["architecture_evaluations"]:
+            return
+            
+        comparison_file = os.path.join(self.analysis_dir, f"{self.current_experiment}_architecture_comparison.csv")
+        
+        with open(comparison_file, 'w', newline='', encoding='utf-8') as csvfile:
+            fieldnames = [
+                "evaluation_id", "iteration", "phase", "model_type", "fitness", "oace_score",
+                "top1_acc", "top5_acc", "precision_macro", "recall_macro", "f1_macro",
+                "total_params", "avg_inference_time", "memory_used_mb", "gflops",
+                "architecture_params", "timestamp"
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            
+            for eval_data in self.log_data["architecture_evaluations"]:
+                metrics = eval_data.get("metrics", {})
+                arch_config = eval_data.get("architecture_config", {})
+                
+                writer.writerow({
+                    "evaluation_id": eval_data.get("evaluation_id", ""),
+                    "iteration": eval_data["iteration"],
+                    "phase": eval_data["phase"],
+                    "model_type": arch_config.get("model_type", "Unknown"),
+                    "fitness": eval_data["fitness"],
+                    "oace_score": eval_data.get("oace_score", 0),
+                    "top1_acc": metrics.get("top1_acc", 0),
+                    "top5_acc": metrics.get("top5_acc", 0),
+                    "precision_macro": metrics.get("precision_macro", 0),
+                    "recall_macro": metrics.get("recall_macro", 0),
+                    "f1_macro": metrics.get("f1_macro", 0),
+                    "total_params": metrics.get("total_params", 0),
+                    "avg_inference_time": metrics.get("avg_inference_time", 0),
+                    "memory_used_mb": metrics.get("memory_used_mb", 0),
+                    "gflops": metrics.get("gflops", 0),
+                    "architecture_params": json.dumps(arch_config),
+                    "timestamp": eval_data.get("timestamp", "")
+                })
+    
+    def _export_optimization_summary(self):
+        """Exporta resumo completo da otimização"""
+        summary_file = os.path.join(self.analysis_dir, f"{self.current_experiment}_optimization_summary.json")
+        
+        # Calcula estatísticas adicionais
+        iterations_by_phase = {}
+        fitness_by_phase = {}
+        
+        for iteration in self.log_data["iterations"]:
+            phase = iteration["phase"]
+            if phase not in iterations_by_phase:
+                iterations_by_phase[phase] = 0
+                fitness_by_phase[phase] = []
+            
+            iterations_by_phase[phase] += 1
+            fitness_by_phase[phase].append(iteration["best_fitness"])
+        
+        # Calcula estatísticas por fase
+        phase_stats = {}
+        for phase, fitness_values in fitness_by_phase.items():
+            if fitness_values:
+                phase_stats[phase] = {
+                    "iterations": iterations_by_phase[phase],
+                    "best_fitness": max(fitness_values),
+                    "worst_fitness": min(fitness_values),
+                    "avg_fitness": sum(fitness_values) / len(fitness_values),
+                    "fitness_improvement": max(fitness_values) - min(fitness_values) if len(fitness_values) > 1 else 0
+                }
         
         summary_data = {
-            "experiment_name": self.current_experiment,
+            "experiment_info": self.log_data["experiment_info"],
             "optimization_summary": self.log_data["optimization_summary"],
-            "best_solution": {
-                "position": self.log_data["optimization_summary"]["best_position"],
-                "fitness": self.log_data["optimization_summary"]["best_fitness"]
+            "phase_statistics": phase_stats,
+            "cache_statistics": {
+                "total_evaluations": self.cache_stats["total_evaluations"],
+                "cache_hits": self.cache_stats["cache_hits"],
+                "cache_misses": self.cache_stats["cache_misses"],
+                "cache_efficiency": self.cache_stats["cache_hits"] / max(1, self.cache_stats["total_evaluations"]) * 100,
+                "unique_architectures_tested": len(self.cache_stats["unique_architectures"])
             },
-            "total_checkpoints": len(self.log_data["checkpoints"]),
-            "total_iterations": len(self.log_data["iterations"])
+            "final_results": self.log_data.get("final_results", {}),
+            "best_solution": self.get_best_solution()
         }
         
-        with open(summary_file, 'w') as f:
-            json.dump(summary_data, f, indent=2)
+        with open(summary_file, 'w', encoding='utf-8') as f:
+            json.dump(summary_data, f, indent=2, ensure_ascii=False)
     
     def get_best_solution(self) -> Optional[Dict[str, Any]]:
-        """Retorna a melhor solução encontrada"""
-        if self.log_data["best_solutions"]:
-            return self.log_data["best_solutions"][-1]
-        return None
+        """Retorna informações sobre a melhor solução encontrada"""
+        if not self.log_data["best_solutions"]:
+            return None
+        
+        # Retorna a melhor solução (última na lista, que é a melhor)
+        best = self.log_data["best_solutions"][-1]
+        return {
+            "iteration": best["iteration"],
+            "phase": best["phase"],
+            "fitness": best["fitness"],
+            "oace_score": best.get("oace_score"),
+            "metrics": best["metrics"],
+            "architecture_config": best["architecture_config"],
+            "position": best["position"],
+            "timestamp": best.get("timestamp")
+        }
     
     def get_optimization_progress(self) -> Dict[str, Any]:
-        """Retorna o progresso atual da otimização"""
+        """Retorna informações sobre o progresso da otimização"""
+        if not self.log_data["iterations"]:
+            return {"status": "no_iterations"}
+        
+        last_iteration = self.log_data["iterations"][-1]
+        
         return {
+            "current_iteration": last_iteration["iteration"],
+            "current_phase": last_iteration["phase"],
             "total_iterations": len(self.log_data["iterations"]),
             "total_evaluations": self.log_data["optimization_summary"]["total_evaluations"],
-            "best_score": self.log_data["optimization_summary"]["best_score"],
-            "current_phase": self.log_data["iterations"][-1]["phase"] if self.log_data["iterations"] else None,
-            "last_iteration": self.log_data["iterations"][-1]["iteration"] if self.log_data["iterations"] else 0
+            "total_architectures_tested": self.log_data["optimization_summary"]["total_architectures_tested"],
+            "best_fitness": self.log_data["optimization_summary"]["best_fitness"],
+            "best_oace_score": self.log_data["optimization_summary"].get("best_oace_score"),
+            "convergence_iteration": self.log_data["optimization_summary"].get("convergence_iteration"),
+            "cache_efficiency": self.cache_stats["cache_hits"] / max(1, self.cache_stats["total_evaluations"]) * 100,
+            "last_update": last_iteration["timestamp"]
         }
+
+    def add_cache_hit(self, architecture_key: str):
+        """Registra um cache hit"""
+        self.cache_stats["cache_hits"] += 1
+        self.cache_stats["total_evaluations"] += 1
+
+    def add_cache_miss(self, architecture_key: str, evaluation_time: float = None):
+        """Registra um cache miss"""
+        self.cache_stats["cache_misses"] += 1
+        self.cache_stats["total_evaluations"] += 1
+        if evaluation_time is not None:
+            self.cache_stats["evaluation_times"].append(evaluation_time)
 
 # Exemplo de uso:
 if __name__ == "__main__":

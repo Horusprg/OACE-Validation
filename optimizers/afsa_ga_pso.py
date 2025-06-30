@@ -13,6 +13,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.data_loader import get_cifar10_dataloaders
 from utils.optimization_logger import OptimizationLogger
+import time
 
 class AFSAGAPSO:
     """
