@@ -46,7 +46,7 @@ class GA:
         # Inicialização da população
         self.population = None
         self.best_solution = None
-        self.best_fitness = float('inf')
+        self.best_fitness = float('-inf')  # ✅ Mudança para -inf (maximização)
 
     def _setup_deap(self):
         """
@@ -169,21 +169,43 @@ class GA:
         Args:
             initial_population (np.ndarray): População inicial do PSO.
         """
+        print(f"🔍 DEBUG GA: Inicializando população com {len(initial_population)} soluções")
+        print(f"🔍 DEBUG GA: Tipo de initial_population: {type(initial_population)}")
+        
         self.population = []
-        for solution in initial_population:
+        for i, solution in enumerate(initial_population):
+            print(f"🔍 DEBUG GA: Processando solução {i}: {solution}")
+            print(f"🔍 DEBUG GA: Tipo da solução: {type(solution)}")
+            
             ind = creator.Individual(solution)
-            ind.fitness.values = self.fitness_function(ind)
+            print(f"🔍 DEBUG GA: Indivíduo criado: {ind}")
+            print(f"🔍 DEBUG GA: Tipo do indivíduo: {type(ind)}")
+            
+            print(f"🔍 DEBUG GA: Chamando fitness_function para indivíduo {i}")
+            fitness_result = self.fitness_function(ind)
+            print(f"🔍 DEBUG GA: Resultado do fitness: {fitness_result}")
+            print(f"🔍 DEBUG GA: Tipo do resultado: {type(fitness_result)}")
+            
+            ind.fitness.values = fitness_result
+            print(f"🔍 DEBUG GA: Fitness atribuído: {ind.fitness.values}")
+            
             self.population.append(ind)
+            print(f"🔍 DEBUG GA: Indivíduo {i} adicionado à população")
+        
+        print(f"🔍 DEBUG GA: População criada com {len(self.population)} indivíduos")
+        print(f"🔍 DEBUG GA: Primeiro indivíduo: {self.population[0]}")
+        print(f"🔍 DEBUG GA: Fitness do primeiro: {self.population[0].fitness.values}")
         
         # Atualiza a melhor solução
         self._update_best_solution()
+        print(f"🔍 DEBUG GA: Melhor solução atualizada: {self.best_fitness}")
 
     def _update_best_solution(self):
         """
         Atualiza a melhor solução encontrada.
         """
         best_ind = tools.selBest(self.population, k=1)[0]
-        if best_ind.fitness.values[0] < self.best_fitness:
+        if best_ind.fitness.values[0] > self.best_fitness:
             self.best_fitness = best_ind.fitness.values[0]
             self.best_solution = np.copy(best_ind)
 
@@ -193,33 +215,59 @@ class GA:
         Returns:
             tuple: (melhor posição encontrada, melhor valor de fitness)
         """
+        print(f"🧬 Iniciando otimização GA com {self.max_iter} iterações...")
+        print(f"   • População inicial: {len(self.population)} indivíduos")
+        print(f"   • Dimensões: {len(self.population[0])}")
+        print(f"🔍 DEBUG GA: Melhor fitness inicial: {self.best_fitness}")
+        print(f"🔍 DEBUG GA: Melhor solução inicial: {self.best_solution}")
+            
         for iter_num in range(self.max_iter):
+            print(f"🔍 DEBUG GA: Iteração {iter_num + 1}/{self.max_iter}")
+            
             # Atualiza as taxas adaptativas
             crossover_rate = self.adaptive_crossover_rate(iter_num)
             mutation_rate = self.adaptive_mutation_rate(iter_num)
+            print(f"🔍 DEBUG GA: Taxas - Crossover: {crossover_rate:.3f}, Mutação: {mutation_rate:.3f}")
             
             # Seleciona a próxima geração
+            print(f"🔍 DEBUG GA: Gerando offspring...")
             offspring = algorithms.varOr(self.population, self.toolbox,
                                        lambda_=self.population_size,
                                        cxpb=crossover_rate,
                                        mutpb=mutation_rate)
+            print(f"🔍 DEBUG GA: Offspring gerado com {len(offspring)} indivíduos")
             
             # Avalia os indivíduos
+            print(f"🔍 DEBUG GA: Avaliando offspring...")
             fits = self.toolbox.map(self.toolbox.evaluate, offspring)
-            for fit, ind in zip(fits, offspring):
+            for i, (fit, ind) in enumerate(zip(fits, offspring)):
+                print(f"🔍 DEBUG GA: Offspring {i} - Fitness antes: {ind.fitness.values}")
                 ind.fitness.values = fit
+                print(f"🔍 DEBUG GA: Offspring {i} - Fitness depois: {ind.fitness.values}")
             
             # Atualiza a população
+            print(f"🔍 DEBUG GA: Atualizando população...")
             self.population = offspring
             
             # Atualiza a melhor solução
+            print(f"🔍 DEBUG GA: Atualizando melhor solução...")
             self._update_best_solution()
+            print(f"🔍 DEBUG GA: Melhor fitness após iteração {iter_num + 1}: {self.best_fitness}")
             
             # Elitismo: mantém a melhor solução
             if self.best_solution is not None:
+                print(f"🔍 DEBUG GA: Aplicando elitismo...")
                 worst_idx = np.argmax([ind.fitness.values[0] for ind in self.population])
+                print(f"🔍 DEBUG GA: Substituindo indivíduo {worst_idx} (fitness: {self.population[worst_idx].fitness.values[0]:.6f})")
                 self.population[worst_idx] = creator.Individual(self.best_solution)
                 self.population[worst_idx].fitness.values = (self.best_fitness,)
+                print(f"🔍 DEBUG GA: Indivíduo substituído com fitness: {self.population[worst_idx].fitness.values[0]:.6f}")
+                
+        print(f"\n✅ GA concluído!")
+        print(f"   • Melhor fitness final: {self.best_fitness:.6f}")
+        print(f"   • Melhor posição: {self.best_solution}")
+        print(f"🔍 DEBUG GA: Tipo do best_fitness: {type(self.best_fitness)}")
+        print(f"🔍 DEBUG GA: best_fitness é numpy array? {isinstance(self.best_fitness, np.ndarray)}")
         
         return self.best_solution, self.best_fitness
 

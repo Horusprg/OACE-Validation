@@ -1,3 +1,4 @@
+# python -X utf8 -u -m optimizers.afsa_ga_pso 2>&1 | tee teste_debug.log
 import numpy as np
 from optimizers.afsa import AFSA
 from optimizers.pso import PSO
@@ -103,9 +104,10 @@ class AFSAGAPSO:
         # Parâmetros padrão para o GA
         if ga_params is None:
             ga_params = {
-                "initial_crossover_rate": 0.8,
-                "initial_mutation_rate": 0.1,
-                "tournament_size": 3,
+                "initial_crossover_rate": 0.8,    # Respeita limite (0.7 + 0.25 = 0.95)
+                "initial_mutation_rate": 0.15,    # Respeita limite
+                "tournament_size": 3,             # Seleção balanceada
+                "max_iter": 6
             }
         self.ga_params = ga_params
         
@@ -436,7 +438,7 @@ class AFSAGAPSO:
             val_loader=self.val_loader,
             test_loader=self.test_loader,
             classes=self.classes,
-            num_epochs=3,
+            num_epochs=2,
             device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             params=params,
         )
@@ -517,25 +519,46 @@ class AFSAGAPSO:
 
     def fitness_function(self, x: np.ndarray) -> float:
         """
-        Função de fitness que avalia a qualidade da arquitetura usando o score OACE.
-        
-        Esta função faz warm-up de novos candidatos durante a otimização PSO e GA,
-        permitindo que o algoritmo explore o espaço de busca efetivamente.
+        Função de fitness que avalia um candidato usando o score OACE.
         
         Args:
-            x (np.ndarray): Vetor de parâmetros da arquitetura.
+            x (np.ndarray): Vetor de parâmetros normalizados
             
         Returns:
-            float: Score OACE da arquitetura.
+            float: Score OACE (entre 0 e 1)
         """
-        # Realiza o warm-up e obtém as métricas para o novo candidato
+        # Converte o vetor para string para usar como chave do cache
+        cache_key = str(x.tolist())
+        
+        # Verifica se já foi avaliado
+        if cache_key in self.candidates_cache:
+            self.cache_hits += 1
+            print(f"🎯 Cache HIT! Candidato já avaliado (total hits: {self.cache_hits})")
+            return self.candidates_cache[cache_key]
+        
+        # Se não está no cache, avalia o candidato
+        self.cache_misses += 1
+        print(f"🆕 Novo candidato avaliado - Score OACE: ", end="")
+        
+        # Treina e avalia o candidato
         metrics = self._warm_up_candidate(x)
-
-        # Calcula o score OACE usando a função auxiliar
+        
+        # Calcula o score OACE
         score = self._calculate_oace_score(metrics)
         
-        print(f"Novo candidato avaliado - Score OACE: {score:.6f}")
-
+        # Armazena no cache
+        self.candidates_cache[cache_key] = score
+        
+        print(f"{score:.6f}")
+        
+        # CORREÇÃO: Garante que o score está dentro do range válido
+        if score > 1.0:
+            print(f"⚠️  AVISO: Score OACE inválido ({score:.6f}) > 1.0. Corrigindo...")
+            score = 1.0
+        elif score < 0.0:
+            print(f"⚠️  AVISO: Score OACE inválido ({score:.6f}) < 0.0. Corrigindo...")
+            score = 0.0
+        
         return score
 
     def initialize_components(self):
@@ -625,8 +648,9 @@ class AFSAGAPSO:
             
             print("initial_population: ", initial_population)
             print("candidates_metrics: ", candidates_metrics)
+            
 
-            # Calcula limites das métricas usando as métricas já calculadas
+            # Calcula limites das méctricas usando as métricas já calculadas
             self._calculate_metrics_ranges(candidates_metrics)
             
             # Executa PSO com população inicial do AFSA
@@ -634,6 +658,8 @@ class AFSAGAPSO:
             phase1_solutions = self._execute_afsa_pso_phase(initial_population, candidates_metrics)
             
             print("\nphase1_solutions: ", phase1_solutions)
+            
+            breakpoint()
             
             print(f"\n✓ Fase 1 concluída! Geradas {len(phase1_solutions)} soluções de otimização inicial.")
 
@@ -699,11 +725,12 @@ class AFSAGAPSO:
             self.logger.log_final_results(
                 best_architecture=best_architecture_name,
                 best_params=best_architecture_params,
-                best_fitness=best_fitness,
+                best_fitness=best_fitness,  # CORREÇÃO: Este deve ser o score OACE
                 final_metrics=final_metrics
             )
 
-            return best_architecture_name, best_architecture_params, self.best_fitness
+            # CORREÇÃO: Garante que o retorno seja consistente
+            return best_architecture_name, best_architecture_params, best_fitness
             
         except Exception as e:
             print(f"\n❌ Erro durante a otimização: {str(e)}")
@@ -739,7 +766,8 @@ class AFSAGAPSO:
             fitness_values=initial_fitness,
             best_position=initial_population[best_idx],
             best_fitness=initial_fitness[best_idx],
-            metrics=candidates_metrics[best_idx][1]
+            metrics=candidates_metrics[best_idx][1],
+            oace_score=initial_fitness[best_idx]  # CORREÇÃO: Adiciona o score OACE
         )
 
         def pso_fitness_function(x):
@@ -749,11 +777,16 @@ class AFSAGAPSO:
                 scores = []
                 for xi in x:
                     score = self.fitness_function(xi)
-                    scores.append(-score)
+                    scores.append(score)
                 return np.array(scores)
 
         self.pso.fitness_function = pso_fitness_function
-        self.pso.optimizer.swarm.position = initial_population.copy()
+        
+        # Inicializa completamente o enxame do PSO com a população do AFSA
+        print("  • Inicializando enxame PSO com população do AFSA...")
+        self.pso.initialize_swarm_with_population(initial_population)
+        #self.pso.optimizer.swarm.position = initial_population.copy()
+        
         print("  • PSO explorando espaço de busca e gerando novos candidatos...")
         best_pos, best_cost = self.pso.optimize(metrics_function=self._warm_up_candidate)
         print("\nbest_pos PSO: ", best_pos)
@@ -788,9 +821,39 @@ class AFSAGAPSO:
         Returns:
             tuple: (melhor posição, melhor fitness)
         """
-        # Registra a iteração inicial do GA
+        print(f"\n🔍 DEBUG: Iniciando Fase 2 GA-PSO")
+        print(f"🔍 DEBUG: phase1_solutions shape: {np.array(phase1_solutions).shape}")
+        print(f"🔍 DEBUG: Primeira solução: {phase1_solutions[0]}")
+        
+        # Configura a função de fitness para o GA
+        def ga_fitness_function(individual):
+            """Função de fitness para o GA na Fase 2"""
+            print(f"🔍 DEBUG: GA chamando fitness_function para indivíduo: {individual}")
+            print(f"🔍 DEBUG: Tipo do indivíduo: {type(individual)}")
+            print(f"🔍 DEBUG: Forma do indivíduo: {individual.shape if hasattr(individual, 'shape') else 'N/A'}")
+            
+            # Converte para numpy array se necessário
+            if not isinstance(individual, np.ndarray):
+                individual = np.array(individual)
+            
+            fitness_value = self.fitness_function(individual)
+            print(f"🔍 DEBUG: Fitness calculado: {fitness_value}")
+            print(f"🔍 DEBUG: Tipo do fitness: {type(fitness_value)}")
+            
+            result = (fitness_value,)
+            print(f"🔍 DEBUG: Retornando tupla: {result}")
+            return result
+        
+        # Atualiza a função de fitness do GA
+        print(f"🔍 DEBUG: Atualizando função de fitness do GA")
+        self.ga.fitness_function = ga_fitness_function
+        
+        # Registra a iteração inicial do GA-PSO
         print("📊 Avaliando soluções iniciais da Fase 1...")
         initial_fitness = np.array([self.fitness_function(x) for x in phase1_solutions])
+        print(f"🔍 DEBUG: initial_fitness: {initial_fitness}")
+        print(f"🔍 DEBUG: Tipo de initial_fitness: {type(initial_fitness)}")
+        
         best_idx = np.argmax(initial_fitness)
         print("\nGA-PSO: best_idx GA: ", best_idx)
         best_metrics = self._warm_up_candidate(phase1_solutions[best_idx])
@@ -808,6 +871,7 @@ class AFSAGAPSO:
             architecture_name, _ = self._convert_to_architecture_params(solution)
             print(f"   {i+1}. {architecture_name} - Score OACE: {fitness:.6f}")
         
+        # CORREÇÃO: Registra corretamente a iteração inicial da Fase GA-PSO
         self.logger.log_iteration(
             iteration=0,
             phase="GA-PSO",
@@ -815,20 +879,19 @@ class AFSAGAPSO:
             fitness_values=initial_fitness,
             best_position=phase1_solutions[best_idx],
             best_fitness=initial_fitness[best_idx],
-            metrics=best_metrics
+            metrics=best_metrics,
+            oace_score=initial_fitness[best_idx]  # CORREÇÃO: Adiciona o score OACE
         )
-
-        # Configura a função de fitness para o GA
-        def ga_fitness_function(individual):
-            """Função de fitness para o GA na Fase 2"""
-            return (self.fitness_function(individual),)
-
-        # Atualiza a função de fitness do GA
-        self.ga.fitness_function = ga_fitness_function
         
         print(f"\n🧬 Inicializando GA com soluções da Fase 1...")
+        print(f"🔍 DEBUG: Chamando initialize_population com {len(phase1_solutions)} soluções")
+        
         # Inicializa o GA com as soluções da Fase 1
         self.ga.initialize_population(phase1_solutions)
+        
+        print(f"🔍 DEBUG: População do GA inicializada. Tamanho: {len(self.ga.population)}")
+        print(f"🔍 DEBUG: Primeiro indivíduo: {self.ga.population[0]}")
+        print(f"🔍 DEBUG: Fitness do primeiro indivíduo: {self.ga.population[0].fitness.values}")
         
         print(f"\n🧬 Aplicando operadores genéticos (crossover e mutação)...")
         print(f"   • Taxa crossover inicial: {self.ga_params['initial_crossover_rate']}")
@@ -836,52 +899,59 @@ class AFSAGAPSO:
         print(f"   • Tamanho torneio: {self.ga_params['tournament_size']}")
         
         # Executa a otimização com GA
+        print(f"🔍 DEBUG: Chamando self.ga.optimize()")
         best_position, best_fitness = self.ga.optimize()
         
         print(f"\n✅ GA concluído!")
         print(f"   • Melhor posição encontrada: {best_position}")
         print(f"   • Melhor fitness (GA): {best_fitness}")
+        print(f"🔍 DEBUG: Tipo do best_fitness: {type(best_fitness)}")
+        print(f"🔍 DEBUG: best_fitness é numpy array? {isinstance(best_fitness, np.ndarray)}")
         
-        # Registra cada iteração do GA
+        # CORREÇÃO: Avalia a população final do GA para garantir que todos os indivíduos foram treinados
         print(f"\n📊 Avaliando população final do GA...")
-        for i in range(self.max_iter):
-            current_population = np.array([ind for ind in self.ga.population])
-            current_fitness = np.array([ind.fitness.values[0] for ind in self.ga.population])
-            best_idx = np.argmax(current_fitness)
-            
-            # Obtém as métricas do melhor candidato
-            best_candidate = current_population[best_idx]
-            best_metrics = self._warm_up_candidate(best_candidate)
-            
-            self.logger.log_iteration(
-                iteration=i + 1,
-                phase="GA",
-                population=current_population,
-                fitness_values=current_fitness,
-                best_position=best_candidate,
-                best_fitness=current_fitness[best_idx],
-                metrics=best_metrics
-            )
-            
-            # Cria checkpoint a cada 10 iterações
-            if (i + 1) % 10 == 0:
-                self.logger.log_checkpoint(
-                    iteration=i + 1,
-                    phase="GA",
-                    population=current_population,
-                    fitness_values=current_fitness,
-                    best_position=best_candidate,
-                    best_fitness=current_fitness[best_idx]
-                )
-
-        print(f"\n✅ Fase GA concluída!")
-        print(f"   • Melhor score OACE final: {best_fitness:.6f}")
+        final_population = np.array([ind for ind in self.ga.population])
+        final_fitness = np.array([ind.fitness.values[0] for ind in self.ga.population])
         
-        # Mostra a arquitetura final
-        final_architecture, final_params = self._convert_to_architecture_params(best_position)
-        print(f"   • Arquitetura final: {final_architecture}")
-        print(f"   • Parâmetros finais: {final_params}")
-
+        print(f"🔍 DEBUG: final_population shape: {final_population.shape}")
+        print(f"🔍 DEBUG: final_fitness: {final_fitness}")
+        print(f"🔍 DEBUG: final_fitness min/max: {final_fitness.min():.6f} / {final_fitness.max():.6f}")
+        
+        # CORREÇÃO: Garante que o melhor fitness está dentro do range válido [0, 1]
+        if best_fitness > 1.0:
+            print(f"⚠️  AVISO: Score OACE inválido ({best_fitness:.6f}) > 1.0. Corrigindo...")
+            print(f"🔍 DEBUG: best_fitness inválido detectado. Recalculando...")
+            # Recalcula o score OACE para o melhor candidato
+            best_metrics = self._warm_up_candidate(best_position)
+            corrected_fitness = self._calculate_oace_score(best_metrics)
+            best_fitness = corrected_fitness
+            print(f"   • Score OACE corrigido: {best_fitness:.6f}")
+        
+        best_idx = np.argmax(final_fitness)
+        
+        # Obtém as métricas do melhor candidato
+        best_candidate = final_population[best_idx]
+        best_metrics = self._warm_up_candidate(best_candidate)
+        
+        # CORREÇÃO: Registra corretamente a iteração final da Fase GA com score OACE
+        self.logger.log_iteration(
+            iteration=10,  # CORREÇÃO: Usa iteração 10 para diferenciar da fase GA-PSO
+            phase="GA",
+            population=final_population,
+            fitness_values=final_fitness,
+            best_position=best_candidate,
+            best_fitness=final_fitness[best_idx],
+            metrics=best_metrics,
+            oace_score=final_fitness[best_idx]  # CORREÇÃO: Adiciona o score OACE
+        )
+        
+        print(f"\n🏁 Fase GA concluída!")
+        print(f"   • Melhor score OACE final: {best_fitness:.6f}")
+        best_architecture, _ = self._convert_to_architecture_params(best_position)
+        print(f"   • Arquitetura final: {best_architecture}")
+        best_params, _ = self._convert_to_architecture_params(best_position)
+        print(f"   • Parâmetros finais: {best_params}")
+        
         return best_position, best_fitness
 
     def _calculate_oace_score(self, metrics):
@@ -999,20 +1069,24 @@ class AFSAGAPSO:
 
 # Exemplo de uso:
 if __name__ == "__main__":
+    
+    print(f"CUDA disponível: {torch.cuda.is_available()}")
+    print(f"Número de GPUs: {torch.cuda.device_count()}")
+    
     # Carregar os data loaders
     train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders()
 
     # Criar instância do otimizador híbrido (com parâmetros reduzidos para teste)
     optimizer = AFSAGAPSO(
         population_size=2,
-        max_iter=3,  # Reduzido para teste mais rápido
+        max_iter=2,  
         train_loader=train_loader,
         val_loader=val_loader,
         test_loader=test_loader,
         classes=classes,
         lambda_param=0.5,
-        afsa_params={'visual': 0.5, 'step': 0.1, 'try_times': 3, 'max_iter': 10},  # Reduzido
-        # architectures_to_optimize=['CNN']  # Opcional, teste com CNN apenas
+        afsa_params={'visual': 1.5, 'step': 0.3, 'try_times': 3, 'max_iter': 3},  # Reduzido
+        architectures_to_optimize=['CNN']  # Todas as arquiteturas disponíveis
     )
 
     # Executa a otimização

@@ -198,6 +198,11 @@ class PSO:
         # Inicializa o enxame se necessário
         if self.optimizer.swarm.position is None:
             print("🔄 Inicializando enxame...")
+            
+            # Verifica se a função de fitness está definida
+            if not hasattr(self, 'fitness_function') or self.fitness_function is None:
+                raise ValueError("Função de fitness não está definida")
+            
             try:
                 # Tenta usar AFSA se disponível
                 if hasattr(self, 'afsa_params') and self.afsa_params is not None:
@@ -259,6 +264,10 @@ class PSO:
             self.optimizer.swarm.position.size == 0 or
             self.optimizer.swarm.pbest_cost is None or
             self.optimizer.swarm.pbest_cost.size == 0):
+            print(f"❌ Debug - position: {self.optimizer.swarm.position}")
+            print(f"❌ Debug - position size: {self.optimizer.swarm.position.size if self.optimizer.swarm.position is not None else 'None'}")
+            print(f"❌ Debug - pbest_cost: {self.optimizer.swarm.pbest_cost}")
+            print(f"❌ Debug - pbest_cost size: {self.optimizer.swarm.pbest_cost.size if self.optimizer.swarm.pbest_cost is not None else 'None'}")
             raise ValueError("Enxame não foi inicializado corretamente")
 
         # Inicializa histórico
@@ -295,6 +304,18 @@ class PSO:
 
             # Logging detalhado
             if self.logger is not None:
+                # CORREÇÃO: Calcula o score OACE para o logging
+                oace_score = None
+                try:
+                    if metrics is not None:
+                        # Usa a função de fitness para calcular o score OACE
+                        oace_score = self.fitness_function(gbest_pos)
+                        # Se o fitness_function retorna um array, pega o primeiro valor
+                        if isinstance(oace_score, np.ndarray):
+                            oace_score = oace_score[0] if oace_score.size > 0 else None
+                except Exception as e:
+                    print(f"⚠️ Erro ao calcular score OACE: {e}")
+                
                 self.logger.log_iteration(
                     iteration=i+1,
                     phase="PSO",
@@ -303,6 +324,7 @@ class PSO:
                     best_position=gbest_pos,
                     best_fitness=gbest_cost,
                     metrics=metrics,
+                    oace_score=oace_score,  # CORREÇÃO: Adiciona o score OACE
                     pbest_pos=pbest_pos,
                     pbest_cost=pbest_cost,
                     gbest_pos=gbest_pos,
@@ -458,6 +480,53 @@ class PSO:
             "current_iteration": 0,  # Seria atualizado durante a otimização
             "max_iterations": self.max_iter
         }
+
+    def initialize_swarm_with_population(self, initial_population):
+        """
+        Inicializa completamente o enxame do PSO com uma população específica.
+        
+        Args:
+            initial_population (np.ndarray): População inicial para o enxame
+        """
+        if initial_population is None or initial_population.size == 0:
+            raise ValueError("População inicial não pode ser None ou vazia")
+        
+        # Verifica se a população tem o formato correto
+        if initial_population.ndim == 1:
+            initial_population = initial_population.reshape(1, -1)
+            print(f"initial_population in initialize_swarm_with_population(): {initial_population}")
+        
+        if initial_population.shape[1] != self.n_dim:
+            raise ValueError(f"Dimensão da população ({initial_population.shape[1]}) não corresponde à dimensão esperada ({self.n_dim})")
+        
+        # Define a posição inicial
+        self.optimizer.swarm.position = initial_population.copy()
+        
+        # Inicializa velocidade
+        velocity_range = self.upper_bound - self.lower_bound
+        self.optimizer.swarm.velocity = np.random.uniform(
+            -velocity_range * 0.1,
+            velocity_range * 0.1,
+            initial_population.shape
+        )
+        
+        # Calcula fitness inicial
+        fitness_values = self.fitness_function(self.optimizer.swarm.position)
+        print(f"fitness_values in initialize_swarm_with_population(): {fitness_values}")
+        
+        # Inicializa pbest
+        self.optimizer.swarm.pbest_pos = self.optimizer.swarm.position.copy()
+        self.optimizer.swarm.pbest_cost = fitness_values.copy()
+        
+        # Inicializa gbest
+        best_idx = np.argmin(self.optimizer.swarm.pbest_cost)
+        self.optimizer.swarm.best_pos = self.optimizer.swarm.pbest_pos[best_idx].copy()
+        self.optimizer.swarm.best_cost = self.optimizer.swarm.pbest_cost[best_idx]
+        
+        print(f"self.optimizer.swarm.pbest_cost in initialize_swarm_with_population(): {self.optimizer.swarm.pbest_cost}")
+        print(f"self.optimizer.swarm.best_cost in initialize_swarm_with_population(): {self.optimizer.swarm.best_cost}")
+        
+        print(f"✅ Enxame inicializado com {len(initial_population)} partículas")
 
 # Exemplo de uso:
 if __name__ == "__main__":

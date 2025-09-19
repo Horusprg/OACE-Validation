@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug AFSA-GA-PSO",
+            "type": "python",
+            "request": "launch",
+            "module": "optimizers.afsa_ga_pso",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "PYTHONIOENCODING": "utf-8"
+            },
+            "args": [],
+            "python": "${workspaceFolder}/venv/Scripts/python.exe",
+            "justMyCode": false,
+            "stopOnEntry": false,
+            "redirectOutput": true,
+            "outputCapture": "std"
+        },
+        {
+            "name": "Debug AFSA-GA-PSO with UTF8",
+            "type": "python",
+            "request": "launch",
+            "module": "optimizers.afsa_ga_pso",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "PYTHONIOENCODING": "utf-8"
+            },
+            "args": [],
+            "python": "${workspaceFolder}/venv/Scripts/python.exe",
+            "justMyCode": false,
+            "stopOnEntry": false,
+            "redirectOutput": true,
+            "outputCapture": "std",
+            "options": [
+                "-X", "utf8",
+                "-u"
+            ]
+        }
+    ]
+}

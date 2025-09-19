@@ -184,12 +184,15 @@ class OptimizationLogger:
             
             self.log_data["best_solutions"].append(best_solution)
             
-            # Atualiza o resumo da otimização
+            # CORREÇÃO: Atualiza o resumo da otimização com o score OACE correto
             self.log_data["optimization_summary"]["best_fitness"] = float(best_fitness)
             self.log_data["optimization_summary"]["best_position"] = best_position.tolist() if isinstance(best_position, np.ndarray) else best_position
             self.log_data["optimization_summary"]["convergence_iteration"] = iteration
             if oace_score is not None:
                 self.log_data["optimization_summary"]["best_oace_score"] = float(oace_score)
+            # CORREÇÃO: Se não há oace_score explícito, usa o best_fitness como fallback
+            elif self.log_data["optimization_summary"]["best_oace_score"] == float('-inf'):
+                self.log_data["optimization_summary"]["best_oace_score"] = float(best_fitness)
         
         # Registra histórico de métricas
         if metrics:
@@ -304,7 +307,8 @@ class OptimizationLogger:
             if isinstance(obj, float):
                 if obj == float('inf'): return "Infinity"
                 elif obj == float('-inf'): return "-Infinity"
-                elif obj != obj: return "NaN"  # NaN check
+                elif obj != obj:  # NaN check
+                    return "NaN"
             return obj
         
         with open(checkpoint_file, 'w') as f:
@@ -316,6 +320,9 @@ class OptimizationLogger:
     def log_final_results(self, best_architecture, best_params, best_fitness, final_metrics):
         """Registra os resultados finais do experimento com informações completas"""
         end_time = datetime.now()
+        
+        # CORREÇÃO: Calcula o score OACE final corretamente
+        best_oace_score = float(best_fitness) if best_fitness is not None else float('-inf')
         
         self.log_data["final_results"] = {
             "timestamp": end_time.isoformat(),
@@ -330,8 +337,9 @@ class OptimizationLogger:
             "cache_efficiency": self.cache_stats["cache_hits"] / max(1, self.cache_stats["total_evaluations"]) * 100
         }
         
-        # Atualiza o resumo final
+        # CORREÇÃO: Atualiza o resumo final com o score OACE correto
         self.log_data["optimization_summary"]["end_time"] = end_time.isoformat()
+        self.log_data["optimization_summary"]["best_oace_score"] = best_oace_score
         
         # Salva o log final
         self._save_log()
@@ -361,8 +369,36 @@ class OptimizationLogger:
                     return "NaN"
             return obj
         
+        # CORREÇÃO: Garante que valores infinitos sejam tratados corretamente
+        def clean_infinite_values(data):
+            """Remove valores infinitos e NaN dos dados antes de salvar"""
+            if isinstance(data, dict):
+                cleaned = {}
+                for key, value in data.items():
+                    if isinstance(value, float):
+                        if value == float('inf'):
+                            cleaned[key] = "Infinity"
+                        elif value == float('-inf'):
+                            cleaned[key] = "-Infinity"
+                        elif value != value:  # NaN
+                            cleaned[key] = "NaN"
+                        else:
+                            cleaned[key] = value
+                    elif isinstance(value, (dict, list)):
+                        cleaned[key] = clean_infinite_values(value)
+                    else:
+                        cleaned[key] = value
+                return cleaned
+            elif isinstance(data, list):
+                return [clean_infinite_values(item) for item in data]
+            else:
+                return data
+        
+        # CORREÇÃO: Limpa os dados antes de salvar
+        cleaned_data = clean_infinite_values(self.log_data)
+        
         with open(log_file, 'w', encoding='utf-8') as f:
-            json.dump(self.log_data, f, indent=2, default=json_encoder, ensure_ascii=False)
+            json.dump(cleaned_data, f, indent=2, default=json_encoder, ensure_ascii=False)
     
     def _create_all_csv_files(self):
         """Cria todos os arquivos CSV necessários para o experimento"""
@@ -433,6 +469,14 @@ class OptimizationLogger:
         architecture_type = "Unknown"
         if iteration_data["architecture_config"] and "model_type" in iteration_data["architecture_config"]:
             architecture_type = iteration_data["architecture_config"]["model_type"]
+        elif iteration_data["phase"] == "PSO":
+            architecture_type = "PSO_Optimized"  # CORREÇÃO: Identifica como otimizado pelo PSO
+        elif iteration_data["phase"] == "AFSA-PSO":
+            architecture_type = "AFSA_Generated"  # CORREÇÃO: Identifica como gerado pelo AFSA
+        elif iteration_data["phase"] == "GA-PSO":
+            architecture_type = "GA_Optimized"  # CORREÇÃO: Identifica como otimizado pelo GA
+        elif iteration_data["phase"] == "GA":
+            architecture_type = "GA_Final"  # CORREÇÃO: Identifica como resultado final do GA
         
         row = {
             "iteration": iteration_data["iteration"],
@@ -448,7 +492,7 @@ class OptimizationLogger:
             "avg_inference_time": iteration_data["metrics"].get("avg_inference_time", 0.0) if iteration_data["metrics"] else 0.0,
             "memory_used_mb": iteration_data["metrics"].get("memory_used_mb", 0.0) if iteration_data["metrics"] else 0.0,
             "gflops": iteration_data["metrics"].get("gflops", 0.0) if iteration_data["metrics"] else 0.0,
-            "oace_score": iteration_data.get("oace_score", 0.0),
+            "oace_score": iteration_data.get("oace_score", ""),  # CORREÇÃO: Campo vazio para valores nulos
             "architecture_config": json.dumps(iteration_data["architecture_config"]) if iteration_data["architecture_config"] else ""
         }
         
@@ -457,11 +501,24 @@ class OptimizationLogger:
             writer.writerow(row)
         
         # 2. Atualiza CSV de métricas detalhadas se há dados de arquitetura
-        if iteration_data["architecture_config"] and iteration_data["metrics"]:
+        if iteration_data["metrics"]:  # CORREÇÃO: Remove dependência de architecture_config
             metrics_file = os.path.join(
                 self.csv_dir,
                 f"{self.current_experiment}_detailed_metrics.csv"
             )
+            
+            # CORREÇÃO: Determina o tipo de arquitetura mesmo sem architecture_config
+            model_type = "Unknown"
+            if iteration_data["architecture_config"] and "model_type" in iteration_data["architecture_config"]:
+                model_type = iteration_data["architecture_config"]["model_type"]
+            elif iteration_data["phase"] == "PSO":
+                model_type = "PSO_Optimized"  # Identifica como otimizado pelo PSO
+            elif iteration_data["phase"] == "AFSA-PSO":
+                model_type = "AFSA_Generated"  # Identifica como gerado pelo AFSA
+            elif iteration_data["phase"] == "GA-PSO":
+                model_type = "GA_Optimized"  # Identifica como otimizado pelo GA
+            elif iteration_data["phase"] == "GA":
+                model_type = "GA_Final"  # Identifica como resultado final do GA
             
             metrics_row = {
                 "iteration": iteration_data["iteration"],
@@ -477,10 +534,10 @@ class OptimizationLogger:
                 "avg_inference_time": iteration_data["metrics"].get("avg_inference_time", 0.0),
                 "memory_used_mb": iteration_data["metrics"].get("memory_used_mb", 0.0),
                 "gflops": iteration_data["metrics"].get("gflops", 0.0),
-                "oace_score": iteration_data.get("oace_score", 0.0),
+                "oace_score": iteration_data.get("oace_score", ""),  # CORREÇÃO: Campo vazio para valores nulos
                 "fitness": iteration_data["best_fitness"],
-                "model_type": architecture_type,
-                "architecture_params": json.dumps(iteration_data["architecture_config"])
+                "model_type": model_type,  # CORREÇÃO: Usa o tipo determinado acima
+                "architecture_params": json.dumps(iteration_data["architecture_config"]) if iteration_data["architecture_config"] else "{}"
             }
             
             with open(metrics_file, 'a', newline='', encoding='utf-8') as csvfile:
@@ -494,15 +551,28 @@ class OptimizationLogger:
                 f"{self.current_experiment}_oace_scores.csv"
             )
             
+            # CORREÇÃO: Determina o tipo de modelo corretamente
+            model_type = "Unknown"
+            if iteration_data["architecture_config"] and "model_type" in iteration_data["architecture_config"]:
+                model_type = iteration_data["architecture_config"]["model_type"]
+            elif iteration_data["phase"] == "PSO":
+                model_type = "PSO_Optimized"
+            elif iteration_data["phase"] == "AFSA-PSO":
+                model_type = "AFSA_Generated"
+            elif iteration_data["phase"] == "GA-PSO":
+                model_type = "GA_Optimized"
+            elif iteration_data["phase"] == "GA":
+                model_type = "GA_Final"
+            
             oace_row = {
                 "iteration": iteration_data["iteration"],
                 "phase": iteration_data["phase"],
                 "timestamp": iteration_data["timestamp"],
                 "oace_score": iteration_data["oace_score"],
                 "fitness": iteration_data["best_fitness"],
-                "model_type": architecture_type,
+                "model_type": model_type,  # CORREÇÃO: Usa o tipo determinado acima
                 "position": json.dumps(iteration_data["best_position"]),
-                "architecture_config": json.dumps(iteration_data["architecture_config"])
+                "architecture_config": json.dumps(iteration_data["architecture_config"]) if iteration_data["architecture_config"] else "{}"
             }
             
             with open(oace_file, 'a', newline='', encoding='utf-8') as csvfile:
@@ -638,11 +708,18 @@ class OptimizationLogger:
                 improvement = current_fitness - previous_fitness if previous_fitness != float('-inf') else 0
                 cumulative_improvement += max(0, improvement)
                 
+                # CORREÇÃO: Trata corretamente valores nulos de oace_score
+                oace_score = iteration.get("oace_score")
+                if oace_score is None:
+                    oace_score = ""  # Campo vazio para valores nulos
+                elif isinstance(oace_score, (int, float)):
+                    oace_score = float(oace_score)  # Converte para float
+                
                 writer.writerow({
                     "iteration": iteration["iteration"],
                     "phase": iteration["phase"],
                     "best_fitness": current_fitness,
-                    "oace_score": iteration.get("oace_score", 0),
+                    "oace_score": oace_score,  # CORREÇÃO: Usa o valor tratado
                     "improvement": improvement,
                     "cumulative_improvement": cumulative_improvement
                 })

@@ -11,31 +11,20 @@ from utils.evaluate_utils import evaluate_model
 
 
 def warm_up_efficientnet(
-    model: EfficientNet,
     train_loader: torch.utils.data.DataLoader,
     val_loader: torch.utils.data.DataLoader,
     test_loader: torch.utils.data.DataLoader,
     classes: list,
-    num_epochs: int,
-    device: torch.device,
+    num_epochs = 3,
+    device = None,
+    params = None
 ) -> None:
     """
     Script warm_up para treinar e avaliar uma EfficientNet gerada aleatoriamente no CIFAR-10.
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Configuração randômica
-    model = generate_efficientnet_architecture(
-        model_variant='B0',
-        num_classes=1000,
-        activation_fn='mish',  # Using Mish activation
-        use_batch_norm=True,
-        batch_norm_momentum=0.1,
-        se_ratio=0.25,
-        stem_channels=32,
-        head_channels=1280,
-        use_se=True,
-        drop_connect_rate=0.2
-    ).to(device)
+    model = generate_efficientnet_architecture(params).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
@@ -51,7 +40,10 @@ def warm_up_efficientnet(
     )
 
     test_metrics = evaluate_model(
-        model=model, test_loader=test_loader, criterion=criterion, device=device
+        model=model, 
+        test_loader=test_loader, 
+        criterion=criterion, 
+        device=device
     )
 
     results = {
@@ -66,14 +58,16 @@ def warm_up_efficientnet(
     results_dir = "results/efficientnet_experiments"
     os.makedirs(results_dir, exist_ok=True)
 
-    # Salva resultados em JSON
-    results_file = os.path.join(
-        results_dir, f'experiment_{results["experiment_id"]}.json'
-    )
-    with open(results_file, "w") as f:
+    results_file = os.path.join(results_dir, f'experiment_{results["experiment_id"]}.json')
+    with open(results_file, 'w') as f:
         json.dump(results, f, indent=4)
-
     print(f"Resultados salvos em: {results_file}")
+
+    #weights_file = os.path.join(results_dir, f'experiment_{results["experiment_id"]}_weights.pt')
+    #torch.save(model.state_dict(), weights_file)
+    #print(f"Pesos do modelo salvos em: {weights_file}")
+
+    return test_metrics
 
 def specialized_training_efficientnet():
     pass
