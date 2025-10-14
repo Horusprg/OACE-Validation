@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from typing import List
 import random
+from pydantic import BaseModel
 
 
 class ResNetInputLayer(nn.Module):
@@ -517,140 +518,90 @@ class ResNet(nn.Module):
         return self.output_layer(x)
 
 
-def generate_resnet_architecture(
-    in_channels: int = 3,
-    num_classes: int = 10,
-    num_stages: int = 4,
-    min_blocks_per_stage: int = 1,
-    max_blocks_per_stage: int = 4,
-    min_base_channels: int = 16,
-    max_base_channels: int = 64,
-    block_type_choice: str = "basic",
-    activation_function_choice: str = "relu",
-    dropout_rate: float = 0.0,
-    batch_norm: bool = True,
-) -> ResNet:
+class ResNetParams(BaseModel):
+    num_classes: int = 10
+    min_channels: int = 16
+    max_channels: int = 128
+    dropout_rate: float = 0.0
+    num_layers: int = 4
+    batch_norm: bool = True
+
+def generate_resnet_architecture(params: ResNetParams) -> ResNet:
     """
-    Gera uma instância da ResNet com configuração randomizada.
-
-    Permite randomização de profundidade (blocos por estágio), tipo de bloco,
-    largura (canais base) e configuração de ativação, dropout e batch norm.
-
-    Args:
-        in_channels: Número de canais de entrada (padrão: 3).
-        num_classes: Número de classes de saída (padrão: 10).
-        num_stages: Número de estágios residuais (padrão: 4).
-        min_blocks_per_stage: Mínimo de blocos por estágio (padrão: 1).
-        max_blocks_per_stage: Máximo de blocos por estágio (padrão: 4).
-        min_base_channels: Mínimo de canais base (padrão: 16).
-        max_base_channels: Máximo de canais base (padrão: 64).
-        block_type_choice: Tipo de bloco ('basic', 'bottleneck', 'random'; padrão: 'basic').
-        activation_function_choice: Função de ativação ('relu', 'leaky_relu', 'elu', 'selu', 'gelu'; padrão: 'relu').
-        dropout_rate: Taxa de dropout (0-1, padrão: 0).
-        batch_norm: Se True, aplica normalização em lote (padrão: True).
-
-    Returns:
-        ResNet: Instância configurada da ResNet.
-
-    Raises:
-        ValueError: Se dropout_rate ou intervalos de blocos/canais forem inválidos.
-    """
-    if not (0 <= dropout_rate <= 1):
-        raise ValueError("dropout_rate deve estar entre 0 e 1")
-    if (
-        min_blocks_per_stage > max_blocks_per_stage
-        or min_base_channels > max_base_channels
-    ):
-        raise ValueError("Intervalos inválidos para blocos ou canais")
-
-    activation_map = {
-        "relu": nn.ReLU,
-        "leaky_relu": nn.LeakyReLU,
-        "elu": nn.ELU,
-        "selu": nn.SELU,
-        "gelu": nn.GELU,
-    }
-    block_map = {"basic": BasicBlock, "bottleneck": Bottleneck}
-
-    activation_fn = activation_map.get(activation_function_choice.lower(), nn.ReLU)
-    block_type = (
-        random.choice([BasicBlock, Bottleneck])
-        if block_type_choice.lower() == "random"
-        else block_map.get(block_type_choice.lower(), BasicBlock)
-    )
-
-    layers = [
-        random.randint(min_blocks_per_stage, max_blocks_per_stage)
-        for _ in range(num_stages)
-    ]
-    base_channels = random.randint(min_base_channels, max_base_channels)
-
-    print(
-        f"ResNet: Bloco={block_type.__name__}, Camadas={layers}, Canais={base_channels}, Ativação={activation_function_choice}, Dropout={dropout_rate}, BatchNorm={batch_norm}"
-    )
-
-    return ResNet(
-        in_channels,
-        base_channels,
-        block_type,
-        layers,
-        num_classes,
-        activation_fn,
-        dropout_rate,
-        batch_norm,
-    )
-
-
-"""
-def test_resnet_specific_layers(layers: List[int], model_name: str, block_type_choice: str = 'bottleneck', num_classes: int = 10, input_size: int = 224):
-    #Testa a ResNet com um número específico de camadas.
-    print(f"\n--- Testando {model_name} ---")
-    try:
-        model = ResNet(in_channels=3, base_channels=64, block_type=block_map.get(block_type_choice.lower(), BasicBlock),
-                       layers=layers, num_classes=num_classes, activation_fn=nn.ReLU, dropout_rate=0.0, batch_norm=True)
-        x = torch.randn(1, 3, input_size, input_size)
-        output = model(x)
-        print(f"Saída ({model_name}): {output.shape}")
-        assert output.shape == torch.Size([1, num_classes]), f"Erro no formato de saída do {model_name}"
-        print(f"{model_name} testado com sucesso.")
-    except Exception as e:
-        print(f"Erro ao testar {model_name}: {e}")
-
-if __name__ == "__main__":
-    print("--- Testando a arquitetura ResNet ---")
-
-    # ... (seus testes anteriores) ...
-
-    print("\n--- Testando arquiteturas ResNet específicas ---")
-
-    block_map = {'basic': BasicBlock, 'bottleneck': Bottleneck}
-
-    # Teste ResNet-50
-    test_resnet_specific_layers(layers=[3, 4, 6, 3], model_name="ResNet-50")
-
-    # Teste ResNet-101
-    test_resnet_specific_layers(layers=[3, 4, 23, 3], model_name="ResNet-101")
-
-    # Você pode adicionar um teste para ResNet-152 se desejar
-    test_resnet_specific_layers(layers=[3, 8, 36, 3], model_name="ResNet-152")
-
-    # Você também pode testar uma ResNet-50 com BasicBlock (embora não seja padrão)
-    test_resnet_specific_layers(layers=[3, 4, 6, 3], model_name="ResNet-50 com BasicBlock", block_type_choice='basic')
+    Gera uma instância ResNet com parâmetros simplificados seguindo o padrão MobileNet/CNN.
     
-    # Gerar ResNet
-    model = generate_resnet_architecture(
+    Args:
+        params: Parâmetros da arquitetura contendo:
+            - num_classes: Número de classes de saída
+            - min_channels: Número mínimo de canais base
+            - max_channels: Número máximo de canais base
+            - dropout_rate: Taxa de dropout
+            - num_layers: Número de estágios (camadas)
+            - batch_norm: Se deve usar batch normalization
+    """
+    # Ajusta parâmetros específicos para ResNet (evita problemas de memória)
+    adjusted_params = adjust_resnet_params_for_memory(params)
+    
+    # Calcula o número de canais base
+    base_channels = adjusted_params.min_channels + (adjusted_params.max_channels - adjusted_params.min_channels) // 2
+    
+    # Configura o número de blocos por estágio baseado no número de camadas
+    # Garante que sempre tenha pelo menos 4 estágios para ResNet
+    if adjusted_params.num_layers < 4:
+        layers = [2, 2, 2, 2]  # ResNet-32 padrão
+    elif adjusted_params.num_layers == 4:
+        layers = [2, 2, 2, 2]  # ResNet-32
+    elif adjusted_params.num_layers == 5:
+        layers = [2, 2, 2, 2, 2]  # ResNet-44
+    else:
+        # Para mais de 5 camadas, distribui os blocos nos 4 estágios
+        total_blocks = min(adjusted_params.num_layers, 6)  # Limita a 6 blocos para ResNet
+        layers = [max(1, total_blocks // 4)] * 4
+        # Distribui os blocos restantes
+        remaining = total_blocks % 4
+        for i in range(remaining):
+            layers[i] += 1
+    
+    print(f"ResNet: base_channels={base_channels}, layers={layers}, dropout={adjusted_params.dropout_rate}, num_layers={adjusted_params.num_layers}")
+    
+    return ResNet(
         in_channels=3,
-        num_classes=10,
-        block_type_choice='basic',  # Testar com BasicBlock
-        activation_function_choice='relu',
-        min_base_channels=16,
-        max_base_channels=16
+        base_channels=base_channels,
+        block_type=BasicBlock,  # Usa BasicBlock por padrão para ser mais leve
+        layers=layers,
+        num_classes=adjusted_params.num_classes,
+        activation_fn=nn.ReLU,
+        dropout_rate=adjusted_params.dropout_rate,
+        batch_norm=adjusted_params.batch_norm,
     )
 
-    # Entrada de teste
-    x = torch.randn(1, 3, 32, 32)
+def adjust_resnet_params_for_memory(params: ResNetParams) -> ResNetParams:
+    """
+    Ajusta os parâmetros da ResNet para evitar problemas de memória GPU.
+    Aplica restrições específicas para ResNet sem afetar outras arquiteturas.
+    
+    Args:
+        params: Parâmetros originais da ResNet
+        
+    Returns:
+        ResNetParams: Parâmetros ajustados para ResNet
+    """
+    adjusted_params = params.copy()
+    
+    # Limita max_channels para ResNet (mais conservador que MobileNet)
+    if adjusted_params.max_channels > 512:
+        print(f"⚠️  ResNet: limitando max_channels de {adjusted_params.max_channels} para 512")
+        adjusted_params.max_channels = 512
+    
+    # Limita min_channels para ResNet
+    if adjusted_params.min_channels > 64:
+        print(f"⚠️  ResNet: limitando min_channels de {adjusted_params.min_channels} para 64")
+        adjusted_params.min_channels = 64
+    
+    # Limita num_layers para ResNet (mais conservador)
+    if adjusted_params.num_layers > 12:
+        print(f"⚠️  ResNet: limitando num_layers de {adjusted_params.num_layers} para 12")
+        adjusted_params.num_layers = 12
+    
+    return adjusted_params
 
-    # Forward pass
-    output = model(x)
-    print(f"Saída ResNet: {output.shape}")  # Esperado: [1, 10]
-"""

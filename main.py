@@ -18,9 +18,8 @@ print(f"Device principal: {device}")
 train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders(n_valid=0.2, batch_size=64, num_workers=0)
 
 
-"""
-warm_up_inception(
-        model=InceptionV3,
+warm_up_mlp(
+        model=MLP	,
         train_loader=train_loader, 
         val_loader=val_loader, 
         test_loader=test_loader,
@@ -45,7 +44,7 @@ config = {
 
 metrics = train_and_evaluate_for_oace(config, train_loader, val_loader, device, epochs=1)
 
-print(metrics)
+print(metrics)"""
 
 
 
