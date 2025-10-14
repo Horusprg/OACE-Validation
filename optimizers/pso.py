@@ -560,3 +560,4 @@ if __name__ == "__main__":
     best_position2, best_fitness2 = pso2.resume_optimization("pso_checkpoint.json")
     print(f"Retomada - Melhor posição: {best_position2}")
     print(f"Retomada - Melhor fitness: {best_fitness2}")
+    

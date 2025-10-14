@@ -1,4 +1,5 @@
-# python -X utf8 -u -m optimizers.afsa_ga_pso 2>&1 | tee teste_debug.log
+# source oace/bin/activate
+# python3 -X utf8 -u -m optimizers.afsa_ga_pso 2>&1 | tee teste5.log
 import numpy as np
 from optimizers.afsa import AFSA
 from optimizers.pso import PSO
@@ -96,7 +97,7 @@ class AFSAGAPSO:
                 "c1": 1.5,    # Aumentado para mais exploração individual
                 "c2": 1.5,    # Aumentado para mais exploração social
                 "w": 0.7,     # Reduzido um pouco para mais controle
-                "k": 2, 
+                "k": 3, 
                 "p": 2
             }
         self.pso_params = pso_params
@@ -438,7 +439,7 @@ class AFSAGAPSO:
             val_loader=self.val_loader,
             test_loader=self.test_loader,
             classes=self.classes,
-            num_epochs=2,
+            num_epochs=5,
             device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             params=params,
         )
@@ -659,7 +660,7 @@ class AFSAGAPSO:
             
             print("\nphase1_solutions: ", phase1_solutions)
             
-            breakpoint()
+            #breakpoint()
             
             print(f"\n✓ Fase 1 concluída! Geradas {len(phase1_solutions)} soluções de otimização inicial.")
 
@@ -778,7 +779,7 @@ class AFSAGAPSO:
                 for xi in x:
                     score = self.fitness_function(xi)
                     scores.append(score)
-                return np.array(scores)
+                return -np.array(scores)
 
         self.pso.fitness_function = pso_fitness_function
         
@@ -790,20 +791,37 @@ class AFSAGAPSO:
         print("  • PSO explorando espaço de busca e gerando novos candidatos...")
         best_pos, best_cost = self.pso.optimize(metrics_function=self._warm_up_candidate)
         print("\nbest_pos PSO: ", best_pos)
-        print("\nbest_cost PSO: ", best_cost)
+        #print("\nbest_cost PSO: ", best_cost)
+        # Como a função do PSO usa o negativo do OACE, convertemos para reportar o score real
+        print("\nbest_cost PSO (interno, minimização): ", best_cost)
+        try:
+            print(f"best_score PSO (OACE, maximização): {-float(best_cost):.6f}")
+        except Exception:
+            pass
 
         final_population = self.pso.optimizer.swarm.position
         print("final_population PSO: ", final_population)
-        print(f"  • Avaliando {len(final_population)} soluções finais do PSO...")
+        
+        # Garante que o melhor global (best_pos) também seja avaliado,
+        # pois pode não estar presente em swarm.position no final
+        all_candidates = np.vstack([final_population, best_pos.reshape(1, -1)])
+        print(f"  • Avaliando {len(all_candidates)} soluções finais do PSO (incluindo best_pos)...")
         final_fitness = []
-        for pos in final_population:
+        for pos in all_candidates:
             fitness = self.fitness_function(pos)
             final_fitness.append(fitness)
         final_fitness = np.array(final_fitness)
+        
+        # Seleciona os melhores (max OACE)
         best_indices = np.argsort(final_fitness)[-self.population_size:]
         print("\nbest_indices PSO: ", best_indices)
-        phase1_solutions = final_population[best_indices]
+        phase1_solutions = all_candidates[best_indices]
         print(f"\n  • Melhor score da Fase 1: {np.max(final_fitness):.6f}")
+        print(f"  • Best_pos incluído: {best_pos.tolist()}")
+        try:
+            print(f"  • Score do best_pos: {-float(best_cost):.6f}")
+        except Exception:
+            pass
         print(f"\n  • {len(phase1_solutions)} soluções selecionadas para Fase 2")
         return phase1_solutions
 
@@ -1078,17 +1096,16 @@ if __name__ == "__main__":
 
     # Criar instância do otimizador híbrido (com parâmetros reduzidos para teste)
     optimizer = AFSAGAPSO(
-        population_size=2,
-        max_iter=2,  
+        population_size=15,
+        max_iter=15,  
         train_loader=train_loader,
         val_loader=val_loader,
         test_loader=test_loader,
         classes=classes,
         lambda_param=0.5,
-        afsa_params={'visual': 1.5, 'step': 0.3, 'try_times': 3, 'max_iter': 3},  # Reduzido
-        architectures_to_optimize=['CNN']  # Todas as arquiteturas disponíveis
+        afsa_params={'visual': 1.5, 'step': 0.3, 'try_times': 3, 'max_iter': 15},  # Reduzido
+        architectures_to_optimize=['CNN', 'ResNet', 'EfficientNet', 'MobileNet']  # ['CNN', 'ResNet', 'EfficientNet', 'MobileNet']
     )
-
     # Executa a otimização
     best_architecture, best_params, best_fitness = optimizer.optimize()
     results = best_architecture, best_params, best_fitness

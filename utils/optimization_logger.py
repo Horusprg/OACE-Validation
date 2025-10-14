@@ -142,7 +142,9 @@ class OptimizationLogger:
         """
         start_time = datetime.now()
         
-        # Dados básicos da iteração
+        # preferir OACE quando disponível
+        effective_best_fitness = float(oace_score) if oace_score is not None else float(best_fitness)
+
         iteration_data = {
             "iteration": iteration,
             "phase": phase,
@@ -150,12 +152,12 @@ class OptimizationLogger:
             "population": population.tolist() if isinstance(population, np.ndarray) else population,
             "fitness_values": fitness_values.tolist() if isinstance(fitness_values, np.ndarray) else fitness_values,
             "best_position": best_position.tolist() if isinstance(best_position, np.ndarray) else best_position,
-            "best_fitness": float(best_fitness),
+            "best_fitness": effective_best_fitness,   # <-- usa OACE quando houver
             "metrics": metrics or {},
             "architecture_config": architecture_config or {},
             "oace_score": float(oace_score) if oace_score is not None else None,
             "evaluation_time": float(evaluation_time) if evaluation_time is not None else None
-        }
+}
         
         # Adiciona dados de pbest/gbest se fornecidos
         if pbest_pos is not None:
@@ -170,12 +172,12 @@ class OptimizationLogger:
         self.log_data["iterations"].append(iteration_data)
         
         # Registra como melhor solução se for melhor que a anterior
-        if best_fitness > self.log_data["optimization_summary"]["best_fitness"]:
+        if effective_best_fitness > self.log_data["optimization_summary"]["best_fitness"]:
             best_solution = {
                 "iteration": iteration,
                 "phase": phase,
                 "position": best_position.tolist() if isinstance(best_position, np.ndarray) else best_position,
-                "fitness": float(best_fitness),
+                "fitness": effective_best_fitness,
                 "metrics": metrics or {},
                 "architecture_config": architecture_config or {},
                 "oace_score": float(oace_score) if oace_score is not None else None,
@@ -185,14 +187,14 @@ class OptimizationLogger:
             self.log_data["best_solutions"].append(best_solution)
             
             # CORREÇÃO: Atualiza o resumo da otimização com o score OACE correto
-            self.log_data["optimization_summary"]["best_fitness"] = float(best_fitness)
+            self.log_data["optimization_summary"]["best_fitness"] = effective_best_fitness
             self.log_data["optimization_summary"]["best_position"] = best_position.tolist() if isinstance(best_position, np.ndarray) else best_position
             self.log_data["optimization_summary"]["convergence_iteration"] = iteration
             if oace_score is not None:
                 self.log_data["optimization_summary"]["best_oace_score"] = float(oace_score)
             # CORREÇÃO: Se não há oace_score explícito, usa o best_fitness como fallback
             elif self.log_data["optimization_summary"]["best_oace_score"] == float('-inf'):
-                self.log_data["optimization_summary"]["best_oace_score"] = float(best_fitness)
+                self.log_data["optimization_summary"]["best_oace_score"] = effective_best_fitness
         
         # Registra histórico de métricas
         if metrics:
@@ -211,7 +213,7 @@ class OptimizationLogger:
                 "phase": phase,
                 "architecture_config": architecture_config,
                 "metrics": metrics,
-                "fitness": float(best_fitness),
+                "fitness": effective_best_fitness,
                 "oace_score": float(oace_score) if oace_score is not None else None,
                 "position": best_position.tolist() if isinstance(best_position, np.ndarray) else best_position,
                 "timestamp": start_time.isoformat(),
@@ -261,6 +263,31 @@ class OptimizationLogger:
         # Salva o log e atualiza CSVs
         self._save_log()
         self._update_all_csv_files(iteration_data)
+
+    def log_ga_iteration(self,
+                         ga_iter: int,
+                         total_iters: int,
+                         population: np.ndarray,
+                         fitness_values: np.ndarray,
+                         best_individual: np.ndarray,
+                         best_fitness: float,
+                         architecture_config: Dict[str, Any] = None):
+        """
+        Registra uma iteração do GA como fase 'GA', numerada sequencialmente.
+        Mantém o OACE (best_fitness) como valor de referência público.
+        Não altera a lógica do algoritmo; uso exclusivo para logging.
+        """
+        self.log_iteration(
+            iteration=ga_iter,
+            phase="GA",
+            population=population,
+            fitness_values=fitness_values,
+            best_position=best_individual,
+            best_fitness=float(best_fitness),
+            metrics=None,
+            architecture_config=architecture_config or {},
+            oace_score=float(best_fitness)
+        )
     
     def log_checkpoint(self, 
                       iteration: int,

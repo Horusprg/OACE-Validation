@@ -204,10 +204,38 @@ class GA:
         """
         Atualiza a melhor solução encontrada.
         """
+        print(f"🔍 DEBUG GA: Atualizando melhor solução...")
+        print(f"🔍 DEBUG GA: População atual: {len(self.population)} indivíduos")
+        
         best_ind = tools.selBest(self.population, k=1)[0]
-        if best_ind.fitness.values[0] > self.best_fitness:
-            self.best_fitness = best_ind.fitness.values[0]
-            self.best_solution = np.copy(best_ind)
+        print(f"🔍 DEBUG GA: Melhor indivíduo selecionado: {best_ind}")
+        print(f"🔍 DEBUG GA: Fitness do melhor: {best_ind.fitness.values}")
+        print(f"🔍 DEBUG GA: Melhor fitness atual: {self.best_fitness}")
+        
+        # CORREÇÃO: Garante que o fitness seja um valor numérico válido
+        if hasattr(best_ind, 'fitness') and hasattr(best_ind.fitness, 'values'):
+            if len(best_ind.fitness.values) > 0:
+                fitness_value = best_ind.fitness.values[0]
+                print(f"🔍 DEBUG GA: Valor de fitness extraído: {fitness_value}")
+                print(f"🔍 DEBUG GA: Tipo do fitness: {type(fitness_value)}")
+                
+                # CORREÇÃO: Verifica se o fitness é um valor numérico válido
+                if isinstance(fitness_value, (int, float, np.number)):
+                    if fitness_value > self.best_fitness:
+                        print(f"🔍 DEBUG GA: Novo melhor fitness encontrado: {fitness_value:.6f} > {self.best_fitness:.6f}")
+                        self.best_fitness = float(fitness_value)  # Converte para float
+                        self.best_solution = np.copy(best_ind)
+                        print(f"🔍 DEBUG GA: Melhor solução atualizada para: {self.best_fitness:.6f}")
+                    else:
+                        print(f"🔍 DEBUG GA: Melhor fitness mantido: {self.best_fitness:.6f}")
+                else:
+                    print(f"⚠️  AVISO: Fitness não é numérico: {fitness_value}")
+                    # Mantém o melhor fitness anterior
+                    print(f"🔍 DEBUG GA: Mantendo melhor fitness anterior: {self.best_fitness:.6f}")
+            else:
+                print(f"⚠️  AVISO: Fitness não tem valores")
+        else:
+            print(f"⚠️  AVISO: Indivíduo não tem atributo fitness válido")
 
     def optimize(self):
         """
@@ -237,12 +265,27 @@ class GA:
                                        mutpb=mutation_rate)
             print(f"🔍 DEBUG GA: Offspring gerado com {len(offspring)} indivíduos")
             
-            # Avalia os indivíduos
+            # CORREÇÃO: Avalia os indivíduos usando a função de fitness correta
             print(f"🔍 DEBUG GA: Avaliando offspring...")
-            fits = self.toolbox.map(self.toolbox.evaluate, offspring)
-            for i, (fit, ind) in enumerate(zip(fits, offspring)):
+            for i, ind in enumerate(offspring):
                 print(f"🔍 DEBUG GA: Offspring {i} - Fitness antes: {ind.fitness.values}")
-                ind.fitness.values = fit
+                
+                # CORREÇÃO: Chama diretamente a função de fitness em vez de usar toolbox.evaluate
+                fitness_value = self.fitness_function(ind)
+                print(f"🔍 DEBUG GA: Offspring {i} - Fitness calculado: {fitness_value}")
+                
+                # CORREÇÃO: Garante que o fitness seja uma tupla com valor numérico
+                if isinstance(fitness_value, tuple) and len(fitness_value) > 0:
+                    if isinstance(fitness_value[0], (int, float, np.number)):
+                        ind.fitness.values = fitness_value
+                    else:
+                        print(f"⚠️  AVISO: Fitness inválido detectado: {fitness_value}")
+                        # Usa valor padrão se o fitness for inválido
+                        ind.fitness.values = (0.0,)
+                else:
+                    print(f"⚠️  AVISO: Fitness não é tupla válida: {fitness_value}")
+                    ind.fitness.values = (0.0,)
+                
                 print(f"🔍 DEBUG GA: Offspring {i} - Fitness depois: {ind.fitness.values}")
             
             # Atualiza a população
