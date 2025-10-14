@@ -207,10 +207,13 @@ class AFSA:
         random_move = np.random.uniform(-1, 1, self.n_dim) * self.step
         return np.clip(self.population[i] + random_move, self.lower_bound, self.upper_bound)
 
-    def optimize(self):
+    def optimize(self, logger=None):
         """
         Executa o processo de otimização do AFSA para gerar o conjunto de soluções
         iniciais otimizadas (temppbest) para o PSO, conforme o Algoritmo 1 e o Passo 2 do Algoritmo 3.
+        
+        Args:
+            logger: Instância do OptimizationLogger para logging detalhado
         
         Returns:
             np.ndarray: O conjunto de melhores posições encontradas (pbest),
@@ -219,8 +222,26 @@ class AFSA:
         # Inicializa o pbest com as posições e aptidões iniciais
         pbest = np.copy(self.population)
         pbest_fitness = np.copy(self.fitness)
+        
+        # Estatísticas de comportamento para logging
+        behavior_stats = {
+            "cluster_behavior": 0,
+            "foraging_behavior": 0,
+            "random_behavior": 0,
+            "no_improvement": 0
+        }
+        
+        # Histórico de fitness para análise de convergência
+        fitness_history = [np.max(self.fitness)]
 
-        for _ in range(self.max_iter):
+        for iteration in range(self.max_iter):
+            iteration_behavior_stats = {
+                "cluster_behavior": 0,
+                "foraging_behavior": 0,
+                "random_behavior": 0,
+                "no_improvement": 0
+            }
+            
             for i in range(self.population_size):
                 # O peixe executa os comportamentos para encontrar uma nova posição
                 next_pos = self.cluster_behavior(i)
@@ -230,11 +251,49 @@ class AFSA:
                 if next_fitness < self.fitness[i]:
                     self.population[i] = next_pos
                     self.fitness[i] = next_fitness
+                    iteration_behavior_stats["cluster_behavior"] += 1
                     
                     # Atualiza o registro histórico da melhor posição (pbest)
                     if next_fitness < pbest_fitness[i]:
                         pbest[i] = next_pos
                         pbest_fitness[i] = next_fitness
+                else:
+                    iteration_behavior_stats["no_improvement"] += 1
+            
+            # Atualiza estatísticas globais
+            for behavior, count in iteration_behavior_stats.items():
+                behavior_stats[behavior] += count
+            
+            # Atualiza histórico de fitness
+            current_best_fitness = np.max(self.fitness)
+            fitness_history.append(current_best_fitness)
+            
+            # Logging detalhado se logger estiver disponível
+            if logger is not None:
+                # Calcula métricas de diversidade
+                diversity_metrics = logger.calculate_diversity_metrics(self.population)
+                
+                # Calcula métricas de convergência
+                convergence_metrics = logger.calculate_convergence_metrics(fitness_history)
+                
+                # Encontra melhor posição atual
+                best_idx = np.argmax(self.fitness)
+                best_position = self.population[best_idx]
+                best_fitness = self.fitness[best_idx]
+                
+                # Log da iteração do AFSA
+                logger.log_afsa_iteration(
+                    afsa_iter=iteration + 1,
+                    population=self.population,
+                    fitness_values=self.fitness,
+                    best_position=best_position,
+                    best_fitness=best_fitness,
+                    visual=self.visual,
+                    step=self.step,
+                    try_times=self.try_times,
+                    diversity_metrics=diversity_metrics,
+                    behavior_stats=iteration_behavior_stats
+                )
         
         # Retorna o conjunto de soluções de otimização inicial (temppbest)
         return pbest

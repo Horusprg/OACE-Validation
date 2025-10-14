@@ -316,20 +316,30 @@ class PSO:
                 except Exception as e:
                     print(f"⚠️ Erro ao calcular score OACE: {e}")
                 
-                self.logger.log_iteration(
-                    iteration=i+1,
-                    phase="PSO",
+                # Calcula métricas de diversidade
+                diversity_metrics = self.logger.calculate_diversity_metrics(population)
+                
+                # Extrai parâmetros do PSO
+                inertia_weight = self.optimizer.options.get('w', 0.7)
+                cognitive_coeff = self.optimizer.options.get('c1', 0.5)
+                social_coeff = self.optimizer.options.get('c2', 0.3)
+                
+                # Log da iteração do PSO com dados específicos
+                self.logger.log_pso_iteration(
+                    pso_iter=i+1,
                     population=population,
                     fitness_values=fitness_values,
                     best_position=gbest_pos,
                     best_fitness=gbest_cost,
-                    metrics=metrics,
-                    oace_score=oace_score,  # CORREÇÃO: Adiciona o score OACE
+                    velocities=self.optimizer.swarm.velocity,
                     pbest_pos=pbest_pos,
                     pbest_cost=pbest_cost,
                     gbest_pos=gbest_pos,
                     gbest_cost=gbest_cost,
-                    architecture_config=architecture_config
+                    inertia_weight=inertia_weight,
+                    cognitive_coeff=cognitive_coeff,
+                    social_coeff=social_coeff,
+                    diversity_metrics=diversity_metrics
                 )
                 
                 # Checkpoint a cada 10 iterações
@@ -560,3 +570,4 @@ if __name__ == "__main__":
     best_position2, best_fitness2 = pso2.resume_optimization("pso_checkpoint.json")
     print(f"Retomada - Melhor posição: {best_position2}")
     print(f"Retomada - Melhor fitness: {best_fitness2}")
+    
