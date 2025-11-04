@@ -1,22 +1,29 @@
 
 #!/usr/bin/env python3
 """
-Script de teste para treinamento especializado do MobileNet.
+Script de teste para treinamento especializado do Efficientnet.
 Este script testa a função specialized_training com os parâmetros otimizados.
 """
 
 import torch
 import sys
 import os
-
+from utils.training_utils import train_model, get_optimized_scheduler
+import json
+import uuid
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from datetime import datetime
+from utils.evaluate_utils import evaluate_model
 # Adiciona o diretório raiz ao path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.data_loader import get_cifar10_dataloaders
-from models.MobileNet.mobilenet_architecture import MobilenetParams
-from models.MobileNet.mobilenet_warm_up import specialized_training
+from models.EfficientNet.efficientnet_architecture import EfficientNetParams
+from models.EfficientNet.efficientnet_train_eval import specialized_training
 
-def test_mobilenet_specialized():
+def test_efficientnet_specialized():
     """
     Testa o treinamento especializado do MobileNet.
     """
@@ -39,10 +46,10 @@ def test_mobilenet_specialized():
     # Parâmetros otimizados encontrados pelo algoritmo AFSA-GA-PSO
     optimized_params = {
         "num_classes": 10,
-        "min_channels": 32,
-        "max_channels": 128,
-        "dropout_rate": 0.5,
-        "num_layers": 7,
+        "min_channels": 63,
+        "max_channels": 158,
+        "dropout_rate": 0.0049128517086229374,
+        "num_layers": 2,
         "batch_norm": True
     }
     
@@ -51,7 +58,7 @@ def test_mobilenet_specialized():
         print(f"   • {key}: {value}")
     
     # Converte para MobilenetParams
-    params = MobilenetParams(**optimized_params)
+    params = EfficientNetParams(**optimized_params)
     
     # Configurações de treinamento para teste
     training_config = {
@@ -62,7 +69,7 @@ def test_mobilenet_specialized():
         'use_compile': True,
         'early_stopping_patience': 5,
         'save_best_model': True,
-        'experiment_name': "mobilenet_test"
+        'experiment_name': "efficientnet_best"
     }
     
     print(f"\n⚙️  Configuração de treinamento:")
@@ -108,4 +115,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Teste do treinamento especializado MobileNet')
     parser.add_argument('--full', action='store_true', help='Executa teste completo (20 épocas)')
 
-    test_mobilenet_specialized()
+    test_efficientnet_specialized()

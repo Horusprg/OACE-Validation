@@ -142,9 +142,16 @@ def train_model(
                 valid_correct += predicted.eq(labels).sum().item()
         
         # Atualizar learning rate scheduler
+        #if scheduler:
+        #    scheduler.step()
         if scheduler:
-            scheduler.step()
-        
+            if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                # ReduceLROnPlateau precisa da métrica de validação
+                scheduler.step(epoch_metrics['valid_acc'])
+            else:
+                # Outros schedulers (CosineAnnealingLR, StepLR) não precisam
+                scheduler.step()
+                
         # Calcular métricas da época
         epoch_metrics = {
             'epoch': epoch + 1,
