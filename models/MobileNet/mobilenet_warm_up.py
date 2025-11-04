@@ -17,12 +17,13 @@ def warm_up_mobilenet(
     classes,
     num_epochs=3,
     device=None,
-    params=None
+    params=None,
+    learning_rate: float = 0.001
 ):
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = generate_mobilenet_architecture(params).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss()
 
     train_metrics = train_model(

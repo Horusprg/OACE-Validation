@@ -17,16 +17,30 @@ def warm_up_efficientnet(
     classes: list,
     num_epochs = 3,
     device = None,
-    params = None
+    params = None,
+    learning_rate: float = 0.001
 ) -> None:
     """
     Script warm_up para treinar e avaliar uma EfficientNet gerada aleatoriamente no CIFAR-10.
+    
+    Args:
+        train_loader: DataLoader para treinamento
+        val_loader: DataLoader para validação
+        test_loader: DataLoader para teste
+        classes: Lista de classes
+        num_epochs: Número de épocas para treinamento (padrão: 3)
+        device: Dispositivo para execução (padrão: cuda se disponível)
+        params: Parâmetros da arquitetura EfficientNet
+        learning_rate: Taxa de aprendizado para o otimizador (padrão: 0.001)
+        
+    Returns:
+        dict: Métricas de avaliação da rede
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Configuração randômica
     model = generate_efficientnet_architecture(params).to(device)
 
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss()
 
     train_metrics = train_model(

@@ -17,7 +17,8 @@ def warm_up_vgg(
     classes: list,
     num_epochs=3,
     device = None,
-    params = None
+    params = None,
+    learning_rate: float = 0.001
 ) -> None:
     """
     Script warm_up para treinar e avaliar uma VGG genérica no CIFAR-10.
@@ -36,7 +37,7 @@ def warm_up_vgg(
 
     # Gera uma nova instância da VGG com base nos parâmetros
     model = generate_vgg_architecture(params).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss()
 
     # Treinamento do modelo
