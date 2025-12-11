@@ -1,5 +1,7 @@
 # source oace/bin/activate
 # nohup python3 -X utf8 -u -m optimizers.afsa_ga_pso > results_3.log 2>&1 &
+# source oace/bin/activate
+# python3 -X utf8 -u -m optimizers.afsa_ga_pso 2>&1 | tee teste5.log
 import numpy as np
 from optimizers.afsa import AFSA
 from optimizers.pso import PSO
@@ -95,7 +97,7 @@ class AFSAGAPSO:
         if pso_params is None:
             pso_params = {
                 "c1": 1.5,    # Aumentado para mais exploração individual
-                "c2": 1.0,    # Aumentado para mais exploração social
+                "c2": 1.5,    # Aumentado para mais exploração social
                 "w": 0.7,     # Reduzido um pouco para mais controle
                 "k": 3, 
                 "p": 2
@@ -106,9 +108,9 @@ class AFSAGAPSO:
         if ga_params is None:
             ga_params = {
                 "initial_crossover_rate": 0.8,    # Respeita limite (0.7 + 0.25 = 0.95)
-                "initial_mutation_rate": 0.3,    # Respeita limite
+                "initial_mutation_rate": 0.15,    # Respeita limite
                 "tournament_size": 3,             # Seleção balanceada
-                "max_iter": 10
+                "max_iter": 6
             }
         self.ga_params = ga_params
         
@@ -177,12 +179,12 @@ class AFSAGAPSO:
             elif param_name == "max_channels":
                 # Unifica os limites para cobrir todas as arquiteturas
                 bounds[param_name] = (
-                    128,
-                    2048,
+                    64,
+                    1024,
                 )  # Cobre CNN (128-512) e MobileNet (512-2048)
             elif param_name == "num_layers":
                 # Unifica os limites para cobrir todas as arquiteturas
-                bounds[param_name] = (2, 20)  # Cobre CNN (2-8) e MobileNet (8-20)
+                bounds[param_name] = (2, 40)  # Cobre CNN (2-8) e MobileNet (8-20)
             elif param_name == "width_multiplier":
                 bounds[param_name] = (0.5, 1.5)
             elif param_name == "resolution_multiplier":
@@ -190,6 +192,10 @@ class AFSAGAPSO:
             else:
                 # Para parâmetros não mapeados, usa valores padrão
                 bounds[param_name] = (0.0, 1.0)
+
+        # Adiciona Learning Rate como hiperparâmetro otimizável
+        # Range logarítmico: 1e-5 (0.00001) a 1e-2 (0.01)
+        bounds["learning_rate"] = (1e-4, 1e-1)
 
         return bounds
 
@@ -218,8 +224,9 @@ class AFSAGAPSO:
         # Obtém o nome da arquitetura
         architecture_name = self.architectures_to_optimize[architecture_index]
 
-        # Extrai os parâmetros (resto do vetor)
-        params_vector = x[1:]
+        # Extrai os parâmetros (resto do vetor, exceto o último que é LR)
+        # O vetor agora é: [architecture_index, param1, param2, ..., paramN, learning_rate]
+        params_vector = x[1:-1]  # Remove primeiro (arquitetura) e último (LR)
 
         # Converte parâmetros para a arquitetura específica
         architecture_params = self._convert_params_for_architecture(
@@ -227,6 +234,32 @@ class AFSAGAPSO:
         )
 
         return architecture_name, architecture_params
+
+    def _extract_learning_rate(self, x: np.ndarray) -> float:
+        """
+        Extrai o learning rate do vetor de otimização usando conversão logarítmica.
+        
+        Args:
+            x (np.ndarray): Vetor completo de otimização [architecture_index, param1, ..., learning_rate]
+            
+        Returns:
+            float: Learning rate extraído (em escala logarítmica)
+        """
+        # O último elemento do vetor é o learning rate normalizado [0, 1]
+        lr_normalized = x[-1]
+        
+        # Obtém os limites do learning rate
+        lr_min, lr_max = self.param_bounds["learning_rate"]
+        
+        # Conversão logarítmica: LR varia em escala logarítmica
+        # log10(lr) = normalized * (log10(max) - log10(min)) + log10(min)
+        log_lr = lr_normalized * (np.log10(lr_max) - np.log10(lr_min)) + np.log10(lr_min)
+        learning_rate = 10 ** log_lr
+        
+        # Garante que está dentro dos limites (por segurança)
+        learning_rate = max(lr_min, min(lr_max, learning_rate))
+        
+        return float(learning_rate)
 
     def _convert_params_for_architecture(
         self, params_vector: np.ndarray, architecture_name: str
@@ -247,8 +280,13 @@ class AFSAGAPSO:
         params = {}
 
         # Converte cada parâmetro do vetor unificado para os parâmetros específicos da arquitetura
+        # O params_vector já não contém o learning_rate (foi removido em _get_architecture_from_vector)
         param_index = 0
         for param_name, (min_val, max_val) in self.param_bounds.items():
+            # Ignora learning_rate - será extraído separadamente
+            if param_name == "learning_rate":
+                continue
+            
             # Verifica se este parâmetro existe na arquitetura atual
             if param_name in params_class.model_fields:
                 # Normaliza o valor para o intervalo [min_val, max_val]
@@ -269,7 +307,8 @@ class AFSAGAPSO:
                 else:
                     params[param_name] = normalized_value
 
-            param_index += 1
+                # Incrementa índice apenas se o parâmetro foi processado
+                param_index += 1
 
         # Adiciona parâmetros fixos
         params["num_classes"] = len(self.classes)
@@ -332,27 +371,37 @@ class AFSAGAPSO:
             diversity_score += arch_diversity
 
             # Para cada parâmetro, calcula sua contribuição para a diversidade
-            param_vector = x[1:]  # Pula o índice da arquitetura
-            for i, (param_name, (min_val, max_val)) in enumerate(
-                self.param_bounds.items()
-            ):
-                if i < len(param_vector):
-                    normalized_value = param_vector[i]
+            # Pula o índice da arquitetura (x[0]) e o learning_rate (x[-1])
+            param_vector = x[1:-1]  # Remove primeiro (arquitetura) e último (LR)
+            param_index = 0
+            for param_name, (min_val, max_val) in self.param_bounds.items():
+                # Determina o valor normalizado do parâmetro
+                if param_name == "learning_rate":
+                    # Considera LR na diversidade (último elemento)
+                    normalized_value = x[-1]
+                elif param_index < len(param_vector):
+                    normalized_value = param_vector[param_index]
+                    param_index += 1
+                else:
+                    continue
 
-                    # Incentiva exploração de todo o espaço de busca
-                    # Valores próximos aos extremos (0 ou 1) recebem pontuação maior
-                    edge_bonus = min(normalized_value, 1 - normalized_value) * 2
-                    diversity_score += (
-                        1 - edge_bonus
-                    )  # Inverte para dar mais pontos aos extremos
+                # Incentiva exploração de todo o espaço de busca
+                # Valores próximos aos extremos (0 ou 1) recebem pontuação maior
+                edge_bonus = min(normalized_value, 1 - normalized_value) * 2
+                diversity_score += (
+                    1 - edge_bonus
+                )  # Inverte para dar mais pontos aos extremos
 
-                    # Adiciona variação baseada no tipo de parâmetro
-                    if param_name in ["min_channels", "max_channels", "num_layers"]:
-                        # Para parâmetros estruturais, incentiva mais variação
-                        diversity_score += abs(normalized_value - 0.5) * 2
-                    elif param_name == "dropout_rate":
-                        # Para dropout, incentiva valores baixos a médios
-                        diversity_score += (1 - normalized_value) * 0.5
+                # Adiciona variação baseada no tipo de parâmetro
+                if param_name in ["min_channels", "max_channels", "num_layers"]:
+                    # Para parâmetros estruturais, incentiva mais variação
+                    diversity_score += abs(normalized_value - 0.5) * 2
+                elif param_name == "dropout_rate":
+                    # Para dropout, incentiva valores baixos a médios
+                    diversity_score += (1 - normalized_value) * 0.5
+                elif param_name == "learning_rate":
+                    # Para LR, incentiva exploração de diferentes valores
+                    diversity_score += abs(normalized_value - 0.5) * 1.5
 
             # Penaliza soluções muito similares na população atual
             similarity_penalty = 0
@@ -423,13 +472,17 @@ class AFSAGAPSO:
         
         self.cache_misses += 1
         
-        # Extrai arquitetura e parâmetros do vetor
+        # Extrai learning rate do vetor (último elemento)
+        learning_rate = self._extract_learning_rate(candidate_vector)
+        
+        # Extrai arquitetura e parâmetros do vetor (sem o LR)
         architecture_name, architecture_params = self._convert_to_architecture_params(
             candidate_vector
         )
 
         print(f"   🏗️  Arquitetura: {architecture_name}")
         print(f"   ⚙️  Parâmetros: {architecture_params}")
+        print(f"   📈 Learning Rate: {learning_rate:.6f}")
 
         # Obtém informações da arquitetura
         architecture_info = self.all_architectures[architecture_name]
@@ -448,6 +501,7 @@ class AFSAGAPSO:
             num_epochs=5,
             device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
             params=params,
+            learning_rate=learning_rate,  # ✅ Passa LR otimizado
         )
 
         # Salva no cache
@@ -1123,7 +1177,10 @@ class AFSAGAPSO:
         
         print(f"\n📊 Limites dos Parâmetros:")
         for param, (min_val, max_val) in self.param_bounds.items():
-            print(f"   • {param}: [{min_val}, {max_val}]")
+            if param == "learning_rate":
+                print(f"   • {param}: [{min_val:.2e}, {max_val:.2e}] (escala logarítmica)")
+            else:
+                print(f"   • {param}: [{min_val}, {max_val}]")
     
     def _print_iteration_header(self, phase: str, iteration: int, total_iterations: int = None):
         """Imprime cabeçalho de iteração com informações da fase"""
@@ -1248,16 +1305,16 @@ if __name__ == "__main__":
     # Criar instância do otimizador híbrido (com parâmetros reduzidos para teste)
     
     optimizer = AFSAGAPSO(
-        population_size=15,
-        max_iter=15,  
+        population_size=30,
+        max_iter=20,  
         train_loader=train_loader,
         val_loader=val_loader,
         test_loader=test_loader,
         classes=classes,
         lambda_param=0.5,
-        afsa_params={'visual': 150, 'step': 5, 'try_times': 5, 'max_iter': 40},  # Reduzido
+        afsa_params={'visual': 50, 'step': 8, 'try_times': 5, 'max_iter': 40},  # Reduzido
         pso_params={"c1": 1.5, "c2": 1.5, "w": 0.7, "k": 3, "p": 2},
-        ga_params={"initial_crossover_rate": 0.7, "initial_mutation_rate": 0.1, "tournament_size": 3, "max_iter": 20},
+        ga_params={"initial_crossover_rate": 0.7, "initial_mutation_rate": 0.15, "tournament_size": 3, "max_iter": 20},
         architectures_to_optimize=['CNN', 'ResNet', 'EfficientNet', 'MobileNet']  # ['CNN', 'ResNet', 'EfficientNet', 'MobileNet']
     )
 
@@ -1271,4 +1328,5 @@ if __name__ == "__main__":
     print(f"Melhor valor de fitness (OACE): {best_fitness}")
     
     print("results: ", results)
+
 

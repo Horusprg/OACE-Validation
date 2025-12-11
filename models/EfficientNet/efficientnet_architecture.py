@@ -246,7 +246,7 @@ def adjust_efficientnet_params_for_memory(params):
         EfficientNetParams: Parâmetros ajustados para EfficientNet
     """
     adjusted_params = params.copy()
-    
+    """
     # Limita max_channels para EfficientNet (mais conservador que MobileNet)
     if adjusted_params.max_channels > 1024:
         print(f"⚠️  EfficientNet: limitando max_channels de {adjusted_params.max_channels} para 1024")
@@ -261,7 +261,7 @@ def adjust_efficientnet_params_for_memory(params):
     if adjusted_params.num_layers > 7:
         print(f"⚠️  EfficientNet: limitando num_layers de {adjusted_params.num_layers} para 7")
         adjusted_params.num_layers = 7
-    
+    """
     return adjusted_params
 
 class EfficientNetParams(BaseModel):

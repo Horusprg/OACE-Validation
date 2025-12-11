@@ -47,10 +47,10 @@ def train_resnet_full():
 	# Parâmetros (podem ser ajustados conforme a otimização)
 	optimized_params = {
 		"num_classes": 10,
-		"min_channels": 32,
-		"max_channels": 128,
-		"dropout_rate": 0.05,
-		"num_layers": 4,
+		"min_channels": 40,
+		"max_channels": 64,
+		"dropout_rate": 0.0,
+		"num_layers": 28,
 		"batch_norm": True,
 	}
 
@@ -63,8 +63,8 @@ def train_resnet_full():
 
 	# Configurações de treinamento (robustas e configuráveis)
 	training_config = {
-		"num_epochs": 100,
-		"learning_rate": 1e-3,
+		"num_epochs": 150,
+		"learning_rate": 0.000472,
 		"weight_decay": 1e-4,
 		"use_mixed_precision": True,
 		"use_compile": True,
@@ -83,7 +83,7 @@ def train_resnet_full():
 
 	# Otimizador, critério e scheduler
 	optimizer = optim.AdamW(
-		model.parameters(), lr=training_config["learning_rate"], weight_decay=training_config["weight_decay"]
+		model.parameters(), lr=training_config["learning_rate"]
 	)
 	criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 	scheduler = get_optimized_scheduler(

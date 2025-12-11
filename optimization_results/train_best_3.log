@@ -1,0 +1,105 @@
+nohup: ignoring input
+======================================================================
+TESTE DO TREINAMENTO ESPECIALIZADO MOBILENET
+======================================================================
+🔧 Dispositivo: cuda
+
+📊 Carregando dados CIFAR-10...
+   • Classes: 10
+   • Train batches: 625
+   • Val batches: 157
+   • Test batches: 157
+
+🎯 Parâmetros otimizados:
+   • num_classes: 10
+   • min_channels: 63
+   • max_channels: 158
+   • dropout_rate: 0.0049128517086229374
+   • num_layers: 2
+   • batch_norm: True
+
+⚙️  Configuração de treinamento:
+   • num_epochs: 100
+   • learning_rate: 0.001
+   • weight_decay: 0.0001
+   • use_mixed_precision: True
+   • use_compile: True
+   • early_stopping_patience: 5
+   • save_best_model: True
+   • experiment_name: efficientnet_best
+
+🚀 Iniciando treinamento especializado...
+🚀 Iniciando treinamento especializado MobileNet
+   • Dispositivo: cuda
+   • Épocas: 100
+   • Learning Rate: 0.001
+   • Mixed Precision: True
+   • Compile: True
+
+🏗️  Gerando arquitetura EffientNet...
+⚠️  EfficientNet: limitando min_channels de 63 para 32
+EfficientNet: base_channels=95, layers=[1, 1, 1], dropout=0.0049128517086229374, num_layers=2
+   • Total de parâmetros: 1,834,150
+   • Parâmetros treináveis: 1,834,150
+
+⚙️  Configurando otimização especializada...
+
+🔥 Iniciando treinamento especializado...
+Epoch 1/100 (27.1s): Train Loss: 1.4347, Train Acc: 46.96%, Valid Loss: 1.1589, Valid Acc: 58.55%, LR: 0.001000
+Epoch 2/100 (26.5s): Train Loss: 1.0480, Train Acc: 62.30%, Valid Loss: 0.9761, Valid Acc: 65.35%, LR: 0.000999
+Epoch 3/100 (26.6s): Train Loss: 0.8855, Train Acc: 68.57%, Valid Loss: 0.8365, Valid Acc: 70.25%, LR: 0.000998
+Epoch 4/100 (26.5s): Train Loss: 0.7688, Train Acc: 72.76%, Valid Loss: 0.6997, Valid Acc: 75.35%, LR: 0.000996
+Epoch 5/100 (26.5s): Train Loss: 0.6843, Train Acc: 75.91%, Valid Loss: 0.6714, Valid Acc: 76.67%, LR: 0.000994
+Epoch 6/100 (26.6s): Train Loss: 0.6226, Train Acc: 78.14%, Valid Loss: 0.6605, Valid Acc: 76.92%, LR: 0.000991
+Epoch 7/100 (26.5s): Train Loss: 0.5650, Train Acc: 80.16%, Valid Loss: 0.6101, Valid Acc: 78.90%, LR: 0.000988
+Epoch 8/100 (26.5s): Train Loss: 0.5242, Train Acc: 81.61%, Valid Loss: 0.5611, Valid Acc: 80.44%, LR: 0.000984
+Epoch 9/100 (26.4s): Train Loss: 0.4812, Train Acc: 83.24%, Valid Loss: 0.5806, Valid Acc: 79.87%, LR: 0.000980
+Epoch 10/100 (26.5s): Train Loss: 0.4455, Train Acc: 84.26%, Valid Loss: 0.5519, Valid Acc: 81.26%, LR: 0.000976
+Epoch 11/100 (26.5s): Train Loss: 0.4143, Train Acc: 85.43%, Valid Loss: 0.5553, Valid Acc: 81.32%, LR: 0.000970
+Epoch 12/100 (26.5s): Train Loss: 0.3809, Train Acc: 86.64%, Valid Loss: 0.5210, Valid Acc: 82.27%, LR: 0.000965
+Epoch 13/100 (26.6s): Train Loss: 0.3538, Train Acc: 87.31%, Valid Loss: 0.5257, Valid Acc: 82.25%, LR: 0.000959
+Epoch 14/100 (26.5s): Train Loss: 0.3203, Train Acc: 88.55%, Valid Loss: 0.5187, Valid Acc: 83.08%, LR: 0.000952
+Epoch 15/100 (26.4s): Train Loss: 0.2966, Train Acc: 89.47%, Valid Loss: 0.5296, Valid Acc: 82.97%, LR: 0.000946
+Epoch 16/100 (26.5s): Train Loss: 0.2786, Train Acc: 90.03%, Valid Loss: 0.5318, Valid Acc: 83.33%, LR: 0.000938
+Epoch 17/100 (26.6s): Train Loss: 0.2559, Train Acc: 91.00%, Valid Loss: 0.5226, Valid Acc: 83.34%, LR: 0.000930
+Epoch 18/100 (26.4s): Train Loss: 0.2379, Train Acc: 91.54%, Valid Loss: 0.5330, Valid Acc: 83.30%, LR: 0.000922
+Epoch 19/100 (26.5s): Train Loss: 0.2188, Train Acc: 92.25%, Valid Loss: 0.5083, Valid Acc: 84.27%, LR: 0.000914
+Epoch 20/100 (26.4s): Train Loss: 0.1972, Train Acc: 92.96%, Valid Loss: 0.5576, Valid Acc: 83.29%, LR: 0.000905
+Epoch 21/100 (26.7s): Train Loss: 0.1856, Train Acc: 93.30%, Valid Loss: 0.5468, Valid Acc: 83.69%, LR: 0.000895
+Epoch 22/100 (26.5s): Train Loss: 0.1714, Train Acc: 93.89%, Valid Loss: 0.5485, Valid Acc: 84.00%, LR: 0.000885
+Epoch 23/100 (27.1s): Train Loss: 0.1612, Train Acc: 94.22%, Valid Loss: 0.5872, Valid Acc: 83.89%, LR: 0.000875
+Epoch 24/100 (26.5s): Train Loss: 0.1487, Train Acc: 94.62%, Valid Loss: 0.5633, Valid Acc: 83.90%, LR: 0.000865
+🛑 Early stopping após 5 épocas sem melhoria
+✓ Treinamento concluído em 637.4s
+✓ Melhor acurácia de validação: 84.27%
+
+📊 Avaliação final especializada...
+Teste: Loss: 0.5884, Top-1 Acc: 85.09%, Top-5 Acc: 99.28%, Precision (macro): 0.8523, Recall (macro): 0.8509, F1 (macro): 0.8510, Params: 1.83e+06, Inference Time: 0.0009s, Memory: 7.00MB, GFLOPs: 0.1447
+
+📈 Análise de Performance:
+   • Top-1 Accuracy: 85.09%
+   • Top-5 Accuracy: 99.28%
+   • F1-Score: 0.8510
+   • Parâmetros: 1.83e+06
+   • Tempo de Inferência: 0.0009s
+   • Memória: 7.00 MB
+   • GFLOPs: 0.1447
+
+💾 Resultados salvos em: results/efficientnet_specialized/efficientnet_best_23e590f2-bb1a-4a44-a396-adbc0a66507b.json
+💾 Modelo salvo em: results/efficientnet_specialized/efficientnet_best_23e590f2-bb1a-4a44-a396-adbc0a66507b_weights.pt
+
+✅ Treinamento especializado concluído!
+   • Experimento: efficientnet_best
+   • ID: 23e590f2-bb1a-4a44-a396-adbc0a66507b
+   • Melhor Top-1: 85.09%
+   • Eficiência: 0.1447 GFLOPs
+
+🏆 RESULTADOS DO TESTE:
+   • Top-1 Accuracy: 85.09%
+   • Top-5 Accuracy: 99.28%
+   • F1-Score: 0.8510
+   • Loss: 0.5884
+   • Parâmetros: 1.83e+06
+   • Tempo de Inferência: 0.0009s
+   • Memória: 7.00 MB
+   • GFLOPs: 0.1447

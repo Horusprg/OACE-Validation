@@ -18,7 +18,8 @@ def warm_up_resnet(
     classes: list,
     num_epochs: int,
     device: torch.device,
-    params: dict = None
+    params: dict = None,
+    learning_rate: float = 0.001
 ) -> dict:
     """
     Script warm_up para treinar e avaliar uma ResNet com parâmetros específicos no CIFAR-10
@@ -31,6 +32,7 @@ def warm_up_resnet(
         num_epochs: Número de épocas para treinamento
         device: Dispositivo para execução
         params: Dicionário com parâmetros da arquitetura
+        learning_rate: Taxa de aprendizado para o otimizador (padrão: 0.001)
         
     Returns:
         dict: Métricas de avaliação da rede
@@ -51,7 +53,7 @@ def warm_up_resnet(
     # Gera a arquitetura ResNet com os parâmetros
     model = generate_resnet_architecture(resnet_params).to(device)
     
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss()
     
     # Treina o modelo

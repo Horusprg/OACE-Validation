@@ -17,12 +17,13 @@ def warm_up_mobilenet(
     classes,
     num_epochs=3,
     device=None,
-    params=None
+    params=None,
+    learning_rate: float = 0.001
 ):
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = generate_mobilenet_architecture(params).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss()
 
     train_metrics = train_model(
@@ -129,26 +130,25 @@ def specialized_training(
     print(f"\n⚙️  Configurando otimização especializada...")
     
     # Otimizador AdamW com weight decay
-    #optimizer = optim.AdamW(
-    #    model.parameters(),
-    #    lr=learning_rate,
-    #    weight_decay=weight_decay,
-    #    betas=(0.9, 0.999),
-    #    eps=1e-8
-    #)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.AdamW(
+        model.parameters(),
+        lr=learning_rate,
+        weight_decay=weight_decay,
+        betas=(0.9, 0.999),
+        eps=1e-8
+    )
     
     # Learning rate scheduler - Cosine Annealing com warmup
     scheduler = get_optimized_scheduler(
         optimizer=optimizer,
         scheduler_type='cosine',
-        T_max=num_epochs,      
-        eta_min=1e-6          
+        num_epochs=num_epochs,
+        warmup_epochs=5,
+        min_lr=1e-6
     )
     
     # Função de perda com label smoothing
-    #criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
     
     # Treinamento especializado
     print(f"\n🔥 Iniciando treinamento especializado...")
@@ -160,12 +160,12 @@ def specialized_training(
         optimizer=optimizer,
         num_epochs=num_epochs,
         device=device,
-        #use_mixed_precision=use_mixed_precision,
-        #gradient_accumulation_steps=1,
-        #max_grad_norm=1.0,
+        use_mixed_precision=use_mixed_precision,
+        gradient_accumulation_steps=1,
+        max_grad_norm=1.0,
         early_stopping_patience=early_stopping_patience,
         scheduler=scheduler,
-        #compile_model=use_compile
+        compile_model=use_compile
     )
     
     # Avaliação final especializada

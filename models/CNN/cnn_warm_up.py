@@ -17,7 +17,8 @@ def warm_up_cnn(
     classes: list,
     num_epochs: int,
     device: torch.device,
-    params=None
+    params=None,
+    learning_rate: float = 0.001
 ) -> dict:
     """
     Script warm_up para treinar e avaliar uma CNN genérica no CIFAR-10.
@@ -29,6 +30,11 @@ def warm_up_cnn(
         classes: Lista de nomes das classes.
         num_epochs: Número de épocas para treinamento.
         device: Dispositivo para treinamento (CPU ou CUDA).
+        params: Parâmetros da arquitetura CNN.
+        learning_rate: Taxa de aprendizado para o otimizador (padrão: 0.001).
+        
+    Returns:
+        dict: Métricas de avaliação da rede
     """
     print("\n--- Iniciando warm-up da CNN Genérica ---")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -44,7 +50,7 @@ def warm_up_cnn(
         print("Por favor, garanta que ela está importada ou definida no escopo.")
         return  # Impede a continuação se a função não estiver disponível
 
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss()
 
     # Treinamento do modelo
