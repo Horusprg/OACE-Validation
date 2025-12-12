@@ -6,8 +6,8 @@ from models.ResNet.resnet_architecture import generate_resnet_architecture, ResN
 from models.ResNet.resnet_train_eval import warm_up_resnet
 from models.EfficientNet.efficientnet_architecture import generate_efficientnet_architecture, EfficientNetParams
 from models.EfficientNet.efficientnet_train_eval import warm_up_efficientnet
-from models.VGG.vgg_architecture import generate_vgg_architecture, VGGParams
-from models.VGG.vgg_train_eval import warm_up_vgg
+#from models.VGG.vgg_architecture import generate_vgg_architecture, VGGParams
+#from models.VGG.vgg_train_eval import warm_up_vgg
 
 archictectures = {
     "MobileNet": {
@@ -29,10 +29,10 @@ archictectures = {
         "params": EfficientNetParams(),
         "generate_architecture": generate_efficientnet_architecture,
         "warm_up": warm_up_efficientnet
-    },
-    "VGG": {
-        "params": VGGParams(),
-        "generate_architecture": generate_vgg_architecture,
-        "warm_up": warm_up_vgg
     }
+    #"VGG": {
+    #    "params": VGGParams(),
+    #    "generate_architecture": generate_vgg_architecture,
+    #    "warm_up": warm_up_vgg
+    #}
 }

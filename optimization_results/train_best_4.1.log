@@ -1,0 +1,161 @@
+nohup: ignoring input
+======================================================================
+TREINAMENTO COMPLETO RESNET (CIFAR-10)
+======================================================================
+🔧 Dispositivo: cuda
+
+📊 Carregando dados CIFAR-10...
+   • Classes: 10
+   • Train batches: 625
+   • Val batches: 157
+   • Test batches: 157
+
+🎯 Parâmetros da ResNet:
+   • num_classes: 10
+   • min_channels: 40
+   • max_channels: 64
+   • dropout_rate: 0.0
+   • num_layers: 28
+   • batch_norm: True
+ResNet: base_channels=52, layers=[2, 2, 1, 1], dropout=0.0, num_layers=28
+
+⚙️  Configuração de treinamento:
+   • num_epochs: 150
+   • learning_rate: 0.000472
+   • weight_decay: 0.0001
+   • use_mixed_precision: True
+   • use_compile: True
+   • early_stopping_patience: 10
+   • gradient_accumulation_steps: 1
+   • max_grad_norm: 1.0
+   • scheduler_type: cosine
+   • scheduler_kwargs: {'T_max': 100, 'eta_min': 1e-06}
+   • save_best_model: True
+   • experiment_name: resnet_full
+
+🚀 Iniciando treinamento...
+✓ Modelo compilado com torch.compile
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:57: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = GradScaler() if use_mixed_precision and device.type == 'cuda' else None
+✓ Mixed precision habilitado
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:86: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:86: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:132: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:132: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+Epoch 1/150 (20.8s): Train Loss: 1.6268, Train Acc: 48.32%, Valid Loss: 1.4355, Valid Acc: 57.93%, LR: 0.000472
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:86: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:132: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+Epoch 2/150 (18.8s): Train Loss: 1.3007, Train Acc: 64.69%, Valid Loss: 1.3077, Valid Acc: 64.52%, LR: 0.000472
+Epoch 3/150 (18.8s): Train Loss: 1.1679, Train Acc: 71.33%, Valid Loss: 1.1402, Valid Acc: 72.77%, LR: 0.000471
+Epoch 4/150 (18.5s): Train Loss: 1.0842, Train Acc: 75.32%, Valid Loss: 1.0911, Valid Acc: 74.86%, LR: 0.000470
+Epoch 5/150 (19.0s): Train Loss: 1.0241, Train Acc: 78.09%, Valid Loss: 1.1212, Valid Acc: 75.00%, LR: 0.000469
+Epoch 6/150 (18.5s): Train Loss: 0.9834, Train Acc: 80.18%, Valid Loss: 1.0306, Valid Acc: 78.34%, LR: 0.000468
+Epoch 7/150 (18.4s): Train Loss: 0.9446, Train Acc: 81.89%, Valid Loss: 0.9943, Valid Acc: 79.09%, LR: 0.000466
+Epoch 8/150 (18.4s): Train Loss: 0.9150, Train Acc: 83.11%, Valid Loss: 0.9455, Valid Acc: 81.20%, LR: 0.000465
+Epoch 9/150 (18.6s): Train Loss: 0.8904, Train Acc: 84.33%, Valid Loss: 0.9546, Valid Acc: 81.38%, LR: 0.000463
+Epoch 10/150 (18.5s): Train Loss: 0.8640, Train Acc: 85.24%, Valid Loss: 0.8992, Valid Acc: 83.82%, LR: 0.000460
+Epoch 11/150 (18.5s): Train Loss: 0.8455, Train Acc: 86.33%, Valid Loss: 0.9030, Valid Acc: 83.17%, LR: 0.000458
+Epoch 12/150 (18.5s): Train Loss: 0.8245, Train Acc: 86.96%, Valid Loss: 0.8735, Valid Acc: 84.67%, LR: 0.000455
+Epoch 13/150 (18.5s): Train Loss: 0.8070, Train Acc: 87.74%, Valid Loss: 0.9103, Valid Acc: 82.81%, LR: 0.000453
+Epoch 14/150 (18.5s): Train Loss: 0.7954, Train Acc: 88.44%, Valid Loss: 0.8451, Valid Acc: 86.00%, LR: 0.000450
+Epoch 15/150 (18.6s): Train Loss: 0.7777, Train Acc: 89.11%, Valid Loss: 0.8427, Valid Acc: 86.05%, LR: 0.000446
+Epoch 16/150 (18.4s): Train Loss: 0.7671, Train Acc: 89.42%, Valid Loss: 0.8244, Valid Acc: 86.72%, LR: 0.000443
+Epoch 17/150 (18.4s): Train Loss: 0.7527, Train Acc: 90.25%, Valid Loss: 0.8257, Valid Acc: 86.72%, LR: 0.000439
+Epoch 18/150 (18.4s): Train Loss: 0.7383, Train Acc: 90.74%, Valid Loss: 0.8119, Valid Acc: 86.87%, LR: 0.000435
+Epoch 19/150 (18.5s): Train Loss: 0.7283, Train Acc: 91.17%, Valid Loss: 0.8030, Valid Acc: 87.57%, LR: 0.000431
+Epoch 20/150 (18.4s): Train Loss: 0.7192, Train Acc: 91.45%, Valid Loss: 0.8287, Valid Acc: 86.47%, LR: 0.000427
+Epoch 21/150 (18.4s): Train Loss: 0.7079, Train Acc: 92.06%, Valid Loss: 0.8091, Valid Acc: 87.30%, LR: 0.000423
+Epoch 22/150 (18.5s): Train Loss: 0.6997, Train Acc: 92.39%, Valid Loss: 0.8072, Valid Acc: 87.19%, LR: 0.000418
+Epoch 23/150 (18.9s): Train Loss: 0.6896, Train Acc: 92.84%, Valid Loss: 0.7874, Valid Acc: 87.94%, LR: 0.000413
+Epoch 24/150 (19.0s): Train Loss: 0.6840, Train Acc: 93.12%, Valid Loss: 0.7848, Valid Acc: 88.47%, LR: 0.000408
+Epoch 25/150 (18.5s): Train Loss: 0.6750, Train Acc: 93.49%, Valid Loss: 0.7872, Valid Acc: 88.35%, LR: 0.000403
+Epoch 26/150 (18.5s): Train Loss: 0.6690, Train Acc: 93.65%, Valid Loss: 0.7844, Valid Acc: 88.51%, LR: 0.000398
+Epoch 27/150 (18.5s): Train Loss: 0.6621, Train Acc: 94.03%, Valid Loss: 0.7751, Valid Acc: 88.83%, LR: 0.000392
+Epoch 28/150 (18.8s): Train Loss: 0.6551, Train Acc: 94.25%, Valid Loss: 0.7691, Valid Acc: 89.16%, LR: 0.000387
+Epoch 29/150 (18.5s): Train Loss: 0.6485, Train Acc: 94.60%, Valid Loss: 0.7603, Valid Acc: 89.42%, LR: 0.000381
+Epoch 30/150 (18.9s): Train Loss: 0.6443, Train Acc: 94.69%, Valid Loss: 0.7735, Valid Acc: 88.78%, LR: 0.000375
+Epoch 31/150 (18.7s): Train Loss: 0.6383, Train Acc: 95.07%, Valid Loss: 0.7747, Valid Acc: 88.91%, LR: 0.000369
+Epoch 32/150 (18.5s): Train Loss: 0.6294, Train Acc: 95.42%, Valid Loss: 0.7778, Valid Acc: 88.59%, LR: 0.000363
+Epoch 33/150 (18.5s): Train Loss: 0.6237, Train Acc: 95.63%, Valid Loss: 0.7596, Valid Acc: 89.72%, LR: 0.000356
+Epoch 34/150 (18.5s): Train Loss: 0.6200, Train Acc: 95.87%, Valid Loss: 0.7507, Valid Acc: 89.54%, LR: 0.000350
+Epoch 35/150 (18.9s): Train Loss: 0.6149, Train Acc: 96.02%, Valid Loss: 0.7547, Valid Acc: 89.67%, LR: 0.000343
+Epoch 36/150 (18.5s): Train Loss: 0.6082, Train Acc: 96.31%, Valid Loss: 0.7501, Valid Acc: 89.65%, LR: 0.000337
+Epoch 37/150 (18.5s): Train Loss: 0.6057, Train Acc: 96.47%, Valid Loss: 0.7616, Valid Acc: 89.22%, LR: 0.000330
+Epoch 38/150 (18.5s): Train Loss: 0.6005, Train Acc: 96.66%, Valid Loss: 0.7536, Valid Acc: 89.64%, LR: 0.000323
+Epoch 39/150 (18.4s): Train Loss: 0.5939, Train Acc: 97.01%, Valid Loss: 0.7594, Valid Acc: 89.44%, LR: 0.000316
+Epoch 40/150 (18.8s): Train Loss: 0.5921, Train Acc: 97.00%, Valid Loss: 0.7588, Valid Acc: 89.52%, LR: 0.000309
+Epoch 41/150 (18.7s): Train Loss: 0.5906, Train Acc: 97.06%, Valid Loss: 0.7465, Valid Acc: 90.00%, LR: 0.000302
+Epoch 42/150 (18.4s): Train Loss: 0.5852, Train Acc: 97.27%, Valid Loss: 0.7440, Valid Acc: 89.98%, LR: 0.000295
+Epoch 43/150 (18.4s): Train Loss: 0.5788, Train Acc: 97.61%, Valid Loss: 0.7586, Valid Acc: 89.51%, LR: 0.000288
+Epoch 44/150 (18.4s): Train Loss: 0.5769, Train Acc: 97.68%, Valid Loss: 0.7362, Valid Acc: 90.58%, LR: 0.000281
+Epoch 45/150 (18.4s): Train Loss: 0.5734, Train Acc: 97.79%, Valid Loss: 0.7425, Valid Acc: 90.27%, LR: 0.000273
+Epoch 46/150 (18.4s): Train Loss: 0.5699, Train Acc: 97.96%, Valid Loss: 0.7407, Valid Acc: 90.16%, LR: 0.000266
+Epoch 47/150 (18.4s): Train Loss: 0.5692, Train Acc: 97.92%, Valid Loss: 0.7406, Valid Acc: 90.20%, LR: 0.000259
+Epoch 48/150 (18.4s): Train Loss: 0.5657, Train Acc: 98.14%, Valid Loss: 0.7414, Valid Acc: 90.37%, LR: 0.000251
+Epoch 49/150 (18.4s): Train Loss: 0.5611, Train Acc: 98.27%, Valid Loss: 0.7424, Valid Acc: 89.91%, LR: 0.000244
+Epoch 50/150 (18.8s): Train Loss: 0.5611, Train Acc: 98.23%, Valid Loss: 0.7350, Valid Acc: 90.67%, LR: 0.000237
+Epoch 51/150 (18.5s): Train Loss: 0.5567, Train Acc: 98.38%, Valid Loss: 0.7305, Valid Acc: 90.42%, LR: 0.000229
+Epoch 52/150 (18.4s): Train Loss: 0.5553, Train Acc: 98.48%, Valid Loss: 0.7300, Valid Acc: 90.78%, LR: 0.000222
+Epoch 53/150 (18.4s): Train Loss: 0.5520, Train Acc: 98.70%, Valid Loss: 0.7420, Valid Acc: 90.29%, LR: 0.000214
+Epoch 54/150 (18.3s): Train Loss: 0.5522, Train Acc: 98.65%, Valid Loss: 0.7325, Valid Acc: 90.85%, LR: 0.000207
+Epoch 55/150 (18.3s): Train Loss: 0.5488, Train Acc: 98.76%, Valid Loss: 0.7237, Valid Acc: 91.06%, LR: 0.000200
+Epoch 56/150 (18.3s): Train Loss: 0.5460, Train Acc: 98.83%, Valid Loss: 0.7249, Valid Acc: 90.68%, LR: 0.000192
+Epoch 57/150 (18.4s): Train Loss: 0.5458, Train Acc: 98.83%, Valid Loss: 0.7240, Valid Acc: 91.05%, LR: 0.000185
+Epoch 58/150 (18.3s): Train Loss: 0.5420, Train Acc: 99.04%, Valid Loss: 0.7217, Valid Acc: 91.12%, LR: 0.000178
+Epoch 59/150 (18.3s): Train Loss: 0.5397, Train Acc: 99.17%, Valid Loss: 0.7262, Valid Acc: 91.02%, LR: 0.000171
+Epoch 60/150 (18.3s): Train Loss: 0.5402, Train Acc: 99.03%, Valid Loss: 0.7282, Valid Acc: 90.68%, LR: 0.000164
+Epoch 61/150 (18.2s): Train Loss: 0.5390, Train Acc: 99.08%, Valid Loss: 0.7291, Valid Acc: 90.60%, LR: 0.000157
+Epoch 62/150 (18.2s): Train Loss: 0.5362, Train Acc: 99.27%, Valid Loss: 0.7202, Valid Acc: 91.21%, LR: 0.000150
+Epoch 63/150 (18.3s): Train Loss: 0.5360, Train Acc: 99.16%, Valid Loss: 0.7260, Valid Acc: 91.06%, LR: 0.000143
+Epoch 64/150 (18.3s): Train Loss: 0.5329, Train Acc: 99.34%, Valid Loss: 0.7308, Valid Acc: 90.62%, LR: 0.000136
+Epoch 65/150 (18.3s): Train Loss: 0.5319, Train Acc: 99.39%, Valid Loss: 0.7162, Valid Acc: 91.26%, LR: 0.000130
+Epoch 66/150 (18.2s): Train Loss: 0.5292, Train Acc: 99.53%, Valid Loss: 0.7134, Valid Acc: 91.41%, LR: 0.000123
+Epoch 67/150 (18.2s): Train Loss: 0.5300, Train Acc: 99.42%, Valid Loss: 0.7138, Valid Acc: 91.26%, LR: 0.000117
+Epoch 68/150 (18.1s): Train Loss: 0.5291, Train Acc: 99.42%, Valid Loss: 0.7177, Valid Acc: 90.98%, LR: 0.000110
+Epoch 69/150 (18.1s): Train Loss: 0.5271, Train Acc: 99.49%, Valid Loss: 0.7144, Valid Acc: 91.12%, LR: 0.000104
+Epoch 70/150 (18.2s): Train Loss: 0.5264, Train Acc: 99.51%, Valid Loss: 0.7160, Valid Acc: 91.10%, LR: 0.000098
+Epoch 71/150 (18.2s): Train Loss: 0.5251, Train Acc: 99.58%, Valid Loss: 0.7122, Valid Acc: 91.53%, LR: 0.000092
+Epoch 72/150 (18.3s): Train Loss: 0.5251, Train Acc: 99.56%, Valid Loss: 0.7248, Valid Acc: 90.68%, LR: 0.000086
+Epoch 73/150 (18.3s): Train Loss: 0.5240, Train Acc: 99.61%, Valid Loss: 0.7115, Valid Acc: 91.28%, LR: 0.000081
+Epoch 74/150 (18.3s): Train Loss: 0.5233, Train Acc: 99.58%, Valid Loss: 0.7126, Valid Acc: 91.41%, LR: 0.000075
+Epoch 75/150 (18.2s): Train Loss: 0.5224, Train Acc: 99.65%, Valid Loss: 0.7155, Valid Acc: 91.18%, LR: 0.000070
+Epoch 76/150 (18.3s): Train Loss: 0.5215, Train Acc: 99.64%, Valid Loss: 0.7097, Valid Acc: 91.40%, LR: 0.000065
+Epoch 77/150 (18.3s): Train Loss: 0.5212, Train Acc: 99.68%, Valid Loss: 0.7126, Valid Acc: 91.36%, LR: 0.000060
+Epoch 78/150 (18.4s): Train Loss: 0.5201, Train Acc: 99.71%, Valid Loss: 0.7096, Valid Acc: 91.35%, LR: 0.000055
+Epoch 79/150 (18.5s): Train Loss: 0.5199, Train Acc: 99.69%, Valid Loss: 0.7088, Valid Acc: 91.46%, LR: 0.000050
+Epoch 80/150 (18.6s): Train Loss: 0.5184, Train Acc: 99.78%, Valid Loss: 0.7037, Valid Acc: 91.72%, LR: 0.000046
+Epoch 81/150 (18.6s): Train Loss: 0.5187, Train Acc: 99.76%, Valid Loss: 0.7102, Valid Acc: 91.27%, LR: 0.000042
+Epoch 82/150 (18.6s): Train Loss: 0.5183, Train Acc: 99.73%, Valid Loss: 0.7004, Valid Acc: 91.97%, LR: 0.000038
+Epoch 83/150 (18.6s): Train Loss: 0.5176, Train Acc: 99.75%, Valid Loss: 0.7037, Valid Acc: 91.76%, LR: 0.000034
+Epoch 84/150 (18.5s): Train Loss: 0.5164, Train Acc: 99.82%, Valid Loss: 0.7078, Valid Acc: 91.24%, LR: 0.000030
+Epoch 85/150 (18.4s): Train Loss: 0.5169, Train Acc: 99.82%, Valid Loss: 0.7045, Valid Acc: 91.66%, LR: 0.000027
+Epoch 86/150 (18.5s): Train Loss: 0.5165, Train Acc: 99.80%, Valid Loss: 0.7093, Valid Acc: 91.62%, LR: 0.000023
+Epoch 87/150 (18.5s): Train Loss: 0.5162, Train Acc: 99.83%, Valid Loss: 0.7090, Valid Acc: 91.33%, LR: 0.000020
+Epoch 88/150 (18.5s): Train Loss: 0.5163, Train Acc: 99.80%, Valid Loss: 0.7106, Valid Acc: 91.39%, LR: 0.000018
+Epoch 89/150 (18.5s): Train Loss: 0.5154, Train Acc: 99.83%, Valid Loss: 0.7050, Valid Acc: 91.65%, LR: 0.000015
+Epoch 90/150 (18.5s): Train Loss: 0.5155, Train Acc: 99.83%, Valid Loss: 0.7100, Valid Acc: 91.32%, LR: 0.000013
+Epoch 91/150 (18.5s): Train Loss: 0.5152, Train Acc: 99.85%, Valid Loss: 0.7004, Valid Acc: 91.82%, LR: 0.000010
+Epoch 92/150 (18.5s): Train Loss: 0.5152, Train Acc: 99.81%, Valid Loss: 0.7020, Valid Acc: 91.49%, LR: 0.000008
+🛑 Early stopping após 10 épocas sem melhoria
+✓ Treinamento concluído em 1701.2s
+✓ Melhor acurácia de validação: 91.97%
+
+🧪 Avaliando no conjunto de teste...
+Teste: Loss: 0.6807, Top-1 Acc: 92.77%, Top-5 Acc: 99.24%, Precision (macro): 0.9278, Recall (macro): 0.9277, F1 (macro): 0.9277, Params: 3.48e+06, Inference Time: 0.0012s, Memory: 13.29MB, GFLOPs: 0.2691
+💾 Resultados salvos em: results/resnet_experiments/experiment_4478b73d-c648-49ae-9c00-ba751daf2a30.json
+
+🏆 RESULTADOS FINAIS:
+   • Top-1 Accuracy: 92.77%
+   • Top-5 Accuracy: 99.24%
+   • F1-Score: 0.9277
+   • Loss: 0.6807
+   • Parâmetros: 3.48e+06
+   • Tempo de Inferência: 0.0012s
+   • Memória: 13.29 MB
+   • GFLOPs: 0.2691

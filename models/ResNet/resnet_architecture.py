@@ -587,7 +587,7 @@ def adjust_resnet_params_for_memory(params: ResNetParams) -> ResNetParams:
         ResNetParams: Parâmetros ajustados para ResNet
     """
     adjusted_params = params.copy()
-    
+    """
     # Limita max_channels para ResNet (mais conservador que MobileNet)
     if adjusted_params.max_channels > 512:
         print(f"⚠️  ResNet: limitando max_channels de {adjusted_params.max_channels} para 512")
@@ -602,6 +602,6 @@ def adjust_resnet_params_for_memory(params: ResNetParams) -> ResNetParams:
     if adjusted_params.num_layers > 12:
         print(f"⚠️  ResNet: limitando num_layers de {adjusted_params.num_layers} para 12")
         adjusted_params.num_layers = 12
-    
+    """
     return adjusted_params
 

@@ -1,14 +1,27 @@
+#!/usr/bin/env python3
+"""
+Módulo de treinamento e avaliação para EfficientNet no CIFAR-10.
+
+Este módulo fornece:
+- warm_up_efficientnet: Treinamento rápido para testes iniciais
+- train_efficientnet_specialized: Função de treinamento especializado com parâmetros configuráveis 
+"""
 import os
+import sys
 import uuid
 import json
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from datetime import datetime
-from models.EfficientNet.efficientnet_architecture import EfficientNet, generate_efficientnet_architecture
-from utils.training_utils import train_model
-from utils.evaluate_utils import evaluate_model
 
+# Adiciona o diretório raiz ao path para imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from models.EfficientNet.efficientnet_architecture import EfficientNet, generate_efficientnet_architecture, EfficientNetParams
+from utils.training_utils import train_model, get_optimized_scheduler
+from utils.evaluate_utils import evaluate_model
+from utils.data_loader import get_cifar10_dataloaders
 
 def warm_up_efficientnet(
     train_loader: torch.utils.data.DataLoader,
@@ -83,5 +96,303 @@ def warm_up_efficientnet(
 
     return test_metrics
 
-def specialized_training_efficientnet():
-    pass
+# ============================================================================
+# FUNÇÃO DE TREINAMENTO ESPECIALIZADO COM PARÂMETROS CONFIGURÁVEIS
+# ============================================================================
+
+def train_efficientnet_specialized(
+    optimized_params=None,
+    training_config=None,
+    device=None
+):
+    """
+    Treina o EfficientNet com parâmetros otimizados de forma especializada.
+    
+    Esta função pode ser chamada diretamente ou via linha de comando.
+    Utiliza parâmetros otimizados encontrados pelo algoritmo AFSA-GA-PSO.
+    
+    Args:
+        optimized_params (dict, optional): Parâmetros da arquitetura EfficientNet.
+            Se None, usa valores padrão otimizados pelo AFSA-GA-PSO.
+            Formato esperado:
+            {
+                "num_classes": int,
+                "min_channels": int,
+                "max_channels": int,
+                "dropout_rate": float,
+                "num_layers": int,
+                "batch_norm": bool
+            }
+        
+        training_config (dict, optional): Configurações de treinamento.
+            Se None, usa valores padrão otimizados.
+            Formato esperado:
+            {
+                'num_epochs': int,
+                'learning_rate': float,
+                'weight_decay': float,
+                'use_mixed_precision': bool,
+                'use_compile': bool,
+                'early_stopping_patience': int,
+                'save_best_model': bool,
+                'experiment_name': str
+            }
+        
+        device (torch.device, optional): Dispositivo para treinamento.
+            Se None, detecta automaticamente (cuda se disponível, senão cpu).
+    
+    Returns:
+        dict: Métricas finais do modelo treinado ou None em caso de erro
+    """
+    # Valores padrão para parâmetros otimizados (encontrados pelo AFSA-GA-PSO)
+    if optimized_params is None:
+        optimized_params = {
+            "num_classes": 10,
+            "min_channels": 63,
+            "max_channels": 158,
+            "dropout_rate": 0.0049128517086229374,
+            "num_layers": 2,
+            "batch_norm": True
+        }
+    
+    # Valores padrão para configuração de treinamento
+    if training_config is None:
+        training_config = {
+            'num_epochs': 100,
+            'learning_rate': 0.001,
+            'weight_decay': 1e-4,
+            'use_mixed_precision': True,
+            'use_compile': True,
+            'early_stopping_patience': 5,
+            'save_best_model': True,
+            'experiment_name': "efficientnet_best"
+        }
+    
+    print("="*70)
+    print("TREINAMENTO ESPECIALIZADO EFFICIENTNET")
+    print("="*70)
+    
+    # Configuração do dispositivo
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"🔧 Dispositivo: {device}")
+    
+    # Carrega dados
+    print(f"\n📊 Carregando dados CIFAR-10...")
+    train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders()
+    print(f"   • Classes: {len(classes)}")
+    print(f"   • Train batches: {len(train_loader)}")
+    print(f"   • Val batches: {len(val_loader)}")
+    print(f"   • Test batches: {len(test_loader)}")
+    
+    print(f"\n🎯 Parâmetros otimizados:")
+    for key, value in optimized_params.items():
+        print(f"   • {key}: {value}")
+    
+    # Converte para EfficientNetParams
+    params = EfficientNetParams(**optimized_params)
+    
+    print(f"\n⚙️  Configuração de treinamento:")
+    for key, value in training_config.items():
+        print(f"   • {key}: {value}")
+    
+    # Cria parâmetros e modelo
+    params = EfficientNetParams(**optimized_params)
+    model = generate_efficientnet_architecture(params).to(device)
+    
+    # Conta parâmetros
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"\n🏗️  Arquitetura EfficientNet gerada:")
+    print(f"   • Total de parâmetros: {total_params:,}")
+    print(f"   • Parâmetros treináveis: {trainable_params:,}")
+    
+    # Otimizador, critério e scheduler
+    optimizer = optim.AdamW(
+        model.parameters(),
+        lr=training_config['learning_rate'],
+        weight_decay=training_config.get('weight_decay', 1e-4),
+        betas=(0.9, 0.999),
+        eps=1e-8
+    )
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    
+    # Scheduler configurável
+    scheduler_type = training_config.get('scheduler_type', 'cosine')
+    scheduler_kwargs = training_config.get('scheduler_kwargs', None)
+    if scheduler_kwargs is None:
+        scheduler_kwargs = {'T_max': training_config['num_epochs'], 'eta_min': 1e-6}
+    
+    scheduler = get_optimized_scheduler(
+        optimizer=optimizer,
+        scheduler_type=scheduler_type,
+        **scheduler_kwargs
+    )
+    
+    try:
+        # Treinamento usando train_model diretamente
+        print(f"\n🚀 Iniciando treinamento especializado...")
+        train_metrics = train_model(
+            model=model,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            criterion=criterion,
+            optimizer=optimizer,
+            num_epochs=training_config['num_epochs'],
+            device=device,
+            use_mixed_precision=training_config.get('use_mixed_precision', True),
+            gradient_accumulation_steps=training_config.get('gradient_accumulation_steps', 1),
+            max_grad_norm=training_config.get('max_grad_norm', 1.0),
+            early_stopping_patience=training_config.get('early_stopping_patience', 15),
+            scheduler=scheduler,
+            compile_model=training_config.get('use_compile', True)
+        )
+        
+        # Avaliação final
+        print(f"\n📊 Avaliação final especializada...")
+        final_metrics = evaluate_model(
+            model=model,
+            test_loader=test_loader,
+            criterion=criterion,
+            device=device
+        )
+        
+        # Análise de performance
+        print(f"\n📈 Análise de Performance:")
+        print(f"   • Top-1 Accuracy: {final_metrics['top1_acc']:.2f}%")
+        print(f"   • Top-5 Accuracy: {final_metrics['top5_acc']:.2f}%")
+        print(f"   • F1-Score: {final_metrics['f1_macro']:.4f}")
+        print(f"   • Parâmetros: {final_metrics['total_params']:.2e}")
+        print(f"   • Tempo de Inferência: {final_metrics['avg_inference_time']:.4f}s")
+        print(f"   • Memória: {final_metrics['memory_used_mb']:.2f} MB")
+        print(f"   • GFLOPs: {final_metrics['gflops']:.4f}")
+        
+        # Salva resultados especializados
+        experiment_id = str(uuid.uuid4())
+        results = {
+            'experiment_id': experiment_id,
+            'experiment_name': training_config.get('experiment_name', 'efficientnet_specialized'),
+            'timestamp': datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
+            'model': 'EfficientNet_Specialized',
+            'efficientnet_params': params.model_dump() if hasattr(params, 'model_dump') else (params.dict() if hasattr(params, 'dict') else optimized_params),
+            'training_config': {
+                'num_epochs': training_config['num_epochs'],
+                'learning_rate': training_config['learning_rate'],
+                'weight_decay': training_config.get('weight_decay', 1e-4),
+                'use_mixed_precision': training_config.get('use_mixed_precision', True),
+                'use_compile': training_config.get('use_compile', True),
+                'early_stopping_patience': training_config.get('early_stopping_patience', 15),
+                'optimizer': 'AdamW',
+                'scheduler': scheduler_type,
+                'criterion': 'CrossEntropyLoss with Label Smoothing'
+            },
+            'model_info': {
+                'total_params': total_params,
+                'trainable_params': trainable_params,
+                'model_size_mb': final_metrics['memory_used_mb']
+            },
+            'train_metrics': train_metrics,
+            'test_metrics': final_metrics,
+            'classes': classes,
+            'device': str(device)
+        }
+        
+        # Cria diretório para resultados especializados
+        results_dir = 'results/efficientnet_specialized'
+        os.makedirs(results_dir, exist_ok=True)
+        
+        # Salva resultados
+        results_file = os.path.join(results_dir, f'{training_config.get("experiment_name", "efficientnet_specialized")}_{experiment_id}.json')
+        with open(results_file, 'w') as f:
+            json.dump(results, f, indent=4, default=str)
+        print(f"\n💾 Resultados salvos em: {results_file}")
+        
+        # Salva modelo se solicitado
+        
+        #if training_config.get('save_best_model', True):
+            #weights_file = os.path.join(results_dir, f'{training_config.get("experiment_name", "efficientnet_specialized")}_{experiment_id}_weights.pt')
+            
+            # Limpa o state_dict antes de salvar (remove chaves extras)
+            #clean_state_dict = {}
+            #for key, value in model.state_dict().items():
+            #    if not any(extra_key in key for extra_key in ['total_ops', 'total_params']):
+           #         clean_state_dict[key] = value
+            
+            #torch.save({
+            #    'model_state_dict': clean_state_dict,
+            #    'optimizer_state_dict': optimizer.state_dict(),
+            #    'scheduler_state_dict': scheduler.state_dict() if scheduler else None,
+            #    'params': params.model_dump() if hasattr(params, 'model_dump') else (params.dict() if hasattr(params, 'dict') else optimized_params),
+            #    'test_metrics': final_metrics,
+            #    'epoch': len(train_metrics)
+            #}, weights_file)
+            #print(f"💾 Modelo salvo em: {weights_file}")
+        
+        # Log final
+        print(f"\n✅ Treinamento especializado concluído!")
+        print(f"   • Experimento: {training_config.get('experiment_name', 'efficientnet_specialized')}")
+        print(f"   • ID: {experiment_id}")
+        print(f"   • Melhor Top-1: {final_metrics['top1_acc']:.2f}%")
+        print(f"   • Eficiência: {final_metrics['gflops']:.4f} GFLOPs")
+        
+        return final_metrics
+        
+    except Exception as e:
+        print(f"\n❌ Erro durante o teste: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+if __name__ == "__main__":
+    """
+    Permite execução direta do script via linha de comando.
+    """
+    import argparse
+    
+    parser = argparse.ArgumentParser(
+        description='Treinamento especializado EfficientNet no CIFAR-10',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+        Exemplos de uso:
+        python -m models.EfficientNet.efficientnet_train_eval
+        python -m models.EfficientNet.efficientnet_train_eval --full
+        """
+    )
+    parser.add_argument(
+        '--full', 
+        action='store_true', 
+        help='Executa treinamento completo (100 épocas)'
+    )
+    
+    args = parser.parse_args()
+    
+    # Parâmetros otimizados encontrados pelo algoritmo AFSA-GA-PSO
+    optimized_params = {
+        "num_classes": 10,
+        "min_channels": 63,
+        "max_channels": 158,
+        "dropout_rate": 0.0049128517086229374,
+        "num_layers": 2,
+        "batch_norm": True
+    }
+    
+    # Configurações de treinamento
+    training_config = {
+        'num_epochs': 2,
+        'learning_rate': 0.001,
+        'weight_decay': 1e-4,
+        'use_mixed_precision': True,
+        'use_compile': True,
+        'early_stopping_patience': 5,
+        'save_best_model': True,
+        'experiment_name': "efficientnet_best",
+        'scheduler_type': 'cosine',
+        'scheduler_kwargs': {'T_max': 100, 'eta_min': 1e-6}
+    }
+    
+    # Executa o treinamento especializado com os parâmetros
+    train_efficientnet_specialized(
+        optimized_params=optimized_params,
+        training_config=training_config
+    )

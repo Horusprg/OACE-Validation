@@ -41,7 +41,7 @@ def calculate_oace_score(
     c_min = pd.Series({k: v['min'] for k, v in cost_min_max.items()})
     c_max = pd.Series({k: v['max'] for k, v in cost_min_max.items()})
 
-    print("\nAvaliação OACE:\n")
+    print("\nAvaliação OACE (máximos e mínimos):\n")
     print("s_min: ", s_min)
     print("s_max: ", s_max)
     print("c_min: ", c_min)
@@ -56,8 +56,8 @@ def calculate_oace_score(
     norm_s = np.where(s_range == 0, np.where(s_metrics >= s_min, 1.0, 0.0), (s_metrics - s_min) / s_range)
     norm_c = np.where(c_range == 0, 0.0, (c_metrics - c_min) / c_range)
     
-    print("norm_s: ", norm_s)
-    print("norm_c: ", norm_c)
+    print("norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro): ", norm_s)
+    print("norm_c (MTP, TPI, MS, GFlops): ", norm_c)
 
     # --- 3. Cálculo Agregado Vetorizado ---
     # Multiplicação elemento a elemento e soma, tudo em uma única operação.

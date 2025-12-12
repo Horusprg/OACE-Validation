@@ -1,50 +1,50 @@
-from models.ResNet.resnet_train_eval import warm_up_resnet
-from models.ResNet.resnet_architecture import ResNet
-from models.MLP.mlp_train_eval import warm_up_mlp
-from models.MLP.mlp_architecture import MLP
-from models.DBN.dbn_architecture import DBN
-from models.DBN.dbn_train_eval import warm_up_dbn
-from utils.data_loader import get_cifar10_dataloaders
-from models.Inception.inception_train_eval import warm_up_inception
-from models.Inception.inception_architecture import InceptionV3
-from models.EfficientNet.efficientnet_train_eval import warm_up_efficientnet
-from models.EfficientNet.efficientnet_architecture import EfficientNet
+#!/usr/bin/env python3
+"""
+Script principal para execução do algoritmo de otimização AFSA-GA-PSO.
+"""
+
 import torch
-from utils.training_evaluation_pipeline import train_and_evaluate_for_oace
+import sys
+import os
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Device principal: {device}")
+# Adiciona o diretório raiz ao path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders(n_valid=0.2, batch_size=64, num_workers=0)
+from optimizers.afsa_ga_pso import AFSAGAPSO
+from utils.data_loader import get_cifar10_dataloaders, get_wildshapes_dataloaders
 
+if __name__ == "__main__":
+    print(f"CUDA disponível: {torch.cuda.is_available()}")
+    print(f"Número de GPUs: {torch.cuda.device_count()}")
+    
+    # Carregar os data loaders
+    train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders()
+    # train_loader, val_loader, test_loader, classes = get_wildshapes_dataloaders(batch_size=32)
 
-warm_up_mlp(
-        model=MLP	,
-        train_loader=train_loader, 
-        val_loader=val_loader, 
+    # Criar instância do otimizador híbrido
+    optimizer = AFSAGAPSO(
+        population_size=3,
+        max_iter=2,  
+        train_loader=train_loader,
+        val_loader=val_loader,
         test_loader=test_loader,
         classes=classes,
-        num_epochs=3, 
-        device=device)
-"""
-config = {
-        "model_type": "DBN",
-        "input_dim": 3072,
-            "output_dim": 10,
-            "num_rbm_layers": 2,
-            "min_rbm_neurons": 64,
-            "max_rbm_neurons": 256,
-            "num_classifier_hidden_layers": 2,
-            "min_classifier_neurons": 64,
-            "max_classifier_neurons": 256,
-            "rbm_activation_function_choice": "sigmoid",
-            "classifier_activation_function_choice": "relu",
-            "dropout_rate": 0.8
-}
+        lambda_param=0.5,
+        afsa_params={'visual': 50, 'step': 8, 'try_times': 5, 'max_iter': 15},
+        pso_params={"c1": 1.5, "c2": 1.5, "w": 0.7, "k": 3, "p": 2},
+        ga_params={"initial_crossover_rate": 0.7, "initial_mutation_rate": 0.15, "tournament_size": 3, "max_iter": 3},
+        architectures_to_optimize=['CNN', 'ResNet', 'EfficientNet', 'MobileNet']
+    )
 
-metrics = train_and_evaluate_for_oace(config, train_loader, val_loader, device, epochs=1)
-
-print(metrics)"""
+    # Executa a otimização
+    best_architecture, best_params, best_fitness = optimizer.optimize()
+    results = best_architecture, best_params, best_fitness
+    
+    print(f"\nMelhor arquitetura encontrada: {best_architecture}")
+    print(f"Parâmetros da melhor arquitetura: {best_params}")
+    print(f"Melhor valor de fitness (OACE): {best_fitness}")
+    
+    print("results: ", results)
 
 
 

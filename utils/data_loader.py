@@ -3,6 +3,9 @@ import numpy as np
 import torchvision
 from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
+from datasets import load_dataset, DatasetDict
+from torch.utils.data import DataLoader
+
 
 
 def get_cifar10_dataloaders(n_valid=0.2, batch_size=64, num_workers=0):
@@ -52,3 +55,90 @@ def get_cifar10_dataloaders(n_valid=0.2, batch_size=64, num_workers=0):
 
     classes = train_data.classes
     return trainLoader, validLoader, testLoader, classes
+
+# Definir a classe do dataset FORA da função
+class WildShapesDataset(torch.utils.data.Dataset):
+    def __init__(self, dataset, transform=None):
+        self.dataset = dataset
+        self.transform = transform
+        
+    def __len__(self):
+        return len(self.dataset)
+    
+    def __getitem__(self, idx):
+        item = self.dataset[idx]
+        image = item['image']
+        label = item['label']
+        
+        if self.transform:
+            image = self.transform(image)
+            
+        return image, label
+
+def get_wildshapes_dataloaders(batch_size=64):
+    """Versão mais simples sem problemas de multiprocessing no Windows"""
+    
+    # Mesmas transformações
+    transform_train = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(10),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    
+    transform_test = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    
+    # Carregar e dividir
+    ds = load_dataset("Horusprg/WildShapes")
+    
+    split1 = ds['train'].train_test_split(test_size=0.3, seed=42, stratify_by_column='label')
+    split2 = split1['test'].train_test_split(test_size=1/3, seed=42, stratify_by_column='label')
+    
+    final_ds = DatasetDict({
+        'train': split1['train'],
+        'validation': split2['train'],
+        'test': split2['test']
+    })
+    
+    # Criar datasets
+    train_dataset = WildShapesDataset(final_ds['train'], transform_train)
+    val_dataset = WildShapesDataset(final_ds['validation'], transform_test)
+    test_dataset = WildShapesDataset(final_ds['test'], transform_test)
+    
+    # DataLoaders SEM num_workers para Windows
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=0,  # IMPORTANTE: 0 para Windows
+        pin_memory=False  # Desativar pin_memory também ajuda
+    )
+    
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=0
+    )
+    
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=0
+    )
+    
+    classes = [f'class_{i}' for i in range(9)]
+    
+    print(f"WildShapes Dataset")
+    print(f"  Train: {len(train_dataset):,}")
+    print(f"  Val: {len(val_dataset):,}")
+    print(f"  Test: {len(test_dataset):,}")
+    print(f"  Batch: {batch_size}")
+    
+    return train_loader, val_loader, test_loader, classes
