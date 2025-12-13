@@ -17,6 +17,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.data_loader import get_cifar10_dataloaders, get_wildshapes_dataloaders
 from utils.optimization_logger import OptimizationLogger
+from utils.ahp_weights import critical_scenario_weights, equilibrium_scenario_weights, limited_scenario_weights
 import time
 
 class AFSAGAPSO:
@@ -1020,7 +1021,7 @@ class AFSAGAPSO:
         """
         print(f"   📊 Calculando score OACE...")
         
-        # Usa apenas métricas positivas para assertividade (não inclui loss)
+        """
         assertiveness_weights = {
             "top1_acc": 0.4,        # Peso maior para acurácia principal
             "top5_acc": 0.15,       
@@ -1034,7 +1035,11 @@ class AFSAGAPSO:
             "memory_used_mb": 0.25,
             "gflops": 0.25,
         }
-
+        """
+        assertiveness_weights, cost_weights, rc_a, rc_c = limited_scenario_weights()
+        #assertiveness_weights, cost_weights, rc_a, rc_c = equilibrium_scenario_weights()
+        #assertiveness_weights, cost_weights, rc_a, rc_c = critical_scenario_weights()
+        
         # Atualiza os limites dinamicamente para incluir novos valores
         self._update_metrics_ranges(metrics)
         
