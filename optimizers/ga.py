@@ -128,10 +128,15 @@ class GA:
         if indpb is None:
             indpb = self.initial_mutation_rate  # Usa a taxa inicial como padrão
 
+        # Calcula desvio padrão adaptativo baseado no range do espaço de busca
+        # Fórmula 20: sigma = (upper_bound - lower_bound) * 0.1
+        search_range = self.upper_bound - self.lower_bound
+        sigma = search_range * 0.1  # 10% do range como desvio padrão
+
         for i in range(len(individual)):
             if np.random.random() < indpb:
-                # Mutação gaussiana
-                individual[i] += np.random.normal(0, 0.1)
+                # Mutação gaussiana com desvio padrão adaptativo (fórmula 19)
+                individual[i] += np.random.normal(0, sigma)
                 # Garante que o valor permaneça dentro dos limites
                 individual[i] = np.clip(individual[i], 
                                       self.lower_bound, 
@@ -154,13 +159,28 @@ class GA:
         """
         Calcula a taxa de mutação adaptativa (fórmula 17).
         
+        A mutação começa com um valor mínimo (10% da taxa inicial) na primeira iteração
+        e aumenta progressivamente até a taxa inicial completa na última iteração.
+        
         Args:
-            iter_num (int): Número da iteração atual.
+            iter_num (int): Número da iteração atual (0-indexed).
             
         Returns:
             float: Taxa de mutação adaptativa.
         """
-        return self.initial_mutation_rate * (iter_num / self.max_iter)
+        if self.max_iter <= 1:
+            return self.initial_mutation_rate
+        
+        # Fórmula ajustada: começa com 10% da taxa inicial e aumenta até 100%
+        # iter_num=0 -> 0.1 * initial_mutation_rate
+        # iter_num=max_iter-1 -> initial_mutation_rate
+        min_mutation = 0.1 * self.initial_mutation_rate
+        max_mutation = self.initial_mutation_rate
+        
+        # Interpolação linear: iter_num=0 -> min, iter_num=max_iter-1 -> max
+        mutation_rate = min_mutation + (max_mutation - min_mutation) * (iter_num / (self.max_iter - 1))
+        
+        return mutation_rate
 
     def initialize_population(self, initial_population):
         """

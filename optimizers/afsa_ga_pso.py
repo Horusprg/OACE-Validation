@@ -40,7 +40,8 @@ class AFSAGAPSO:
         pso_params: Dict[str, Any] = None,
         ga_params: Dict[str, Any] = None,
         architectures_to_optimize: List[str] = None,
-        log_dir: str = "results"
+        log_dir: str = "results",
+        device: torch.device = None
     ):
         """
         Inicializa o otimizador híbrido.
@@ -58,6 +59,7 @@ class AFSAGAPSO:
         ga_params (dict): Parâmetros para o GA.
             architectures_to_optimize (List[str]): Lista de arquiteturas a otimizar. Se None, usa todas disponíveis.
             log_dir (str): Diretório para salvar os logs da otimização.
+            device (torch.device, optional): Dispositivo para treinamento. Se None, detecta automaticamente.
         """
         # Arquiteturas disponíveis para otimização
         if architectures_to_optimize is None:
@@ -80,6 +82,13 @@ class AFSAGAPSO:
         self.val_loader = val_loader
         self.test_loader = test_loader
         self.classes = classes
+        
+        # Configuração do dispositivo
+        if device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            self.device = device
+        print(f"🔧 Dispositivo configurado: {self.device}")
 
         # Define os limites do espaço de busca considerando todas as arquiteturas
         self.param_bounds = self._get_unified_param_bounds()
@@ -517,7 +526,7 @@ class AFSAGAPSO:
             test_loader=self.test_loader,
             classes=self.classes,
             num_epochs=1,
-            device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+            device=self.device,  # Usa o device configurado
             params=params,
             learning_rate=learning_rate,  # ✅ Passa LR otimizado
         )
@@ -787,10 +796,22 @@ class AFSAGAPSO:
 
     def _execute_afsa_pso_phase(self, initial_population, candidates_metrics):
         """
-        Executa a Fase 1: AFSA-PSO (Otimização Inicial)
-        """
-        self._print_section("AFSA-PSO: Inicializando PSO com soluções da Fase 1")
+        Executa a Fase 1: AFSA-PSO (Otimização Inicial) - VERSÃO INTEGRADA
         
+        Conforme o artigo, o AFSA otimiza o PSO aplicando comportamentos
+        (cluster, foraging, random) nas partículas do enxame. Após cada modificação
+        do AFSA, o PSO executa iterações para refinar as soluções.
+        
+        Fluxo:
+        1. Calcula fitness inicial dos candidatos (warm-up)
+        2. Inicializa PSO com população inicial
+        3. Configura AFSA para usar função de fitness do PSO (OACE)
+        4. Loop alternado: AFSA modifica partículas → PSO executa iterações
+        5. Retorna melhores soluções encontradas
+        """
+        self._print_section("AFSA-PSO: Iniciando Fase 1 com otimização integrada")
+        
+        # 1. Calcula fitness inicial dos candidatos (warm-up)
         self._print_step("Calculando fitness dos candidatos iniciais com OACE")
         initial_fitness = []
         for i, (candidate, metrics) in enumerate(candidates_metrics, 1):
@@ -822,7 +843,9 @@ class AFSAGAPSO:
             oace_score=initial_fitness[best_idx]
         )
 
+        # 2. Configura função de fitness para o PSO (minimização, então negativa do OACE)
         def pso_fitness_function(x):
+            """Função de fitness para o PSO (minimização)"""
             if x.ndim == 1:
                 return -self.fitness_function(x)
             else:
@@ -834,41 +857,153 @@ class AFSAGAPSO:
 
         self.pso.fitness_function = pso_fitness_function
         
-        # Inicializa completamente o enxame do PSO com a população do AFSA
-        self._print_step("Inicializando enxame PSO com população do AFSA")
+        # 3. Inicializa PSO com população inicial
+        self._print_step("Inicializando enxame PSO com população inicial")
         self.pso.initialize_swarm_with_population(initial_population)
         
-        self._print_step("PSO explorando espaço de busca e gerando novos candidatos", 
-                        f"Iterações: {self.max_iter}")
-        best_pos, best_cost = self.pso.optimize(metrics_function=self._warm_up_candidate)
+        # 4. Configura AFSA para trabalhar sobre PSO
+        # Reutiliza instância do AFSA existente ou cria nova se necessário
+        if self.afsa is None:
+            self.afsa = AFSA(
+                population_size=self.population_size,
+                n_dim=self.n_dim,
+                visual=self.afsa_params.get('visual', 0.5),
+                step=self.afsa_params.get('step', 0.1),
+                try_times=self.afsa_params.get('try_times', 5),
+                max_iter=self.afsa_params.get('max_iter', 3),  # Será usado no loop
+                lower_bound=self.pso.lower_bound,
+                upper_bound=self.pso.upper_bound
+            )
+        else:
+            # Atualiza parâmetros do AFSA existente para trabalhar sobre PSO
+            self.afsa.population_size = self.population_size
+            self.afsa.n_dim = self.n_dim
+            self.afsa.visual = self.afsa_params.get('visual', 0.5)
+            self.afsa.step = self.afsa_params.get('step', 0.1)
+            self.afsa.try_times = self.afsa_params.get('try_times', 5)
+            self.afsa.lower_bound = self.pso.lower_bound
+            self.afsa.upper_bound = self.pso.upper_bound
         
-        # Converte o custo interno (minimização) para score OACE (maximização)
-        oace_score = -float(best_cost) if best_cost is not None else 0.0
-        print(f"\n🏆 PSO Concluído!")
-        print(f"   • Melhor posição: {best_pos}")
-        print(f"   • Score OACE: {oace_score:.6f}")
+        # Configura AFSA para usar função de fitness do PSO (OACE)
+        self.afsa.fitness_function = self.fitness_function
+        
+        # 5. Loop alternado: AFSA modifica → PSO executa
+        self._print_step("Iniciando loop alternado AFSA-PSO", 
+                        f"Iterações AFSA: {self.afsa_params.get('max_iter', 3)}, "
+                        f"Iterações PSO por ciclo: 1")
+        
+        max_afsa_iter = self.afsa_params.get('max_iter', 3)
+        
+        for afsa_iter in range(max_afsa_iter):
+            print(f"\n🔄 AFSA-PSO Iteração {afsa_iter + 1}/{max_afsa_iter}")
+            
+            # 5a. AFSA aplica comportamentos nas partículas do PSO
+            self._print_step(f"AFSA aplicando comportamentos (iteração {afsa_iter + 1})")
+            
+            # 📊 LOG: Estado do PSO ANTES do AFSA
+            pso_fitness_before_afsa = -self.pso.optimizer.swarm.pbest_cost.copy()  # Converte para OACE
+            pso_gbest_before_afsa = -float(self.pso.optimizer.swarm.best_cost)
+            
+            print(f"\n      🔄 PSO ANTES DO AFSA:")
+            print(f"         • Melhor OACE (gbest): {pso_gbest_before_afsa:.6f}")
+            print(f"         • OACE médio (pbest): {np.mean(pso_fitness_before_afsa):.6f}")
 
-        final_population = self.pso.optimizer.swarm.position
+            afsa_optimized_population = self._apply_afsa_behaviors_to_pso(afsa_iter)
+            
+            # 5b. Atualiza enxame do PSO com população otimizada pelo AFSA
+            print(f"\n      🔄 ATUALIZANDO ENXAME DO PSO COM POPULAÇÃO DO AFSA")
+            print(f"         • Substituindo {len(afsa_optimized_population)} partículas do PSO")
+            print(f"         • Partículas antigas do PSO foram substituídas pelas do AFSA")
+            print(f"         • Recalculando fitness das partículas modificadas...")
+            
+            self.pso.optimizer.swarm.position = afsa_optimized_population.copy()
+            
+            # 5c. Recalcula fitness das partículas modificadas
+            fitness_values = self.pso.fitness_function(afsa_optimized_population)
+            
+            # 5d. Atualiza pbest se necessário (PSO usa minimização)
+            pbest_updated = 0
+            for i in range(len(afsa_optimized_population)):
+                # PSO minimiza, então compara custos negativos
+                if fitness_values[i] < self.pso.optimizer.swarm.pbest_cost[i]:
+                    self.pso.optimizer.swarm.pbest_pos[i] = afsa_optimized_population[i].copy()
+                    self.pso.optimizer.swarm.pbest_cost[i] = fitness_values[i]
+                    pbest_updated += 1
+            
+            # 5e. Atualiza gbest se necessário
+            best_idx = np.argmin(self.pso.optimizer.swarm.pbest_cost)
+            new_gbest_cost = self.pso.optimizer.swarm.pbest_cost[best_idx]
+            
+            if new_gbest_cost < self.pso.optimizer.swarm.best_cost:
+                old_gbest = -float(self.pso.optimizer.swarm.best_cost)
+                self.pso.optimizer.swarm.best_pos = self.pso.optimizer.swarm.pbest_pos[best_idx].copy()
+                self.pso.optimizer.swarm.best_cost = new_gbest_cost
+                new_gbest = -float(self.pso.optimizer.swarm.best_cost)
+                print(f"         • pbest atualizado: {pbest_updated}/{len(afsa_optimized_population)} partículas")
+                print(f"         • ✅ gbest ATUALIZADO: {old_gbest:.6f} → {new_gbest:.6f} ({'+' if new_gbest > old_gbest else ''}{new_gbest - old_gbest:.6f})")
+            else:
+                print(f"         • pbest atualizado: {pbest_updated}/{len(afsa_optimized_population)} partículas")
+                print(f"         • gbest mantido: {-float(self.pso.optimizer.swarm.best_cost):.6f}")
+            
+            # 5f. PSO executa 1 iteração para refinar
+            print(f"\n      ⚙️  PSO REFINANDO SOLUÇÕES MODIFICADAS PELO AFSA")
+            print(f"         • Executando 1 iteração do PSO...")
+            
+            pso_gbest_before_refine = -float(self.pso.optimizer.swarm.best_cost)
+            pso_fitness_before_refine = -np.mean(self.pso.optimizer.swarm.pbest_cost)
+            
+            try:
+                self.pso._update_swarm_one_iteration()
+                print(f"         • ✅ PSO executou 1 iteração com sucesso")
+            except Exception as e:
+                print(f"         • ⚠️  Erro ao executar PSO: {e}")
+                # Continua mesmo com erro
+            
+            pso_gbest_after_refine = -float(self.pso.optimizer.swarm.best_cost)
+            pso_fitness_after_refine = -np.mean(self.pso.optimizer.swarm.pbest_cost)
+            
+            print(f"\n      📊 RESULTADO DO REFINAMENTO DO PSO:")
+            print(f"         • gbest ANTES do refinamento: {pso_gbest_before_refine:.6f}")
+            print(f"         • gbest DEPOIS do refinamento: {pso_gbest_after_refine:.6f}")
+            print(f"         • Mudança no gbest: {pso_gbest_after_refine - pso_gbest_before_refine:+.6f}")
+            print(f"         • Fitness médio ANTES: {pso_fitness_before_refine:.6f}")
+            print(f"         • Fitness médio DEPOIS: {pso_fitness_after_refine:.6f}")
+            print(f"         • Mudança no fitness médio: {pso_fitness_after_refine - pso_fitness_before_refine:+.6f}")
+            
+            print(f"\n      📈 RESUMO DO CICLO AFSA-PSO (Iteração {afsa_iter + 1}):")
+            print(f"         • OACE inicial (antes do AFSA): {pso_gbest_before_afsa:.6f}")
+            print(f"         • OACE após AFSA: {pso_gbest_after_refine:.6f}")
+            print(f"         • OACE após PSO refinar: {pso_gbest_after_refine:.6f}")
+            print(f"         • Melhoria total no ciclo: {pso_gbest_after_refine - pso_gbest_before_afsa:+.6f}")
+            print(f"      {'='*60}")
+            
+            # Log da iteração
+            current_population = self.pso.optimizer.swarm.position
+            current_fitness = np.array([self.fitness_function(p) for p in current_population])
+            self.logger.log_iteration(
+                iteration=afsa_iter + 1,
+                phase="AFSA-PSO",
+                population=current_population,
+                fitness_values=current_fitness,
+                best_position=self.pso.optimizer.swarm.best_pos,
+                best_fitness=-float(self.pso.optimizer.swarm.best_cost),
+                metrics=None,  # Não recalcula métricas a cada iteração
+                oace_score=-float(self.pso.optimizer.swarm.best_cost)
+            )
         
-        # Garante que o melhor global (best_pos) também seja avaliado
-        all_candidates = np.vstack([final_population, best_pos.reshape(1, -1)])
-        self._print_step(f"Avaliando {len(all_candidates)} soluções finais do PSO (incluindo best_pos)")
+        # 6. Retorna melhores soluções do PSO
+        print(f"\n✅ AFSA-PSO concluído!")
+        best_pos = self.pso.optimizer.swarm.best_pos
+        best_oace = -float(self.pso.optimizer.swarm.best_cost)
+        print(f"   • Melhor posição encontrada: {best_pos}")
+        print(f"   • Melhor score OACE: {best_oace:.6f}")
         
-        final_fitness = []
-        for i, pos in enumerate(all_candidates):
-            print(f"   🔄 Avaliando solução {i+1}/{len(all_candidates)}")
-            fitness = self.fitness_function(pos)
-            final_fitness.append(fitness)
-            print(f"      🎯 Score OACE: {fitness:.6f}")
-        
-        final_fitness = np.array(final_fitness)
-        
-        # Seleciona os melhores (max OACE)
-        best_indices = np.argsort(final_fitness)[-self.population_size:]
-        phase1_solutions = all_candidates[best_indices]
+        # Seleciona as melhores partículas (pbest)
+        phase1_solutions = self.pso.optimizer.swarm.pbest_pos.copy()
+        final_fitness = np.array([self.fitness_function(p) for p in phase1_solutions])
         
         # Mostra resumo final da Fase 1
-        self._print_population_summary(phase1_solutions, final_fitness[best_indices], "AFSA-PSO Final")
+        self._print_population_summary(phase1_solutions, final_fitness, "AFSA-PSO Final")
         
         print(f"\n✅ Fase AFSA-PSO Concluída!")
         print(f"   • Melhor score da Fase 1: {np.max(final_fitness):.6f}")
@@ -876,13 +1011,319 @@ class AFSAGAPSO:
         
         return phase1_solutions
 
+    def _apply_ga_operators_to_pso(self, iteration):
+        """
+        Aplica operadores genéticos do GA nas partículas do PSO.
+        
+        Conforme o artigo, o GA otimiza o PSO aplicando crossover e mutação
+        nas partículas do enxame, gerando novas soluções que serão refinadas pelo PSO.
+        
+        Args:
+            iteration: Número da iteração atual (para taxas adaptativas)
+        
+        Returns:
+            np.ndarray: População otimizada pelo GA (formato: (population_size, n_dim))
+        """
+        # 1. Obtém partículas atuais do PSO (usa pso_phase2 se disponível, senão usa pso)
+        pso_instance = getattr(self, 'pso_phase2', self.pso)
+        current_particles = pso_instance.optimizer.swarm.position.copy()
+        
+        # 📊 LOG: Estado ANTES do GA
+        print(f"\n      {'='*60}")
+        print(f"      📋 ESTADO ANTES DO GA APLICAR OPERADORES")
+        print(f"      {'='*60}")
+        print(f"      • Número de partículas: {len(current_particles)}")
+        
+        # Calcula fitness ANTES
+        fitness_before = np.array([self.fitness_function(p) for p in current_particles])
+        print(f"      • Fitness ANTES (OACE): {[f'{f:.6f}' for f in fitness_before]}")
+        print(f"      • Melhor fitness ANTES: {np.max(fitness_before):.6f}")
+        print(f"      • Fitness médio ANTES: {np.mean(fitness_before):.6f}")
+        
+        # 2. Calcula taxas adaptativas do GA
+        crossover_rate = self.ga.adaptive_crossover_rate(iteration)
+        mutation_rate = self.ga.adaptive_mutation_rate(iteration)
+        
+        print(f"\n      🔬 GA APLICANDO OPERADORES GENÉTICOS")
+        print(f"      • Taxa Crossover: {crossover_rate:.3f}")
+        print(f"      • Taxa Mutação: {mutation_rate:.3f}")
+        print(f"      • Iteração: {iteration + 1}")
+        
+        # 3. Converte partículas para formato do GA (Individual do DEAP)
+        from deap import creator
+        population_individuals = []
+        for particle in current_particles:
+            # Garante que é numpy array
+            particle_array = np.array(particle).copy()
+            ind = creator.Individual(particle_array)
+            # Avalia fitness inicial
+            try:
+                fitness_value = self.fitness_function(particle_array)
+                if isinstance(fitness_value, (int, float)):
+                    ind.fitness.values = (fitness_value,)
+                elif isinstance(fitness_value, tuple):
+                    ind.fitness.values = fitness_value
+                else:
+                    ind.fitness.values = (float(fitness_value),)
+            except Exception as e:
+                print(f"      ⚠️  Erro ao avaliar fitness: {e}")
+                ind.fitness.values = (0.0,)
+            population_individuals.append(ind)
+        
+        # 4. Aplica operadores genéticos usando DEAP varOr
+        # varOr gera lambda_ novos indivíduos aplicando crossover e mutação
+        print(f"      • Aplicando varOr com {len(population_individuals)} indivíduos...")
+        
+        from deap import algorithms
+        offspring = algorithms.varOr(
+            population_individuals,
+            self.ga.toolbox,
+            lambda_=len(population_individuals),  # Gera mesma quantidade de indivíduos
+            cxpb=crossover_rate,
+            mutpb=mutation_rate
+        )
+        
+        print(f"      ✅ varOr gerou {len(offspring)} novos indivíduos")
+        
+        # Conta quantos foram modificados
+        num_crossover = 0
+        num_mutation = 0
+        num_unchanged = 0
+        
+        # 5. Avalia fitness dos novos indivíduos gerados
+        for idx, ind in enumerate(offspring):
+            if not ind.fitness.valid:
+                try:
+                    fitness_value = self.fitness_function(np.array(ind))
+                    if isinstance(fitness_value, (int, float)):
+                        ind.fitness.values = (fitness_value,)
+                    elif isinstance(fitness_value, tuple):
+                        ind.fitness.values = fitness_value
+                    else:
+                        ind.fitness.values = (float(fitness_value),)
+                except Exception as e:
+                    print(f"      ⚠️  Erro ao avaliar fitness do offspring {idx}: {e}")
+                    ind.fitness.values = (0.0,)
+            
+            # Verifica se foi modificado (comparação aproximada)
+            original = current_particles[idx]
+            new = np.array(ind)
+            if not np.allclose(original, new, atol=1e-6):
+                # Verifica se foi crossover ou mutação (heurística simples)
+                if np.sum(np.abs(original - new)) > 0.1:
+                    num_crossover += 1
+                else:
+                    num_mutation += 1
+            else:
+                num_unchanged += 1
+        
+        print(f"      📊 Modificações detectadas:")
+        print(f"         • Crossover aplicado: ~{num_crossover} partículas")
+        print(f"         • Mutação aplicada: ~{num_mutation} partículas")
+        print(f"         • Sem modificação: ~{num_unchanged} partículas")
+        
+        # 6. Converte de volta para numpy array
+        optimized_particles = np.array([np.array(ind) for ind in offspring])
+        
+        # 7. Garante que as partículas estão dentro dos limites
+        pso_instance = getattr(self, 'pso_phase2', self.pso)
+        optimized_particles = np.clip(
+            optimized_particles,
+            pso_instance.lower_bound,
+            pso_instance.upper_bound
+        )
+        
+        # 📊 LOG: Estado DEPOIS do GA
+        print(f"\n      📋 ESTADO DEPOIS DO GA APLICAR OPERADORES")
+        print(f"      {'='*60}")
+        
+        # Calcula fitness DEPOIS
+        fitness_after = np.array([self.fitness_function(p) for p in optimized_particles])
+        print(f"      • Fitness DEPOIS (OACE): {[f'{f:.6f}' for f in fitness_after]}")
+        print(f"      • Melhor fitness DEPOIS: {np.max(fitness_after):.6f}")
+        print(f"      • Fitness médio DEPOIS: {np.mean(fitness_after):.6f}")
+        
+        # Comparação
+        improvement = np.max(fitness_after) - np.max(fitness_before)
+        avg_improvement = np.mean(fitness_after) - np.mean(fitness_before)
+        
+        print(f"\n      📈 COMPARAÇÃO ANTES vs DEPOIS:")
+        print(f"         • Melhor fitness: {np.max(fitness_before):.6f} → {np.max(fitness_after):.6f} "
+              f"({'+' if improvement >= 0 else ''}{improvement:.6f})")
+        print(f"         • Fitness médio: {np.mean(fitness_before):.6f} → {np.mean(fitness_after):.6f} "
+              f"({'+' if avg_improvement >= 0 else ''}{avg_improvement:.6f})")
+        
+        # Verifica mudanças nas partículas
+        changes = []
+        for i in range(len(current_particles)):
+            diff = np.linalg.norm(current_particles[i] - optimized_particles[i])
+            changes.append(diff)
+            if diff > 1e-6:
+                print(f"         • Partícula {i+1}: modificada (distância: {diff:.6f})")
+        
+        if all(c < 1e-6 for c in changes):
+            print(f"         ⚠️  AVISO: Nenhuma partícula foi modificada significativamente!")
+        else:
+            print(f"         ✅ {sum(1 for c in changes if c > 1e-6)} partículas modificadas")
+        
+        print(f"      {'='*60}\n")
+        
+        return optimized_particles
+
+    def _apply_afsa_behaviors_to_pso(self, iteration):
+        """
+        Aplica comportamentos do AFSA nas partículas do PSO.
+        
+        Conforme o artigo, o AFSA otimiza o PSO aplicando comportamentos
+        (cluster, foraging, random) nas partículas do enxame, gerando novas
+        soluções que serão refinadas pelo PSO.
+        
+        Args:
+            iteration: Número da iteração atual (para logging)
+        
+        Returns:
+            np.ndarray: Partículas otimizadas pelo AFSA (formato: (population_size, n_dim))
+        """
+        # 1. Obtém partículas atuais do PSO
+        current_particles = self.pso.optimizer.swarm.position.copy()
+        
+        # 📊 LOG: Estado ANTES do AFSA
+        print(f"\n      {'='*60}")
+        print(f"      📋 ESTADO ANTES DO AFSA APLICAR COMPORTAMENTOS")
+        print(f"      {'='*60}")
+        print(f"      • Número de partículas: {len(current_particles)}")
+        
+        # Calcula fitness ANTES
+        fitness_before = np.array([self.fitness_function(p) for p in current_particles])
+        print(f"      • Fitness ANTES (OACE): {[f'{f:.6f}' for f in fitness_before]}")
+        print(f"      • Melhor fitness ANTES: {np.max(fitness_before):.6f}")
+        print(f"      • Fitness médio ANTES: {np.mean(fitness_before):.6f}")
+        
+        print(f"\n      🐟 AFSA APLICANDO COMPORTAMENTOS")
+        print(f"      • Iteração: {iteration + 1}")
+        print(f"      • Visual: {self.afsa.visual}")
+        print(f"      • Step: {self.afsa.step}")
+        print(f"      • Try times: {self.afsa.try_times}")
+        
+        # 2. Para cada partícula, aplica comportamentos do AFSA
+        optimized_particles = []
+        behaviors_applied = {'cluster': 0, 'foraging': 0, 'random': 0, 'unchanged': 0}
+        
+        for i, particle in enumerate(current_particles):
+            original_particle = particle.copy()
+            current_fitness = self.fitness_function(particle)
+            
+            # OTIMIZAÇÃO: Aplica apenas 1 comportamento por partícula (o melhor encontrado)
+            # Isso garante exatamente 1 candidato por partícula, reduzindo treinamentos
+            
+            best_pos = original_particle
+            best_fitness = current_fitness
+            best_behavior = 'unchanged'
+            
+            # 1. Tenta cluster behavior primeiro
+            cluster_pos = self.afsa.cluster_behavior_on_particle(
+                particle, current_particles, i, self.fitness_function
+            )
+            cluster_fitness = self.fitness_function(cluster_pos)
+            
+            if cluster_fitness > best_fitness:
+                best_pos = cluster_pos
+                best_fitness = cluster_fitness
+                best_behavior = 'cluster'
+            
+            # 2. Se cluster não melhorou o suficiente, tenta foraging
+            # (mas só se cluster não foi melhor)
+            if best_behavior != 'cluster':
+                foraging_pos = self.afsa.foraging_behavior_on_particle(particle, self.fitness_function)
+                foraging_fitness = self.fitness_function(foraging_pos)
+                
+                if foraging_fitness > best_fitness:
+                    best_pos = foraging_pos
+                    best_fitness = foraging_fitness
+                    best_behavior = 'foraging'
+            
+            # 3. Se nenhum melhorou, aplica random
+            if best_behavior == 'unchanged':
+                random_pos = self.afsa.random_behavior_on_particle(particle)
+                random_fitness = self.fitness_function(random_pos)
+                
+                if random_fitness > best_fitness:
+                    best_pos = random_pos
+                    best_fitness = random_fitness
+                    best_behavior = 'random'
+                else:
+                    # Mantém original se nenhum comportamento melhorou
+                    best_pos = original_particle
+                    best_behavior = 'unchanged'
+            
+            # Registra comportamento aplicado
+            behaviors_applied[best_behavior] += 1
+            optimized_particles.append(best_pos)
+        
+        optimized_particles = np.array(optimized_particles)
+        
+        # 3. Garante que as partículas estão dentro dos limites
+        optimized_particles = np.clip(
+            optimized_particles,
+            self.pso.lower_bound,
+            self.pso.upper_bound
+        )
+        
+        print(f"      📊 Comportamentos aplicados:")
+        print(f"         • Cluster: {behaviors_applied['cluster']} partículas")
+        print(f"         • Foraging: {behaviors_applied['foraging']} partículas")
+        print(f"         • Random: {behaviors_applied['random']} partículas")
+        print(f"         • Sem modificação: {behaviors_applied['unchanged']} partículas")
+        
+        # 📊 LOG: Estado DEPOIS do AFSA
+        print(f"\n      📋 ESTADO DEPOIS DO AFSA APLICAR COMPORTAMENTOS")
+        print(f"      {'='*60}")
+        
+        # Calcula fitness DEPOIS
+        fitness_after = np.array([self.fitness_function(p) for p in optimized_particles])
+        print(f"      • Fitness DEPOIS (OACE): {[f'{f:.6f}' for f in fitness_after]}")
+        print(f"      • Melhor fitness DEPOIS: {np.max(fitness_after):.6f}")
+        print(f"      • Fitness médio DEPOIS: {np.mean(fitness_after):.6f}")
+        
+        # Comparação
+        improvement = np.max(fitness_after) - np.max(fitness_before)
+        avg_improvement = np.mean(fitness_after) - np.mean(fitness_before)
+        
+        print(f"\n      📈 COMPARAÇÃO ANTES vs DEPOIS:")
+        print(f"         • Melhor fitness: {np.max(fitness_before):.6f} → {np.max(fitness_after):.6f} "
+              f"({'+' if improvement >= 0 else ''}{improvement:.6f})")
+        print(f"         • Fitness médio: {np.mean(fitness_before):.6f} → {np.mean(fitness_after):.6f} "
+              f"({'+' if avg_improvement >= 0 else ''}{avg_improvement:.6f})")
+        
+        # Verifica mudanças nas partículas
+        changes = []
+        for i in range(len(current_particles)):
+            diff = np.linalg.norm(current_particles[i] - optimized_particles[i])
+            changes.append(diff)
+            if diff > 1e-6:
+                print(f"         • Partícula {i+1}: modificada (distância: {diff:.6f})")
+        
+        if all(c < 1e-6 for c in changes):
+            print(f"         ⚠️  AVISO: Nenhuma partícula foi modificada significativamente!")
+        else:
+            print(f"         ✅ {sum(1 for c in changes if c > 1e-6)} partículas modificadas")
+        
+        print(f"      {'='*60}\n")
+        
+        return optimized_particles
+
     def _execute_ga_pso_phase(self, phase1_solutions):
         """
         Executa a Fase 2: GA-PSO (Otimização Global)
         
-        Usa as melhores soluções da Fase 1 como população inicial e aplica
-        operadores genéticos (crossover e mutação) para refinar as soluções
-        e encontrar a "solução de otimização global".
+        Conforme o artigo, o GA otimiza o PSO aplicando operadores genéticos
+        (crossover e mutação) nas partículas do enxame. Após cada modificação
+        do GA, o PSO executa algumas iterações para refinar as soluções.
+        
+        Fluxo:
+        1. Inicializa PSO com soluções da Fase 1
+        2. Loop alternado: GA modifica partículas → PSO executa iterações
+        3. Retorna melhor solução encontrada pelo PSO
         
         Args:
             phase1_solutions: Soluções de otimização inicial da Fase 1
@@ -895,23 +1336,42 @@ class AFSAGAPSO:
         print(f"   • Shape das soluções: {np.array(phase1_solutions).shape}")
         print(f"   • Primeira solução: {phase1_solutions[0]}")
         
-        # Configura a função de fitness para o GA
-        def ga_fitness_function(individual):
-            """Função de fitness para o GA na Fase 2"""
-            # Converte para numpy array se necessário
-            if not isinstance(individual, np.ndarray):
-                individual = np.array(individual)
-            
-            fitness_value = self.fitness_function(individual)
-            return (fitness_value,)
+        # Configura função de fitness para o PSO (minimização, então negativa do OACE)
+        def pso_fitness_function(x):
+            """Função de fitness para o PSO (minimização)"""
+            if x.ndim == 1:
+                return -self.fitness_function(x)
+            else:
+                scores = []
+                for xi in x:
+                    score = self.fitness_function(xi)
+                    scores.append(score)
+                return -np.array(scores)
         
-        # Atualiza a função de fitness do GA
-        self._print_step("Configurando função de fitness do GA")
-        self.ga.fitness_function = ga_fitness_function
+        # 1. Inicializa PSO com soluções da Fase 1
+        # Cria uma nova instância do PSO para a Fase 2 (evita conflitos com Fase 1)
+        self._print_step("Inicializando PSO para Fase 2 com soluções da Fase 1")
         
-        # Registra a iteração inicial do GA-PSO
-        self._print_step("Avaliando soluções iniciais da Fase 1")
+        # Cria novo PSO para Fase 2 (pode reutilizar parâmetros, mas é uma instância separada)
+        pso_phase2 = PSO(
+            population_size=self.population_size,
+            n_dim=self.n_dim,
+            max_iter=1,  # Usaremos apenas 1 iteração por ciclo no loop
+            lower_bound=0.0,
+            upper_bound=1.0,
+            afsa_params=None,  # Não usa AFSA na Fase 2
+            pso_options=self.pso_params,
+            logger=self.logger
+        )
+        pso_phase2.fitness_function = pso_fitness_function
+        pso_phase2.initialize_swarm_with_population(phase1_solutions)
+        
+        # Usa pso_phase2 para a Fase 2
+        self.pso_phase2 = pso_phase2
+        
+        # Avalia fitness inicial
         initial_fitness = np.array([self.fitness_function(x) for x in phase1_solutions])
+        initial_pso_fitness = -initial_fitness  # PSO usa minimização
         
         best_idx = np.argmax(initial_fitness)
         best_metrics = self._warm_up_candidate(phase1_solutions[best_idx])
@@ -926,13 +1386,7 @@ class AFSAGAPSO:
         best_architecture, _ = self._convert_to_architecture_params(phase1_solutions[best_idx])
         print(f"   • Arquitetura: {best_architecture}")
         
-        # Mostra todas as soluções iniciais
-        print(f"\n📋 Soluções iniciais da Fase 1:")
-        for i, (solution, fitness) in enumerate(zip(phase1_solutions, initial_fitness)):
-            architecture_name, _ = self._convert_to_architecture_params(solution)
-            print(f"   {i+1}. {architecture_name} - Score OACE: {fitness:.6f}")
-        
-        # Registra a iteração inicial da Fase GA-PSO
+        # Registra a iteração inicial
         self.logger.log_iteration(
             iteration=0,
             phase="GA-PSO",
@@ -944,70 +1398,176 @@ class AFSAGAPSO:
             oace_score=initial_fitness[best_idx]
         )
         
-        # Inicializa o GA com as soluções da Fase 1
-        self._print_step(f"Inicializando GA com {len(phase1_solutions)} soluções da Fase 1")
-        self.ga.initialize_population(phase1_solutions)
+        # 2. Loop alternado: GA modifica → PSO executa
+        self._print_step("Iniciando loop alternado GA-PSO", 
+                        f"Iterações GA: {self.ga_params['max_iter']}, "
+                        f"Iterações PSO por ciclo: 1")
         
-        print(f"   • População do GA inicializada. Tamanho: {len(self.ga.population)}")
-        print(f"   • Primeiro indivíduo: {self.ga.population[0]}")
-        print(f"   • Fitness do primeiro indivíduo: {self.ga.population[0].fitness.values}")
+        max_ga_iter = self.ga_params.get('max_iter', self.max_iter)
         
-        self._print_step("Aplicando operadores genéticos (crossover e mutação)", 
-                        f"Taxa crossover: {self.ga_params['initial_crossover_rate']}, "
-                        f"Taxa mutação: {self.ga_params['initial_mutation_rate']}, "
-                        f"Tamanho torneio: {self.ga_params['tournament_size']}")
+        for ga_iter in range(max_ga_iter):
+            print(f"\n🔄 GA-PSO Iteração {ga_iter + 1}/{max_ga_iter}")
+            
+            # 2a. GA aplica operadores genéticos nas partículas do PSO
+            self._print_step(f"GA aplicando operadores genéticos (iteração {ga_iter + 1})")
+            
+            # 📊 LOG: Estado do PSO ANTES do GA
+            pso_instance = getattr(self, 'pso_phase2', self.pso)
+            pso_fitness_before_ga = -pso_instance.optimizer.swarm.pbest_cost.copy()  # Converte para OACE
+            pso_gbest_before_ga = -float(pso_instance.optimizer.swarm.best_cost)
+            
+            print(f"\n      🔄 PSO ANTES DO GA:")
+            print(f"         • Melhor OACE (gbest): {pso_gbest_before_ga:.6f}")
+            print(f"         • OACE médio (pbest): {np.mean(pso_fitness_before_ga):.6f}")
+            
+            ga_optimized_population = self._apply_ga_operators_to_pso(ga_iter)
+            
+            # 2b. Atualiza enxame do PSO com população otimizada pelo GA
+            print(f"\n      🔄 ATUALIZANDO ENXAME DO PSO COM POPULAÇÃO DO GA")
+            print(f"         • Substituindo {len(ga_optimized_population)} partículas do PSO")
+            print(f"         • Partículas antigas do PSO foram substituídas pelas do GA")
+            
+            pso_instance.optimizer.swarm.position = ga_optimized_population.copy()
+            
+            # 2c. Recalcula fitness das partículas modificadas
+            print(f"         • Recalculando fitness das partículas modificadas...")
+            fitness_values = pso_instance.fitness_function(ga_optimized_population)
+            
+            # 2d. Atualiza pbest se necessário (PSO usa minimização)
+            pbest_updates = 0
+            for i in range(len(ga_optimized_population)):
+                if fitness_values[i] < pso_instance.optimizer.swarm.pbest_cost[i]:
+                    pso_instance.optimizer.swarm.pbest_pos[i] = ga_optimized_population[i].copy()
+                    pso_instance.optimizer.swarm.pbest_cost[i] = fitness_values[i]
+                    pbest_updates += 1
+            
+            print(f"         • pbest atualizado: {pbest_updates}/{len(ga_optimized_population)} partículas")
         
-        # Executa a otimização com GA
-        self._print_step("Executando otimização com GA")
-        best_position, best_fitness = self.ga.optimize()
+            # 2e. Atualiza gbest
+            gbest_updated = False
+            if pso_instance.optimizer.swarm.pbest_cost.size > 0:
+                best_idx_pso = np.argmin(pso_instance.optimizer.swarm.pbest_cost)
+                if pso_instance.optimizer.swarm.pbest_cost[best_idx_pso] < pso_instance.optimizer.swarm.best_cost:
+                    old_gbest = -float(pso_instance.optimizer.swarm.best_cost)
+                    pso_instance.optimizer.swarm.best_pos = pso_instance.optimizer.swarm.pbest_pos[best_idx_pso].copy()
+                    pso_instance.optimizer.swarm.best_cost = pso_instance.optimizer.swarm.pbest_cost[best_idx_pso]
+                    new_gbest = -float(pso_instance.optimizer.swarm.best_cost)
+                    gbest_updated = True
+                    print(f"         • ✅ gbest ATUALIZADO: {old_gbest:.6f} → {new_gbest:.6f} "
+                          f"(+{new_gbest - old_gbest:.6f})")
+                else:
+                    print(f"         • gbest mantido: {(-float(pso_instance.optimizer.swarm.best_cost)):.6f}")
         
-        print(f"\n✅ GA concluído!")
-        print(f"   • Melhor posição encontrada: {best_position}")
-        print(f"   • Melhor fitness (GA): {best_fitness}")
+            # 2f. PSO executa 1 iteração para refinar as soluções modificadas pelo GA
+            print(f"\n      ⚙️  PSO REFINANDO SOLUÇÕES MODIFICADAS PELO GA")
+            print(f"         • Executando 1 iteração do PSO...")
+            
+            # Estado ANTES do PSO refinar
+            pso_fitness_before_refine = -pso_instance.optimizer.swarm.pbest_cost.copy()
+            pso_gbest_before_refine = -float(pso_instance.optimizer.swarm.best_cost)
+            
+            self._print_step("PSO refinando soluções modificadas pelo GA")
+            try:
+                pso_instance._update_swarm_one_iteration()
+                print(f"         ✅ PSO executou 1 iteração com sucesso")
+            except Exception as e:
+                print(f"         ⚠️  Erro na iteração do PSO: {e}")
+                # Fallback: apenas atualiza fitness sem mover partículas
+                fitness_values = pso_instance.fitness_function(pso_instance.optimizer.swarm.position)
+                for i in range(len(pso_instance.optimizer.swarm.position)):
+                    if fitness_values[i] < pso_instance.optimizer.swarm.pbest_cost[i]:
+                        pso_instance.optimizer.swarm.pbest_pos[i] = pso_instance.optimizer.swarm.position[i].copy()
+                        pso_instance.optimizer.swarm.pbest_cost[i] = fitness_values[i]
+            
+            # Estado DEPOIS do PSO refinar
+            pso_fitness_after_refine = -pso_instance.optimizer.swarm.pbest_cost.copy()
+            pso_gbest_after_refine = -float(pso_instance.optimizer.swarm.best_cost)
         
-        # Avalia a população final do GA para garantir que todos os indivíduos foram treinados
-        self._print_step("Avaliando população final do GA")
-        final_population = np.array([ind for ind in self.ga.population])
-        final_fitness = np.array([ind.fitness.values[0] for ind in self.ga.population])
+            print(f"\n      📊 RESULTADO DO REFINAMENTO DO PSO:")
+            print(f"         • gbest ANTES do refinamento: {pso_gbest_before_refine:.6f}")
+            print(f"         • gbest DEPOIS do refinamento: {pso_gbest_after_refine:.6f}")
+            refine_improvement = pso_gbest_after_refine - pso_gbest_before_refine
+            print(f"         • Mudança no gbest: {('+' if refine_improvement >= 0 else '')}{refine_improvement:.6f}")
+            
+            print(f"         • Fitness médio ANTES: {np.mean(pso_fitness_before_refine):.6f}")
+            print(f"         • Fitness médio DEPOIS: {np.mean(pso_fitness_after_refine):.6f}")
+            avg_refine_improvement = np.mean(pso_fitness_after_refine) - np.mean(pso_fitness_before_refine)
+            print(f"         • Mudança no fitness médio: {('+' if avg_refine_improvement >= 0 else '')}{avg_refine_improvement:.6f}")
+            
+            # Resumo completo do ciclo
+            print(f"\n      📈 RESUMO DO CICLO GA-PSO (Iteração {ga_iter + 1}):")
+            print(f"         • OACE inicial (antes do GA): {pso_gbest_before_ga:.6f}")
+            print(f"         • OACE após GA: {pso_gbest_before_refine:.6f}")
+            print(f"         • OACE após PSO refinar: {pso_gbest_after_refine:.6f}")
+            total_improvement = pso_gbest_after_refine - pso_gbest_before_ga
+            print(f"         • Melhoria total no ciclo: {('+' if total_improvement >= 0 else '')}{total_improvement:.6f}")
+            print(f"      {'='*60}\n")
+            
+            # 2g. Calcula OACE para logging (converte de minimização para maximização)
+            current_oace_fitness = -pso_instance.optimizer.swarm.pbest_cost
+            best_oace_score = -float(pso_instance.optimizer.swarm.best_cost)
+            
+            # 2h. Logging da iteração GA-PSO
+            if self.logger:
+                # Obtém métricas do melhor candidato atual
+                best_pos_current = pso_instance.optimizer.swarm.best_pos
+                try:
+                    best_metrics_current = self._warm_up_candidate(best_pos_current)
+                except:
+                    best_metrics_current = None
+                
+        self.logger.log_iteration(
+                    iteration=ga_iter + 1,
+                    phase="GA-PSO",
+                    population=pso_instance.optimizer.swarm.position,
+                    fitness_values=current_oace_fitness,
+                    best_position=best_pos_current,
+                    best_fitness=best_oace_score,
+                    metrics=best_metrics_current,
+                    oace_score=best_oace_score,
+                    pbest_pos=pso_instance.optimizer.swarm.pbest_pos,
+                    pbest_cost=-pso_instance.optimizer.swarm.pbest_cost,  # Converte para OACE
+                    gbest_pos=pso_instance.optimizer.swarm.best_pos,
+                    gbest_cost=best_oace_score
+                )
+            
+            # Mostra progresso
+        print(f"         • Melhor OACE atual: {best_oace_score:.6f}")
         
-        print(f"   • Shape da população final: {final_population.shape}")
-        print(f"   • Fitness min/max: {final_fitness.min():.6f} / {final_fitness.max():.6f}")
+        # 3. Retorna melhor solução do PSO
+        pso_instance = getattr(self, 'pso_phase2', self.pso)
+        best_pos = pso_instance.optimizer.swarm.best_pos.copy()
+        best_fitness_oace = -float(pso_instance.optimizer.swarm.best_cost)
+        
+        print(f"\n✅ GA-PSO concluído!")
+        print(f"   • Melhor posição encontrada: {best_pos}")
+        print(f"   • Melhor score OACE: {best_fitness_oace:.6f}")
         
         # Garante que o melhor fitness está dentro do range válido [0, 1]
-        if best_fitness > 1.0:
-            print(f"⚠️  AVISO: Score OACE inválido ({best_fitness:.6f}) > 1.0. Corrigindo...")
-            # Recalcula o score OACE para o melhor candidato
-            best_metrics = self._warm_up_candidate(best_position)
+        if best_fitness_oace > 1.0:
+            print(f"⚠️  AVISO: Score OACE inválido ({best_fitness_oace:.6f}) > 1.0. Corrigindo...")
+            best_metrics = self._warm_up_candidate(best_pos)
             corrected_fitness = self._calculate_oace_score(best_metrics)
-            best_fitness = corrected_fitness
-            print(f"   • Score OACE corrigido: {best_fitness:.6f}")
+            best_fitness_oace = corrected_fitness
+            print(f"   • Score OACE corrigido: {best_fitness_oace:.6f}")
+        elif best_fitness_oace < 0.0:
+            print(f"⚠️  AVISO: Score OACE inválido ({best_fitness_oace:.6f}) < 0.0. Corrigindo...")
+            best_fitness_oace = 0.0
         
-        best_idx = np.argmax(final_fitness)
+        # Obtém métricas finais do melhor candidato
+        best_metrics = self._warm_up_candidate(best_pos)
         
-        # Obtém as métricas do melhor candidato
-        best_candidate = final_population[best_idx]
-        best_metrics = self._warm_up_candidate(best_candidate)
+        # Mostra resumo final
+        pso_instance = getattr(self, 'pso_phase2', self.pso)
+        final_population = pso_instance.optimizer.swarm.position
+        final_fitness = -pso_instance.optimizer.swarm.pbest_cost
+        self._print_population_summary(final_population, final_fitness, "GA-PSO Final")
         
-        # Mostra resumo final da população
-        self._print_population_summary(final_population, final_fitness, "GA Final")
+        # Resumo final da Fase GA-PSO
+        best_architecture, best_params = self._convert_to_architecture_params(best_pos)
+        self._print_phase_summary("GA-PSO", best_fitness_oace, best_architecture, best_params)
         
-        # Registra a iteração final da Fase GA
-        self.logger.log_iteration(
-            iteration=10,  # Usa iteração 10 para diferenciar da fase GA-PSO
-            phase="GA",
-            population=final_population,
-            fitness_values=final_fitness,
-            best_position=best_candidate,
-            best_fitness=final_fitness[best_idx],
-            metrics=best_metrics,
-            oace_score=final_fitness[best_idx]
-        )
-        
-        # Resumo final da Fase GA
-        best_architecture, best_params = self._convert_to_architecture_params(best_position)
-        self._print_phase_summary("GA", best_fitness, best_architecture, best_params)
-        
-        return best_position, best_fitness
+        return best_pos, best_fitness_oace
 
     def _calculate_oace_score(self, metrics):
         """
@@ -1039,7 +1599,7 @@ class AFSAGAPSO:
         assertiveness_weights, cost_weights, rc_a, rc_c = limited_scenario_weights()
         #assertiveness_weights, cost_weights, rc_a, rc_c = equilibrium_scenario_weights()
         #assertiveness_weights, cost_weights, rc_a, rc_c = critical_scenario_weights()
-        
+
         # Atualiza os limites dinamicamente para incluir novos valores
         self._update_metrics_ranges(metrics)
         

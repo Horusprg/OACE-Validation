@@ -140,6 +140,102 @@ class AFSA:
             float: Valor da função objetivo na posição dada.
         """
         return np.sum(position**2)
+    
+    def cluster_behavior_on_particle(self, particle, all_particles, particle_idx, fitness_function):
+        """
+        Aplica comportamento de aglomeração (cluster) em uma partícula específica do PSO.
+        Conforme a fórmula 12 do artigo.
+        
+        Args:
+            particle (np.ndarray): Partícula atual do PSO.
+            all_particles (np.ndarray): Todas as partículas do enxame PSO.
+            particle_idx (int): Índice da partícula atual.
+            fitness_function (callable): Função de fitness a ser usada (OACE).
+        
+        Returns:
+            np.ndarray: Nova posição da partícula após cluster behavior.
+        """
+        # Encontra vizinhos dentro do campo visual
+        neighbors_indices = [
+            j for j in range(len(all_particles))
+            if j != particle_idx and 
+            np.linalg.norm(particle - all_particles[j]) < self.visual
+        ]
+        
+        if not neighbors_indices:
+            # Se não há vizinhos, tenta foraging
+            return self.foraging_behavior_on_particle(particle, fitness_function)
+        
+        # Calcula centro dos vizinhos
+        center_position = np.mean([all_particles[j] for j in neighbors_indices], axis=0)
+        center_fitness = fitness_function(center_position)
+        current_fitness = fitness_function(particle)
+        
+        # Se o centro é melhor, move em direção ao centro (fórmula 12)
+        if center_fitness > current_fitness:  # Maximização (OACE)
+            direction = center_position - particle
+            norm = np.linalg.norm(direction)
+            if norm > 1e-10:  # Evita divisão por zero
+                direction = direction / norm
+                next_position = particle + direction * self.step * np.random.rand()
+                return np.clip(next_position, self.lower_bound, self.upper_bound)
+        
+        # Se não melhorou, tenta foraging
+        return self.foraging_behavior_on_particle(particle, fitness_function)
+    
+    def foraging_behavior_on_particle(self, particle, fitness_function):
+        """
+        Aplica comportamento de forrageamento em uma partícula específica do PSO.
+        Conforme as fórmulas 13 e 14 do artigo.
+        
+        OTIMIZADO: Limita a 1 tentativa para reduzir avaliações de fitness caras
+        (treinamento de redes neurais). O PSO refinará depois.
+        
+        Args:
+            particle (np.ndarray): Partícula atual do PSO.
+            fitness_function (callable): Função de fitness a ser usada (OACE).
+        
+        Returns:
+            np.ndarray: Nova posição da partícula após foraging behavior.
+        """
+        current_fitness = fitness_function(particle)
+        
+        # OTIMIZAÇÃO: Limita a 1 tentativa para reduzir treinamentos
+        # Em problemas com fitness caro (treinar rede), é melhor fazer 1 tentativa
+        # e deixar o PSO refinar depois, em vez de tentar múltiplas vezes
+        for _ in range(min(self.try_times, 1)):  # Máximo 1 tentativa
+            # Fórmula 13: Exploração de nova posição
+            exploratory_position = particle + np.random.uniform(-1, 1, self.n_dim) * self.visual
+            exploratory_position = np.clip(exploratory_position, self.lower_bound, self.upper_bound)
+            
+            exploratory_fitness = fitness_function(exploratory_position)
+            
+            # Se encontrou posição melhor, move em direção a ela (fórmula 14)
+            if exploratory_fitness > current_fitness:  # Maximização (OACE)
+                direction = exploratory_position - particle
+                norm = np.linalg.norm(direction)
+                if norm > 1e-10:  # Evita divisão por zero
+                    direction = direction / norm
+                    next_position = particle + direction * self.step * np.random.rand()
+                    return np.clip(next_position, self.lower_bound, self.upper_bound)
+        
+        # Se não encontrou melhor posição, aplica random behavior
+        return self.random_behavior_on_particle(particle)
+    
+    def random_behavior_on_particle(self, particle):
+        """
+        Aplica comportamento aleatório em uma partícula específica do PSO.
+        Conforme a fórmula 15 do artigo.
+        
+        Args:
+            particle (np.ndarray): Partícula atual do PSO.
+        
+        Returns:
+            np.ndarray: Nova posição da partícula após random behavior.
+        """
+        # Fórmula 15: Movimento aleatório
+        random_move = np.random.uniform(-1, 1, self.n_dim) * self.step
+        return np.clip(particle + random_move, self.lower_bound, self.upper_bound)
 
     def cluster_behavior(self, i):
         """
