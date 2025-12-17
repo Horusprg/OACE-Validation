@@ -1,0 +1,140 @@
+nohup: ignoring input
+======================================================================
+TREINAMENTO ESPECIALIZADO EFFICIENTNET
+======================================================================
+🔧 Dispositivo: cuda
+
+📊 Carregando dados WildShape2D...
+WildShapes Dataset
+  Train: 43,593
+  Val: 12,456
+  Test: 6,228
+  Batch: 64
+   • Classes: 9
+   • Train batches: 682
+   • Val batches: 195
+   • Test batches: 98
+
+🎯 Parâmetros otimizados:
+   • num_classes: 9
+   • min_channels: 54
+   • max_channels: 75
+   • dropout_rate: 0.24813276869766562
+   • num_layers: 17
+   • batch_norm: True
+
+⚙️  Configuração de treinamento:
+   • num_epochs: 150
+   • learning_rate: 0.000348
+   • weight_decay: 0.0001
+   • use_mixed_precision: True
+   • use_compile: True
+   • early_stopping_patience: 10
+   • save_best_model: True
+   • experiment_name: efficientnet_best
+   • scheduler_type: cosine
+   • scheduler_kwargs: {'T_max': 100, 'eta_min': 1e-06}
+EfficientNet: base_channels=64, layers=[3, 3, 3], dropout=0.24813276869766562, num_layers=17
+
+🏗️  Arquitetura EfficientNet gerada:
+   • Total de parâmetros: 5,889,689
+   • Parâmetros treináveis: 5,889,689
+
+🚀 Iniciando treinamento especializado...
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+✓ Modelo compilado com torch.compile
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:105: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = GradScaler() if use_mixed_precision and device.type == 'cuda' else None
+✓ Mixed precision habilitado
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:134: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:134: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:180: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:180: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+Epoch 1/150 (57.0s): Train Loss: 2.0721, Train Acc: 23.55%, Valid Loss: 2.0238, Valid Acc: 28.44%, LR: 0.000348
+/home/ufpa-ia/lyanh/OACE-Validation/utils/training_utils.py:134: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+Epoch 2/150 (56.7s): Train Loss: 1.9426, Train Acc: 31.18%, Valid Loss: 1.8418, Valid Acc: 36.14%, LR: 0.000348
+Epoch 3/150 (47.6s): Train Loss: 1.8535, Train Acc: 36.34%, Valid Loss: 1.7715, Valid Acc: 40.55%, LR: 0.000348
+Epoch 4/150 (45.9s): Train Loss: 1.7922, Train Acc: 39.68%, Valid Loss: 1.7136, Valid Acc: 43.21%, LR: 0.000347
+Epoch 5/150 (46.5s): Train Loss: 1.7418, Train Acc: 42.35%, Valid Loss: 1.6805, Valid Acc: 45.56%, LR: 0.000347
+Epoch 6/150 (46.2s): Train Loss: 1.7017, Train Acc: 44.15%, Valid Loss: 1.6620, Valid Acc: 46.25%, LR: 0.000346
+Epoch 7/150 (46.8s): Train Loss: 1.6699, Train Acc: 45.73%, Valid Loss: 1.6219, Valid Acc: 48.06%, LR: 0.000345
+Epoch 8/150 (51.8s): Train Loss: 1.6385, Train Acc: 47.19%, Valid Loss: 1.6087, Valid Acc: 48.60%, LR: 0.000344
+Epoch 9/150 (53.0s): Train Loss: 1.6077, Train Acc: 48.77%, Valid Loss: 1.5938, Valid Acc: 49.39%, LR: 0.000343
+Epoch 10/150 (46.6s): Train Loss: 1.5802, Train Acc: 50.10%, Valid Loss: 1.5833, Valid Acc: 49.82%, LR: 0.000341
+Epoch 11/150 (46.7s): Train Loss: 1.5529, Train Acc: 51.55%, Valid Loss: 1.5661, Valid Acc: 51.04%, LR: 0.000340
+Epoch 12/150 (46.8s): Train Loss: 1.5254, Train Acc: 52.76%, Valid Loss: 1.5529, Valid Acc: 52.07%, LR: 0.000338
+Epoch 13/150 (46.7s): Train Loss: 1.4963, Train Acc: 54.16%, Valid Loss: 1.5554, Valid Acc: 51.73%, LR: 0.000336
+Epoch 14/150 (48.8s): Train Loss: 1.4685, Train Acc: 55.62%, Valid Loss: 1.5470, Valid Acc: 52.76%, LR: 0.000334
+Epoch 15/150 (54.7s): Train Loss: 1.4400, Train Acc: 57.01%, Valid Loss: 1.5633, Valid Acc: 52.29%, LR: 0.000331
+Epoch 16/150 (48.1s): Train Loss: 1.4156, Train Acc: 58.18%, Valid Loss: 1.5462, Valid Acc: 52.39%, LR: 0.000329
+Epoch 17/150 (46.3s): Train Loss: 1.3859, Train Acc: 59.54%, Valid Loss: 1.5546, Valid Acc: 53.04%, LR: 0.000327
+Epoch 18/150 (46.4s): Train Loss: 1.3559, Train Acc: 61.00%, Valid Loss: 1.5523, Valid Acc: 53.47%, LR: 0.000324
+Epoch 19/150 (46.5s): Train Loss: 1.3255, Train Acc: 62.30%, Valid Loss: 1.5541, Valid Acc: 53.53%, LR: 0.000321
+Epoch 20/150 (46.4s): Train Loss: 1.2928, Train Acc: 63.75%, Valid Loss: 1.5642, Valid Acc: 54.05%, LR: 0.000318
+Epoch 21/150 (49.6s): Train Loss: 1.2643, Train Acc: 65.30%, Valid Loss: 1.5700, Valid Acc: 54.73%, LR: 0.000315
+Epoch 22/150 (49.1s): Train Loss: 1.2353, Train Acc: 66.91%, Valid Loss: 1.5779, Valid Acc: 54.02%, LR: 0.000312
+Epoch 23/150 (49.4s): Train Loss: 1.2065, Train Acc: 68.08%, Valid Loss: 1.5845, Valid Acc: 54.55%, LR: 0.000308
+Epoch 24/150 (52.5s): Train Loss: 1.1728, Train Acc: 69.71%, Valid Loss: 1.6058, Valid Acc: 54.59%, LR: 0.000305
+Epoch 25/150 (51.7s): Train Loss: 1.1493, Train Acc: 70.89%, Valid Loss: 1.6134, Valid Acc: 54.98%, LR: 0.000301
+Epoch 26/150 (49.7s): Train Loss: 1.1215, Train Acc: 72.13%, Valid Loss: 1.6149, Valid Acc: 55.03%, LR: 0.000297
+Epoch 27/150 (49.3s): Train Loss: 1.0919, Train Acc: 73.69%, Valid Loss: 1.6579, Valid Acc: 54.46%, LR: 0.000293
+Epoch 28/150 (46.1s): Train Loss: 1.0673, Train Acc: 74.69%, Valid Loss: 1.6533, Valid Acc: 54.63%, LR: 0.000289
+Epoch 29/150 (46.2s): Train Loss: 1.0481, Train Acc: 75.76%, Valid Loss: 1.6476, Valid Acc: 54.70%, LR: 0.000285
+Epoch 30/150 (46.1s): Train Loss: 1.0224, Train Acc: 76.87%, Valid Loss: 1.6497, Valid Acc: 55.03%, LR: 0.000281
+Epoch 31/150 (46.2s): Train Loss: 1.0002, Train Acc: 77.82%, Valid Loss: 1.6622, Valid Acc: 54.75%, LR: 0.000276
+Epoch 32/150 (46.1s): Train Loss: 0.9823, Train Acc: 78.99%, Valid Loss: 1.6817, Valid Acc: 54.91%, LR: 0.000272
+Epoch 33/150 (46.4s): Train Loss: 0.9651, Train Acc: 79.48%, Valid Loss: 1.6788, Valid Acc: 54.99%, LR: 0.000267
+Epoch 34/150 (46.3s): Train Loss: 0.9474, Train Acc: 80.37%, Valid Loss: 1.6847, Valid Acc: 55.11%, LR: 0.000263
+Epoch 35/150 (41.7s): Train Loss: 0.9262, Train Acc: 81.63%, Valid Loss: 1.7097, Valid Acc: 55.15%, LR: 0.000258
+Epoch 36/150 (38.2s): Train Loss: 0.9108, Train Acc: 82.33%, Valid Loss: 1.7193, Valid Acc: 54.98%, LR: 0.000253
+Epoch 37/150 (38.1s): Train Loss: 0.8931, Train Acc: 83.27%, Valid Loss: 1.7212, Valid Acc: 54.99%, LR: 0.000248
+Epoch 38/150 (38.2s): Train Loss: 0.8833, Train Acc: 83.60%, Valid Loss: 1.7228, Valid Acc: 54.74%, LR: 0.000243
+Epoch 39/150 (38.3s): Train Loss: 0.8726, Train Acc: 84.04%, Valid Loss: 1.7279, Valid Acc: 54.93%, LR: 0.000238
+Epoch 40/150 (38.4s): Train Loss: 0.8558, Train Acc: 84.67%, Valid Loss: 1.7353, Valid Acc: 54.88%, LR: 0.000233
+Epoch 41/150 (38.4s): Train Loss: 0.8418, Train Acc: 85.58%, Valid Loss: 1.7412, Valid Acc: 55.27%, LR: 0.000228
+Epoch 42/150 (33.8s): Train Loss: 0.8297, Train Acc: 86.03%, Valid Loss: 1.7526, Valid Acc: 55.08%, LR: 0.000223
+Epoch 43/150 (32.1s): Train Loss: 0.8211, Train Acc: 86.59%, Valid Loss: 1.7336, Valid Acc: 55.29%, LR: 0.000218
+Epoch 44/150 (32.4s): Train Loss: 0.8096, Train Acc: 87.02%, Valid Loss: 1.7448, Valid Acc: 55.58%, LR: 0.000212
+Epoch 45/150 (25.6s): Train Loss: 0.8041, Train Acc: 87.30%, Valid Loss: 1.7431, Valid Acc: 55.65%, LR: 0.000207
+Epoch 46/150 (23.0s): Train Loss: 0.7931, Train Acc: 87.96%, Valid Loss: 1.7547, Valid Acc: 55.43%, LR: 0.000202
+Epoch 47/150 (23.1s): Train Loss: 0.7805, Train Acc: 88.41%, Valid Loss: 1.7480, Valid Acc: 55.56%, LR: 0.000196
+Epoch 48/150 (22.9s): Train Loss: 0.7729, Train Acc: 88.74%, Valid Loss: 1.7444, Valid Acc: 55.92%, LR: 0.000191
+Epoch 49/150 (22.8s): Train Loss: 0.7654, Train Acc: 89.03%, Valid Loss: 1.7633, Valid Acc: 55.88%, LR: 0.000185
+Epoch 50/150 (22.6s): Train Loss: 0.7592, Train Acc: 89.38%, Valid Loss: 1.7533, Valid Acc: 55.89%, LR: 0.000180
+Epoch 51/150 (22.8s): Train Loss: 0.7511, Train Acc: 89.53%, Valid Loss: 1.7698, Valid Acc: 55.15%, LR: 0.000174
+Epoch 52/150 (23.0s): Train Loss: 0.7412, Train Acc: 90.08%, Valid Loss: 1.7622, Valid Acc: 55.27%, LR: 0.000169
+Epoch 53/150 (23.5s): Train Loss: 0.7381, Train Acc: 90.30%, Valid Loss: 1.7593, Valid Acc: 55.76%, LR: 0.000164
+Epoch 54/150 (23.0s): Train Loss: 0.7297, Train Acc: 90.59%, Valid Loss: 1.7710, Valid Acc: 55.83%, LR: 0.000158
+Epoch 55/150 (22.6s): Train Loss: 0.7247, Train Acc: 90.91%, Valid Loss: 1.7697, Valid Acc: 55.63%, LR: 0.000153
+Epoch 56/150 (22.9s): Train Loss: 0.7172, Train Acc: 91.10%, Valid Loss: 1.7631, Valid Acc: 55.34%, LR: 0.000147
+Epoch 57/150 (22.8s): Train Loss: 0.7130, Train Acc: 91.33%, Valid Loss: 1.7711, Valid Acc: 55.56%, LR: 0.000142
+Epoch 58/150 (22.7s): Train Loss: 0.7101, Train Acc: 91.46%, Valid Loss: 1.7758, Valid Acc: 55.59%, LR: 0.000137
+🛑 Early stopping após 10 épocas sem melhoria
+✓ Treinamento concluído em 2343.1s
+✓ Melhor acurácia de validação: 55.92%
+
+📊 Avaliação final especializada...
+Teste: Loss: 1.7727, Top-1 Acc: 55.01%, Top-5 Acc: 87.03%, Precision (macro): 0.5436, Recall (macro): 0.5386, F1 (macro): 0.5401, Params: 5.89e+06, Inference Time: 0.0032s, Memory: 22.47MB, GFLOPs: 0.2885
+
+📈 Análise de Performance:
+   • Top-1 Accuracy: 55.01%
+   • Top-5 Accuracy: 87.03%
+   • F1-Score: 0.5401
+   • Parâmetros: 5.89e+06
+   • Tempo de Inferência: 0.0032s
+   • Memória: 22.47 MB
+   • GFLOPs: 0.2885
+
+💾 Resultados salvos em: results/efficientnet_specialized/efficientnet_best_ef66906d-1152-47d5-96bd-483f67fd0955.json
+
+✅ Treinamento especializado concluído!
+   • Experimento: efficientnet_best
+   • ID: ef66906d-1152-47d5-96bd-483f67fd0955
+   • Melhor Top-1: 55.01%
+   • Eficiência: 0.2885 GFLOPs

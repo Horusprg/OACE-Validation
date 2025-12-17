@@ -21,7 +21,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from models.EfficientNet.efficientnet_architecture import EfficientNet, generate_efficientnet_architecture, EfficientNetParams
 from utils.training_utils import train_model, get_optimized_scheduler
 from utils.evaluate_utils import evaluate_model
-from utils.data_loader import get_cifar10_dataloaders
+from utils.data_loader import get_cifar10_dataloaders, get_wildshapes_dataloaders
 
 def warm_up_efficientnet(
     train_loader: torch.utils.data.DataLoader,
@@ -178,8 +178,10 @@ def train_efficientnet_specialized(
     print(f"🔧 Dispositivo: {device}")
     
     # Carrega dados
-    print(f"\n📊 Carregando dados CIFAR-10...")
-    train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders()
+    #print(f"\n📊 Carregando dados CIFAR-10...")
+    #train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders()
+    print(f"\n📊 Carregando dados WildShape2D...")
+    train_loader, val_loader, test_loader, classes = get_wildshapes_dataloaders(batch_size=64, num_workers=4)
     print(f"   • Classes: {len(classes)}")
     print(f"   • Train batches: {len(train_loader)}")
     print(f"   • Val batches: {len(val_loader)}")
@@ -348,43 +350,42 @@ if __name__ == "__main__":
     """
     Permite execução direta do script via linha de comando.
     """
-    import argparse
+    #import argparse
     
-    parser = argparse.ArgumentParser(
-        description='Treinamento especializado EfficientNet no CIFAR-10',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-        Exemplos de uso:
-        python -m models.EfficientNet.efficientnet_train_eval
-        python -m models.EfficientNet.efficientnet_train_eval --full
-        """
-    )
-    parser.add_argument(
-        '--full', 
-        action='store_true', 
-        help='Executa treinamento completo (100 épocas)'
-    )
-    
-    args = parser.parse_args()
+    #parser = argparse.ArgumentParser(
+    #    description='Treinamento especializado EfficientNet no CIFAR-10',
+    #    formatter_class=argparse.RawDescriptionHelpFormatter,
+    #    epilog="""
+    #    Exemplos de uso:
+    #    python -m models.EfficientNet.efficientnet_train_eval
+    #    python -m models.EfficientNet.efficientnet_train_eval --full
+    #    """
+    #)
+    #parser.add_argument(
+    #    '--full', 
+    #    action='store_true', 
+    #    help='Executa treinamento completo (100 épocas)'
+    #) 
+    #args = parser.parse_args()
     
     # Parâmetros otimizados encontrados pelo algoritmo AFSA-GA-PSO
     optimized_params = {
-        "num_classes": 10,
-        "min_channels": 63,
-        "max_channels": 158,
-        "dropout_rate": 0.0049128517086229374,
-        "num_layers": 2,
+        "num_classes": 9,
+        "min_channels": 54,
+        "max_channels": 75,
+        "dropout_rate": 0.24813276869766562,
+        "num_layers": 17,
         "batch_norm": True
     }
     
     # Configurações de treinamento
     training_config = {
-        'num_epochs': 2,
-        'learning_rate': 0.001,
+        'num_epochs': 150,
+        'learning_rate': 0.000348,
         'weight_decay': 1e-4,
         'use_mixed_precision': True,
         'use_compile': True,
-        'early_stopping_patience': 5,
+        'early_stopping_patience': 10,
         'save_best_model': True,
         'experiment_name': "efficientnet_best",
         'scheduler_type': 'cosine',

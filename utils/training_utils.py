@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader
 from torch.cuda.amp import GradScaler, autocast
 from typing import List, Dict, Optional
 import time
+import os
 
 def train_model(
     model: nn.Module, 
@@ -43,15 +44,62 @@ def train_model(
         List[Dict[str, float]]: Lista de dicionários com métricas por época
             (train_loss, train_acc, valid_loss, valid_acc).
     """
-    model.to(device)
+    # Verificar se há múltiplas GPUs e tentar usar DataParallel
+    use_data_parallel = False
+    original_model = model  # Guarda referência ao modelo original
+    
+    # Verificar variável de ambiente para habilitar/desabilitar DataParallel
+    # Por padrão, DataParallel está DESABILITADO devido a problemas com NCCL
+    # Para habilitar, defina USE_DATAPARALLEL=1
+    enable_dp = os.environ.get('USE_DATAPARALLEL', '0').lower() in ('1', 'true', 'yes')
+    
+    if device.type == 'cuda' and torch.cuda.device_count() > 1:
+        if enable_dp:
+            # Tentar usar DataParallel se explicitamente habilitado
+            try:
+                model.to(device)
+                model = nn.DataParallel(model)
+                
+                # Testa se o DataParallel funciona fazendo um forward dummy
+                try:
+                    dummy_input = torch.randn(1, 3, 32, 32).to(device)
+                    with torch.no_grad():
+                        _ = model(dummy_input)
+                    use_data_parallel = True
+                    print(f"✓ Modelo configurado para usar {torch.cuda.device_count()} GPUs com DataParallel")
+                except Exception as test_error:
+                    print(f"⚠ Erro ao testar DataParallel: {test_error}")
+                    print(f"⚠ Fazendo fallback para GPU única ({device})")
+                    model = original_model
+                    model.to(device)
+                    use_data_parallel = False
+            except Exception as dp_error:
+                print(f"⚠ Erro ao configurar DataParallel: {dp_error}")
+                print(f"⚠ Fazendo fallback para GPU única ({device})")
+                model = original_model
+                model.to(device)
+                use_data_parallel = False
+        else:
+            # DataParallel desabilitado por padrão - usa GPU única
+            model.to(device)
+            print(f"✓ Usando GPU única: {torch.cuda.get_device_name(0)}")
+            print(f"💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)")
+    else:
+        # Se não houver múltiplas GPUs
+        model.to(device)
+        if device.type == 'cuda':
+            print(f"✓ Usando GPU única: {torch.cuda.get_device_name(0)}")
     
     # Compilar modelo para otimização (PyTorch 2.0+)
-    if compile_model and hasattr(torch, 'compile'):
+    # Nota: torch.compile pode não funcionar bem com DataParallel, então compilamos antes se necessário
+    if compile_model and hasattr(torch, 'compile') and not use_data_parallel:
         try:
             model = torch.compile(model)
             print("✓ Modelo compilado com torch.compile")
         except Exception as e:
             print(f"⚠ Não foi possível compilar o modelo: {e}")
+    elif compile_model and use_data_parallel:
+        print("⚠ torch.compile desabilitado quando usando DataParallel (não suportado)")
     
     # Inicializar mixed precision scaler
     scaler = GradScaler() if use_mixed_precision and device.type == 'cuda' else None

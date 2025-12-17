@@ -75,12 +75,13 @@ class WildShapesDataset(torch.utils.data.Dataset):
             
         return image, label
 
-def get_wildshapes_dataloaders(batch_size=64):
-    """Versão mais simples sem problemas de multiprocessing no Windows"""
+def get_wildshapes_dataloaders(batch_size=64, num_workers=0):
+    
+    use_pin_memory = torch.cuda.is_available()
     
     # Mesmas transformações
     transform_train = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((32, 32)),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(10),
         transforms.ToTensor(),
@@ -88,7 +89,7 @@ def get_wildshapes_dataloaders(batch_size=64):
     ])
     
     transform_test = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((32, 32)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
@@ -115,22 +116,27 @@ def get_wildshapes_dataloaders(batch_size=64):
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=0,  # IMPORTANTE: 0 para Windows
-        pin_memory=False  # Desativar pin_memory também ajuda
+        num_workers=num_workers,  
+        pin_memory=use_pin_memory, 
+        persistent_workers=(num_workers > 0) 
     )
     
     val_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=0
+        num_workers=num_workers,
+        pin_memory=use_pin_memory, 
+        persistent_workers=(num_workers > 0) 
     )
     
     test_loader = DataLoader(
         test_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=0
+        num_workers=num_workers,
+        pin_memory=use_pin_memory, 
+        persistent_workers=(num_workers > 0) 
     )
     
     classes = [f'class_{i}' for i in range(9)]

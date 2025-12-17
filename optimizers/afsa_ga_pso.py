@@ -17,6 +17,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.data_loader import get_cifar10_dataloaders, get_wildshapes_dataloaders
 from utils.optimization_logger import OptimizationLogger
+from utils.ahp_weights import critical_scenario_weights, equilibrium_scenario_weights, limited_scenario_weights
 import time
 
 class AFSAGAPSO:
@@ -39,7 +40,8 @@ class AFSAGAPSO:
         pso_params: Dict[str, Any] = None,
         ga_params: Dict[str, Any] = None,
         architectures_to_optimize: List[str] = None,
-        log_dir: str = "results"
+        log_dir: str = "results",
+        device: torch.device = None
     ):
         """
         Inicializa o otimizador híbrido.
@@ -57,6 +59,7 @@ class AFSAGAPSO:
         ga_params (dict): Parâmetros para o GA.
             architectures_to_optimize (List[str]): Lista de arquiteturas a otimizar. Se None, usa todas disponíveis.
             log_dir (str): Diretório para salvar os logs da otimização.
+            device (torch.device, optional): Dispositivo para treinamento. Se None, detecta automaticamente.
         """
         # Arquiteturas disponíveis para otimização
         if architectures_to_optimize is None:
@@ -79,6 +82,13 @@ class AFSAGAPSO:
         self.val_loader = val_loader
         self.test_loader = test_loader
         self.classes = classes
+        
+        # Configuração do dispositivo
+        if device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            self.device = device
+        print(f"🔧 Dispositivo configurado: {self.device}")
 
         # Define os limites do espaço de busca considerando todas as arquiteturas
         self.param_bounds = self._get_unified_param_bounds()
@@ -515,8 +525,8 @@ class AFSAGAPSO:
             val_loader=self.val_loader,
             test_loader=self.test_loader,
             classes=self.classes,
-            num_epochs=1,
-            device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+            num_epochs=5,
+            device=self.device,  # Usa o device configurado
             params=params,
             learning_rate=learning_rate,  # ✅ Passa LR otimizado
         )
@@ -1020,7 +1030,7 @@ class AFSAGAPSO:
         """
         print(f"   📊 Calculando score OACE...")
         
-        # Usa apenas métricas positivas para assertividade (não inclui loss)
+        """
         assertiveness_weights = {
             "top1_acc": 0.4,        # Peso maior para acurácia principal
             "top5_acc": 0.15,       
@@ -1034,7 +1044,11 @@ class AFSAGAPSO:
             "memory_used_mb": 0.25,
             "gflops": 0.25,
         }
-
+        """
+        assertiveness_weights, cost_weights, rc_a, rc_c = limited_scenario_weights()
+        #assertiveness_weights, cost_weights, rc_a, rc_c = equilibrium_scenario_weights()
+        #assertiveness_weights, cost_weights, rc_a, rc_c = critical_scenario_weights()
+        
         # Atualiza os limites dinamicamente para incluir novos valores
         self._update_metrics_ranges(metrics)
         
