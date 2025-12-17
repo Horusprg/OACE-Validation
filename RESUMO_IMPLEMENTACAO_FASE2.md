@@ -223,3 +223,4 @@ A Fase 2 agora está **alinhada com o artigo**:
 *Baseada no artigo: "An Optimization Method for Intrusion Detection Classification Model Based on Deep Belief Network" (IEEE Access, 2019)*
 
 
+

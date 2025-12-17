@@ -75,8 +75,19 @@ class WildShapesDataset(torch.utils.data.Dataset):
             
         return image, label
 
-def get_wildshapes_dataloaders(batch_size=64):
-    """Versão mais simples sem problemas de multiprocessing no Windows"""
+def get_wildshapes_dataloaders(batch_size=64, num_workers=0):
+    """
+    Carrega o dataset WildShapes e retorna os DataLoaders.
+    
+    Args:
+        batch_size (int): Tamanho do batch. Padrão: 64
+        num_workers (int): Número de workers para carregamento de dados. 
+                          Padrão: 0 (recomendado para Windows).
+                          Use valores maiores (ex: 4, 8) em Linux/Mac para melhor performance.
+    
+    Returns:
+        tuple: (train_loader, val_loader, test_loader, classes)
+    """
     
     # Mesmas transformações
     transform_train = transforms.Compose([
@@ -110,27 +121,27 @@ def get_wildshapes_dataloaders(batch_size=64):
     val_dataset = WildShapesDataset(final_ds['validation'], transform_test)
     test_dataset = WildShapesDataset(final_ds['test'], transform_test)
     
-    # DataLoaders SEM num_workers para Windows
+    # DataLoaders com num_workers configurável
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=0,  # IMPORTANTE: 0 para Windows
-        pin_memory=False  # Desativar pin_memory também ajuda
+        num_workers=num_workers,
+        pin_memory=False if num_workers == 0 else True  # pin_memory só funciona com num_workers > 0
     )
     
     val_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=0
+        num_workers=num_workers
     )
     
     test_loader = DataLoader(
         test_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=0
+        num_workers=num_workers
     )
     
     classes = [f'class_{i}' for i in range(9)]
@@ -140,5 +151,6 @@ def get_wildshapes_dataloaders(batch_size=64):
     print(f"  Val: {len(val_dataset):,}")
     print(f"  Test: {len(test_dataset):,}")
     print(f"  Batch: {batch_size}")
+    print(f"  Num Workers: {num_workers}")
     
     return train_loader, val_loader, test_loader, classes

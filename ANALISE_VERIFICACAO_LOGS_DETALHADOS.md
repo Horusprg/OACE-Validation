@@ -451,3 +451,4 @@ A integração GA-PSO está funcionando corretamente:
 *Referência: Artigo "An Optimization Method for Intrusion Detection Classification Model Based on Deep Belief Network" (IEEE Access, 2019)*
 
 
+

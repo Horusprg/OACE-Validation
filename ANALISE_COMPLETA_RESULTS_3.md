@@ -397,3 +397,4 @@ A implementação está **alinhada com o artigo** e demonstra o comportamento in
 
 **Recomendação:** O algoritmo está pronto para uso em otimizações mais longas com mais iterações e população maior.
 
+

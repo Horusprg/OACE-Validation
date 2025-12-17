@@ -323,3 +323,4 @@ O algoritmo está funcionando **tecnicamente correto**, mas está gerando **muit
 - Limitar a 1 candidato por partícula no AFSA
 - Ou aceitar que a versão integrada é mais exploratória (e potencialmente melhor)
 
+
