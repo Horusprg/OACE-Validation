@@ -91,7 +91,7 @@ def get_wildshapes_dataloaders(batch_size=64, num_workers=0):
     
     # Mesmas transformações
     transform_train = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((32, 32)),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(10),
         transforms.ToTensor(),
@@ -99,7 +99,7 @@ def get_wildshapes_dataloaders(batch_size=64, num_workers=0):
     ])
     
     transform_test = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((32, 32)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])

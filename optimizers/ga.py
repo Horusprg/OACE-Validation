@@ -157,10 +157,13 @@ class GA:
 
     def adaptive_mutation_rate(self, iter_num):
         """
-        Calcula a taxa de mutação adaptativa (fórmula 17).
+        Calcula a taxa de mutação adaptativa (fórmula 17 - estratégia invertida).
         
-        A mutação começa com um valor mínimo (10% da taxa inicial) na primeira iteração
-        e aumenta progressivamente até a taxa inicial completa na última iteração.
+        ESTRATÉGIA INVERTIDA: A mutação começa ALTA (maior exploração) no início
+        e diminui gradualmente (refinamento) ao longo das iterações.
+        
+        Segue o padrão da Fórmula 16 (crossover adaptativo): decrescente.
+        Mantém um mínimo de 10% da taxa inicial para evitar mutação zero.
         
         Args:
             iter_num (int): Número da iteração atual (0-indexed).
@@ -171,14 +174,15 @@ class GA:
         if self.max_iter <= 1:
             return self.initial_mutation_rate
         
-        # Fórmula ajustada: começa com 10% da taxa inicial e aumenta até 100%
-        # iter_num=0 -> 0.1 * initial_mutation_rate
-        # iter_num=max_iter-1 -> initial_mutation_rate
-        min_mutation = 0.1 * self.initial_mutation_rate
-        max_mutation = self.initial_mutation_rate
-        
-        # Interpolação linear: iter_num=0 -> min, iter_num=max_iter-1 -> max
-        mutation_rate = min_mutation + (max_mutation - min_mutation) * (iter_num / (self.max_iter - 1))
+        # ESTRATÉGIA INVERTIDA: Começa com 100% da taxa inicial e diminui até 10%
+        # iter_num=0 -> initial_mutation_rate (alta exploração)
+        # iter_num=max_iter-1 -> 0.1 * initial_mutation_rate (refinamento)
+        max_mutation = self.initial_mutation_rate  # 100% no início
+        min_mutation = 0.1 * self.initial_mutation_rate  # 10% no final (mínimo)
+        # Interpolação linear DECRESCENTE: iter_num=0 -> max, iter_num=max_iter-1 -> min
+        # Fórmula: Pm(t) = Pm(0) * (1 - t/T) + Pm_min
+        base_rate = self.initial_mutation_rate * (1 - iter_num / (self.max_iter - 1))
+        mutation_rate = max(base_rate, min_mutation)  # Garante mínimo de 10%
         
         return mutation_rate
 

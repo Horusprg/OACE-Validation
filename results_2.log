@@ -1,0 +1,2435 @@
+nohup: ignoring input
+✓ CUDA disponível: True
+✓ Número de GPUs detectadas: 4
+   GPU 0: NVIDIA A100-SXM4-40GB
+   GPU 1: NVIDIA A100-SXM4-40GB
+   GPU 2: NVIDIA A100-SXM4-40GB
+   GPU 3: NVIDIA A100-SXM4-40GB
+💡 Por padrão, usando GPU única. Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1
+2026-01-02 15:30:31,987 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/datasets/Horusprg/WildShapes/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+2026-01-02 15:30:32,055 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/datasets/Horusprg/WildShapes/1b6821f125820b60e9e1a38ff17d0e394635474f/README.md "HTTP/1.1 200 OK"
+2026-01-02 15:30:32,290 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/datasets/Horusprg/WildShapes/resolve/1b6821f125820b60e9e1a38ff17d0e394635474f/WildShapes.py "HTTP/1.1 404 Not Found"
+2026-01-02 15:30:32,894 - httpx - INFO - HTTP Request: HEAD https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/Horusprg/WildShapes/Horusprg/WildShapes.py "HTTP/1.1 404 Not Found"
+2026-01-02 15:30:33,129 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/datasets/Horusprg/WildShapes/revision/1b6821f125820b60e9e1a38ff17d0e394635474f "HTTP/1.1 200 OK"
+2026-01-02 15:30:33,361 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/datasets/Horusprg/WildShapes/resolve/1b6821f125820b60e9e1a38ff17d0e394635474f/.huggingface.yaml "HTTP/1.1 404 Not Found"
+2026-01-02 15:30:33,907 - httpx - INFO - HTTP Request: GET https://datasets-server.huggingface.co/info?dataset=Horusprg/WildShapes "HTTP/1.1 200 OK"
+2026-01-02 15:30:34,155 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/datasets/Horusprg/WildShapes/tree/1b6821f125820b60e9e1a38ff17d0e394635474f/data?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-01-02 15:30:34,390 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/datasets/Horusprg/WildShapes/tree/1b6821f125820b60e9e1a38ff17d0e394635474f?recursive=false&expand=false "HTTP/1.1 200 OK"
+2026-01-02 15:30:34,635 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/datasets/Horusprg/WildShapes/resolve/1b6821f125820b60e9e1a38ff17d0e394635474f/dataset_infos.json "HTTP/1.1 404 Not Found"
+WildShapes Dataset
+  Train: 43,593
+  Val: 12,456
+  Test: 6,228
+  Batch: 64
+  Num Workers: 2
+📋 Arquiteturas para otimização: ['CNN']
+🔧 Dispositivo configurado: cuda:0
+🎯 Dimensões do espaço de busca: 6
+📏 Limites dos parâmetros: {'dropout_rate': (0.0, 0.5), 'num_layers': (2, 40), 'min_channels': (8, 64), 'max_channels': (64, 1024), 'learning_rate': (0.0001, 0.1)}
+🚀 Experimento iniciado: experiment_20260102_153034
+📁 Pasta do experimento: results/experiment_20260102_153034
+   ├── 📄 logs/ (arquivos JSON detalhados)
+   ├── 📊 csv/ (dados estruturados)
+   ├── 💾 checkpoints/ (estados de otimização)
+   └── 📈 analysis/ (análises e gráficos)
+
+================================================================================
+🚀 INICIANDO OTIMIZAÇÃO HÍBRIDA AFSA-GA-PSO
+================================================================================
+
+────────────────────────────────────────────────────────────
+📋 CONFIGURAÇÃO DO ALGORITMO
+────────────────────────────────────────────────────────────
+🎯 Parâmetros Gerais:
+   • Tamanho da população: 3
+   • Máximo de iterações: 2
+   • Parâmetro λ (trade-off): 0.3
+   • Dimensões do espaço: 6
+
+🏗️  Arquiteturas Disponíveis:
+   1. CNN
+
+🐟 Parâmetros AFSA:
+   • visual: 40
+   • step: 5
+   • try_times: 1
+   • max_iter: 2
+
+🌊 Parâmetros PSO:
+   • c1: 1.5
+   • c2: 1.5
+   • w: 0.7
+   • k: 3
+   • p: 2
+
+🧬 Parâmetros GA:
+   • initial_crossover_rate: 0.7
+   • initial_mutation_rate: 0.3
+   • tournament_size: 3
+   • max_iter: 3
+
+📊 Limites dos Parâmetros:
+   • dropout_rate: [0.0, 0.5]
+   • num_layers: [2, 40]
+   • min_channels: [8, 64]
+   • max_channels: [64, 1024]
+   • learning_rate: [1.00e-04, 1.00e-01] (escala logarítmica)
+
+→ Inicializando componentes do algoritmo híbrido
+🚀 Experimento iniciado: experiment_20260102_153034
+📁 Pasta do experimento: results/experiment_20260102_153034
+   ├── 📄 logs/ (arquivos JSON detalhados)
+   ├── 📊 csv/ (dados estruturados)
+   ├── 💾 checkpoints/ (estados de otimização)
+   └── 📈 analysis/ (análises e gráficos)
+
+────────────────────────────────────────────────────────────
+📋 FASE 1: OTIMIZAÇÃO INICIAL COM AFSA-PSO
+────────────────────────────────────────────────────────────
+
+→ Gerando população inicial diversificada com AFSA
+   Tamanho: 3, Iterações: 2
+
+→ Configurando função de fitness do AFSA (baseada em diversidade)
+
+→ Executando AFSA por 2 iterações
+
+✅ AFSA concluído!
+   • 3 candidatos gerados com diversidade de arquiteturas
+  • Arquiteturas exploradas: ['CNN']
+  • Parâmetros otimizados: 5 parâmetros
+
+────────────────────────────────────────────────────────────
+📋 WARM-UP: Treinando e avaliando candidatos AFSA
+────────────────────────────────────────────────────────────
+Warm-up:   0%|          | 0/3 [00:00<?, ?it/s]
+🔄 Avaliando candidato 1/3
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.07572175055502617, 'num_layers': 11, 'min_channels': 57, 'max_channels': 872, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.048818
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[57, 138, 220, 301, 383, 464, 546, 627, 709, 790, 872], dropout=0.07572175055502617, num_layers=11
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (46.7s): Train Loss: 2.1789, Train Acc: 15.78%, Valid Loss: 2.1588, Valid Acc: 16.27%, LR: 0.048818
+✓ Treinamento concluído em 46.7s
+✓ Melhor acurácia de validação: 16.27%
+Teste: Loss: 2.1587, Top-1 Acc: 16.25%, Top-5 Acc: 67.45%, Precision (macro): 0.0181, Recall (macro): 0.1110, F1 (macro): 0.0311, Params: 2.43e+07, Inference Time: 0.0013s, Memory: 92.72MB, GFLOPs: 0.5506
+Resultados salvos em: results/cnn_experiments/experiment_6354dea0-0461-4a7b-8391-20c9a5771a06.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.158694452403368, 'top1_acc': 16.249197174052664, 'top5_acc': 67.4534360950546, 'precision_macro': 0.018057562942740395, 'recall_macro': 0.11100142590764506, 'f1_macro': 0.031062001227747087, 'total_params': 24304854.0, 'avg_inference_time': np.float64(0.001287810656489158), 'memory_used_mb': 92.71566009521484, 'gflops': 0.550592216}
+   💾 Resultado salvo no cache. Total cached: 1
+   📊 Calculando score OACE...
+   🔧 Inicializando limites das métricas com valores padrão...
+   ✅ Limites inicializados com valores atuais
+      • Limites assertividade: {'top1_acc': {'min': 16.249197174052664, 'max': 16.249197174052664}, 'top5_acc': {'min': 67.4534360950546, 'max': 67.4534360950546}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.018057562942740395}, 'recall_macro': {'min': 0.11100142590764506, 'max': 0.11100142590764506}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.031062001227747087}}
+      • Limites custo: {'total_params': {'min': 24304854.0, 'max': 24304854.0}, 'avg_inference_time': {'min': np.float64(0.001287810656489158), 'max': np.float64(0.001287810656489158)}, 'memory_used_mb': {'min': 92.71566009521484, 'max': 92.71566009521484}, 'gflops': {'min': 0.550592216, 'max': 0.550592216}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.249197
+top5_acc           67.453436
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           16.249197
+top5_acc           67.453436
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+c_min:  total_params          2.430485e+07
+avg_inference_time    1.287811e-03
+memory_used_mb        9.271566e+01
+gflops                5.505922e-01
+dtype: float64
+c_max:  total_params          2.430485e+07
+avg_inference_time    1.287811e-03
+memory_used_mb        9.271566e+01
+gflops                5.505922e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [1. 1. 1. 1. 1.]
+norm_c (MTP, TPI, MS, GFlops):  [0. 0. 0. 0.]
+a_m:  1.0
+c_m_normalized:  1.0
+s_phi_score:  1.0
+      • Score OACE calculado: 1.000000
+
+📋 Candidato #1
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.07572175055502617, 'num_layers': 11, 'min_channels': 57, 'max_channels': 872, 'num_classes': 9, 'batch_norm': True}
+   🎯 Score OACE: 1.000000
+   📊 Métricas de Assertividade:
+      • Top-1 Accuracy: 16.2492
+      • Top-5 Accuracy: 67.4534
+      • Precision Macro: 0.0181
+      • Recall Macro: 0.1110
+      • F1 Macro: 0.0311
+   💰 Métricas de Custo:
+      • Total Parâmetros: 24,304,854.0
+      • Tempo Inferência: 0.0013s
+      • Memória Usada: 92.72 MB
+      • GFLOPs: 0.55
+Warm-up:  33%|███▎      | 1/3 [00:52<01:45, 52.68s/it]
+🔄 Avaliando candidato 2/3
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.4779055248240043, 'num_layers': 19, 'min_channels': 11, 'max_channels': 845, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.010417
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[11, 57, 103, 150, 196, 242, 289, 335, 381, 428, 474, 520, 567, 613, 659, 706, 752, 798, 845], dropout=0.4779055248240043, num_layers=19
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (40.8s): Train Loss: 2.2152, Train Acc: 15.61%, Valid Loss: 2.1579, Valid Acc: 16.27%, LR: 0.010417
+✓ Treinamento concluído em 40.8s
+✓ Melhor acurácia de validação: 16.27%
+Teste: Loss: 2.1581, Top-1 Acc: 16.27%, Top-5 Acc: 67.41%, Precision (macro): 0.0181, Recall (macro): 0.1111, F1 (macro): 0.0311, Params: 3.90e+07, Inference Time: 0.0019s, Memory: 148.88MB, GFLOPs: 0.6571
+Resultados salvos em: results/cnn_experiments/experiment_91887d61-f3ab-495c-81c5-cf908cdce18a.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1580662880482855, 'top1_acc': 16.26525369299936, 'top5_acc': 67.40526653821452, 'precision_macro': 0.01807250410333262, 'recall_macro': 0.1111111111111111, 'f1_macro': 0.03108840092682104, 'total_params': 39029096.0, 'avg_inference_time': np.float64(0.0018590956318135165), 'memory_used_mb': 148.88418579101562, 'gflops': 0.657069117}
+   💾 Resultado salvo no cache. Total cached: 2
+   📊 Calculando score OACE...
+   📊 Atualizado limite top1_acc: [16.2492, 16.2492] → [16.2492, 16.2653]
+   📊 Atualizado limite top5_acc: [67.4534, 67.4534] → [67.4053, 67.4534]
+   📊 Atualizado limite precision_macro: [0.0181, 0.0181] → [0.0181, 0.0181]
+   📊 Atualizado limite recall_macro: [0.1110, 0.1110] → [0.1110, 0.1111]
+   📊 Atualizado limite f1_macro: [0.0311, 0.0311] → [0.0311, 0.0311]
+   📊 Atualizado limite total_params: [24304854.0000, 24304854.0000] → [24304854.0000, 39029096.0000]
+   📊 Atualizado limite avg_inference_time: [0.0013, 0.0013] → [0.0013, 0.0019]
+   📊 Atualizado limite memory_used_mb: [92.7157, 92.7157] → [92.7157, 148.8842]
+   📊 Atualizado limite gflops: [0.5506, 0.5506] → [0.5506, 0.6571]
+      • Limites assertividade: {'top1_acc': {'min': 16.249197174052664, 'max': 16.26525369299936}, 'top5_acc': {'min': 67.40526653821452, 'max': 67.4534360950546}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.01807250410333262}, 'recall_macro': {'min': 0.11100142590764506, 'max': 0.1111111111111111}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.03108840092682104}}
+      • Limites custo: {'total_params': {'min': 24304854.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.001287810656489158), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 92.71566009521484, 'max': 148.88418579101562}, 'gflops': {'min': 0.550592216, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.249197
+top5_acc           67.405267
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           16.265254
+top5_acc           67.453436
+precision_macro     0.018073
+recall_macro        0.111111
+f1_macro            0.031088
+dtype: float64
+c_min:  total_params          2.430485e+07
+avg_inference_time    1.287811e-03
+memory_used_mb        9.271566e+01
+gflops                5.505922e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [1. 0. 1. 1. 1.]
+norm_c (MTP, TPI, MS, GFlops):  [1. 1. 1. 1.]
+a_m:  0.9666648192978402
+c_m_normalized:  0.0
+s_phi_score:  0.28999944578935205
+      • Score OACE calculado: 0.289999
+
+📋 Candidato #2
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.4779055248240043, 'num_layers': 19, 'min_channels': 11, 'max_channels': 845, 'num_classes': 9, 'batch_norm': True}
+   🎯 Score OACE: 0.289999
+   📊 Métricas de Assertividade:
+      • Top-1 Accuracy: 16.2653
+      • Top-5 Accuracy: 67.4053
+      • Precision Macro: 0.0181
+      • Recall Macro: 0.1111
+      • F1 Macro: 0.0311
+   💰 Métricas de Custo:
+      • Total Parâmetros: 39,029,096.0
+      • Tempo Inferência: 0.0019s
+      • Memória Usada: 148.88 MB
+      • GFLOPs: 0.66
+Warm-up:  67%|██████▋   | 2/3 [01:39<00:49, 49.14s/it]
+🔄 Avaliando candidato 3/3
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.3058130010714294, 'num_layers': 4, 'min_channels': 53, 'max_channels': 681, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000323
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[53, 262, 471, 681], dropout=0.3058130010714294, num_layers=4
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (45.8s): Train Loss: 2.2687, Train Acc: 15.40%, Valid Loss: 2.1113, Valid Acc: 19.81%, LR: 0.000323
+✓ Treinamento concluído em 45.8s
+✓ Melhor acurácia de validação: 19.81%
+Teste: Loss: 2.1073, Top-1 Acc: 19.81%, Top-5 Acc: 70.79%, Precision (macro): 0.1802, Recall (macro): 0.1612, F1 (macro): 0.1332, Params: 4.22e+06, Inference Time: 0.0007s, Memory: 16.08MB, GFLOPs: 0.1515
+Resultados salvos em: results/cnn_experiments/experiment_7eaebf5e-8028-473e-b75e-0f5d5245cc3b.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1073468322545654, 'top1_acc': 19.81374438021837, 'top5_acc': 70.7931920359666, 'precision_macro': 0.18015968573860924, 'recall_macro': 0.16115388012345425, 'f1_macro': 0.13318354401988958, 'total_params': 4215429.0, 'avg_inference_time': np.float64(0.0007318233957096022), 'memory_used_mb': 16.080585479736328, 'gflops': 0.151468157}
+   💾 Resultado salvo no cache. Total cached: 3
+   📊 Calculando score OACE...
+   📊 Atualizado limite top1_acc: [16.2492, 16.2653] → [16.2492, 19.8137]
+   📊 Atualizado limite top5_acc: [67.4053, 67.4534] → [67.4053, 70.7932]
+   📊 Atualizado limite precision_macro: [0.0181, 0.0181] → [0.0181, 0.1802]
+   📊 Atualizado limite recall_macro: [0.1110, 0.1111] → [0.1110, 0.1612]
+   📊 Atualizado limite f1_macro: [0.0311, 0.0311] → [0.0311, 0.1332]
+   📊 Atualizado limite total_params: [24304854.0000, 39029096.0000] → [4215429.0000, 39029096.0000]
+   📊 Atualizado limite avg_inference_time: [0.0013, 0.0019] → [0.0007, 0.0019]
+   📊 Atualizado limite memory_used_mb: [92.7157, 148.8842] → [16.0806, 148.8842]
+   📊 Atualizado limite gflops: [0.5506, 0.6571] → [0.1515, 0.6571]
+      • Limites assertividade: {'top1_acc': {'min': 16.249197174052664, 'max': 19.81374438021837}, 'top5_acc': {'min': 67.40526653821452, 'max': 70.7931920359666}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.18015968573860924}, 'recall_macro': {'min': 0.11100142590764506, 'max': 0.16115388012345425}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.13318354401988958}}
+      • Limites custo: {'total_params': {'min': 4215429.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0007318233957096022), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 16.080585479736328, 'max': 148.88418579101562}, 'gflops': {'min': 0.151468157, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.249197
+top5_acc           67.405267
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           19.813744
+top5_acc           70.793192
+precision_macro     0.180160
+recall_macro        0.161154
+f1_macro            0.133184
+dtype: float64
+c_min:  total_params          4.215429e+06
+avg_inference_time    7.318234e-04
+memory_used_mb        1.608059e+01
+gflops                1.514682e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [1. 1. 1. 1. 1.]
+norm_c (MTP, TPI, MS, GFlops):  [0. 0. 0. 0.]
+a_m:  1.0
+c_m_normalized:  1.0
+s_phi_score:  1.0
+      • Score OACE calculado: 1.000000
+
+📋 Candidato #3
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.3058130010714294, 'num_layers': 4, 'min_channels': 53, 'max_channels': 681, 'num_classes': 9, 'batch_norm': True}
+   🎯 Score OACE: 1.000000
+   📊 Métricas de Assertividade:
+      • Top-1 Accuracy: 19.8137
+      • Top-5 Accuracy: 70.7932
+      • Precision Macro: 0.1802
+      • Recall Macro: 0.1612
+      • F1 Macro: 0.1332
+   💰 Métricas de Custo:
+      • Total Parâmetros: 4,215,429.0
+      • Tempo Inferência: 0.0007s
+      • Memória Usada: 16.08 MB
+      • GFLOPs: 0.15
+Warm-up: 100%|██████████| 3/3 [02:30<00:00, 50.28s/it]Warm-up: 100%|██████████| 3/3 [02:30<00:00, 50.33s/it]
+
+→ Calculando limites das métricas para normalização OACE
+Calculando limites das métricas...
+
+→ Executando PSO com população inicial diversificada
+   Iterações: 2, Parâmetros: {'c1': 1.5, 'c2': 1.5, 'w': 0.7, 'k': 3, 'p': 2}
+
+────────────────────────────────────────────────────────────
+📋 AFSA-PSO: Iniciando Fase 1 com otimização integrada
+────────────────────────────────────────────────────────────
+
+→ Calculando fitness dos candidatos iniciais com OACE
+
+🔄 Avaliando candidato 1/3
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 16.249197174052664, 'max': 19.81374438021837}, 'top5_acc': {'min': 67.40526653821452, 'max': 70.7931920359666}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.18015968573860924}, 'recall_macro': {'min': 0.11100142590764506, 'max': 0.16115388012345425}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.13318354401988958}}
+      • Limites custo: {'total_params': {'min': 4215429.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0007318233957096022), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 16.080585479736328, 'max': 148.88418579101562}, 'gflops': {'min': 0.151468157, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.249197
+top5_acc           67.405267
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           19.813744
+top5_acc           70.793192
+precision_macro     0.180160
+recall_macro        0.161154
+f1_macro            0.133184
+dtype: float64
+c_min:  total_params          4.215429e+06
+avg_inference_time    7.318234e-04
+memory_used_mb        1.608059e+01
+gflops                1.514682e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.         0.01421801 0.         0.         0.        ]
+norm_c (MTP, TPI, MS, GFlops):  [0.5770557  0.49321472 0.5770557  0.78940526]
+a_m:  0.00047395991519660967
+c_m_normalized:  0.43318765574071766
+s_phi_score:  0.30337354699306135
+      • Score OACE calculado: 0.303374
+   🎯 Score OACE: 0.303374
+
+🔄 Avaliando candidato 2/3
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 16.249197174052664, 'max': 19.81374438021837}, 'top5_acc': {'min': 67.40526653821452, 'max': 70.7931920359666}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.18015968573860924}, 'recall_macro': {'min': 0.11100142590764506, 'max': 0.16115388012345425}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.13318354401988958}}
+      • Limites custo: {'total_params': {'min': 4215429.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0007318233957096022), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 16.080585479736328, 'max': 148.88418579101562}, 'gflops': {'min': 0.151468157, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.249197
+top5_acc           67.405267
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           19.813744
+top5_acc           70.793192
+precision_macro     0.180160
+recall_macro        0.161154
+f1_macro            0.133184
+dtype: float64
+c_min:  total_params          4.215429e+06
+avg_inference_time    7.318234e-04
+memory_used_mb        1.608059e+01
+gflops                1.514682e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [4.50450450e-03 0.00000000e+00 9.21712827e-05 2.18703561e-03
+ 2.58512537e-04]
+norm_c (MTP, TPI, MS, GFlops):  [1. 1. 1. 1.]
+a_m:  0.0013971390345621016
+c_m_normalized:  0.0
+s_phi_score:  0.00041914171036863045
+      • Score OACE calculado: 0.000419
+   🎯 Score OACE: 0.000419
+
+🔄 Avaliando candidato 3/3
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 16.249197174052664, 'max': 19.81374438021837}, 'top5_acc': {'min': 67.40526653821452, 'max': 70.7931920359666}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.18015968573860924}, 'recall_macro': {'min': 0.11100142590764506, 'max': 0.16115388012345425}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.13318354401988958}}
+      • Limites custo: {'total_params': {'min': 4215429.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0007318233957096022), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 16.080585479736328, 'max': 148.88418579101562}, 'gflops': {'min': 0.151468157, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.249197
+top5_acc           67.405267
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           19.813744
+top5_acc           70.793192
+precision_macro     0.180160
+recall_macro        0.161154
+f1_macro            0.133184
+dtype: float64
+c_min:  total_params          4.215429e+06
+avg_inference_time    7.318234e-04
+memory_used_mb        1.608059e+01
+gflops                1.514682e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [1. 1. 1. 1. 1.]
+norm_c (MTP, TPI, MS, GFlops):  [0. 0. 0. 0.]
+a_m:  1.0
+c_m_normalized:  1.0
+s_phi_score:  1.0
+      • Score OACE calculado: 1.000000
+   🎯 Score OACE: 1.000000
+
+📊 Resumo da População - AFSA-PSO Inicial
+   • Tamanho da população: 3
+   • Melhor fitness: 1.000000
+   • Pior fitness: 0.000419
+   • Fitness médio: 0.434598
+   • Desvio padrão: 0.418494
+   🏆 Top 3 Candidatos:
+      1. CNN - Fitness: 1.000000
+      2. CNN - Fitness: 0.303374
+      3. CNN - Fitness: 0.000419
+
+🏆 Melhor candidato inicial:
+   • Índice: 2
+   • Score OACE: 1.000000
+   • Arquitetura: CNN
+   • Parâmetros: {'dropout_rate': 0.3058130010714294, 'num_layers': 4, 'min_channels': 53, 'max_channels': 681, 'num_classes': 9, 'batch_norm': True}
+
+→ Inicializando enxame PSO com população inicial
+🆕 Novo candidato avaliado
+🎯 Cache HIT! Candidato já avaliado (total hits: 1)
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 16.249197174052664, 'max': 19.81374438021837}, 'top5_acc': {'min': 67.40526653821452, 'max': 70.7931920359666}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.18015968573860924}, 'recall_macro': {'min': 0.11100142590764506, 'max': 0.16115388012345425}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.13318354401988958}}
+      • Limites custo: {'total_params': {'min': 4215429.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0007318233957096022), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 16.080585479736328, 'max': 148.88418579101562}, 'gflops': {'min': 0.151468157, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.249197
+top5_acc           67.405267
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           19.813744
+top5_acc           70.793192
+precision_macro     0.180160
+recall_macro        0.161154
+f1_macro            0.133184
+dtype: float64
+c_min:  total_params          4.215429e+06
+avg_inference_time    7.318234e-04
+memory_used_mb        1.608059e+01
+gflops                1.514682e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.         0.01421801 0.         0.         0.        ]
+norm_c (MTP, TPI, MS, GFlops):  [0.5770557  0.49321472 0.5770557  0.78940526]
+a_m:  0.00047395991519660967
+c_m_normalized:  0.43318765574071766
+s_phi_score:  0.30337354699306135
+      • Score OACE calculado: 0.303374
+   🎯 Score OACE calculado: 0.303374
+🆕 Novo candidato avaliado
+🎯 Cache HIT! Candidato já avaliado (total hits: 2)
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 16.249197174052664, 'max': 19.81374438021837}, 'top5_acc': {'min': 67.40526653821452, 'max': 70.7931920359666}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.18015968573860924}, 'recall_macro': {'min': 0.11100142590764506, 'max': 0.16115388012345425}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.13318354401988958}}
+      • Limites custo: {'total_params': {'min': 4215429.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0007318233957096022), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 16.080585479736328, 'max': 148.88418579101562}, 'gflops': {'min': 0.151468157, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.249197
+top5_acc           67.405267
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           19.813744
+top5_acc           70.793192
+precision_macro     0.180160
+recall_macro        0.161154
+f1_macro            0.133184
+dtype: float64
+c_min:  total_params          4.215429e+06
+avg_inference_time    7.318234e-04
+memory_used_mb        1.608059e+01
+gflops                1.514682e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [4.50450450e-03 0.00000000e+00 9.21712827e-05 2.18703561e-03
+ 2.58512537e-04]
+norm_c (MTP, TPI, MS, GFlops):  [1. 1. 1. 1.]
+a_m:  0.0013971390345621016
+c_m_normalized:  0.0
+s_phi_score:  0.00041914171036863045
+      • Score OACE calculado: 0.000419
+   🎯 Score OACE calculado: 0.000419
+🆕 Novo candidato avaliado
+🎯 Cache HIT! Candidato já avaliado (total hits: 3)
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 16.249197174052664, 'max': 19.81374438021837}, 'top5_acc': {'min': 67.40526653821452, 'max': 70.7931920359666}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.18015968573860924}, 'recall_macro': {'min': 0.11100142590764506, 'max': 0.16115388012345425}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.13318354401988958}}
+      • Limites custo: {'total_params': {'min': 4215429.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0007318233957096022), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 16.080585479736328, 'max': 148.88418579101562}, 'gflops': {'min': 0.151468157, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.249197
+top5_acc           67.405267
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           19.813744
+top5_acc           70.793192
+precision_macro     0.180160
+recall_macro        0.161154
+f1_macro            0.133184
+dtype: float64
+c_min:  total_params          4.215429e+06
+avg_inference_time    7.318234e-04
+memory_used_mb        1.608059e+01
+gflops                1.514682e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [1. 1. 1. 1. 1.]
+norm_c (MTP, TPI, MS, GFlops):  [0. 0. 0. 0.]
+a_m:  1.0
+c_m_normalized:  1.0
+s_phi_score:  1.0
+      • Score OACE calculado: 1.000000
+   🎯 Score OACE calculado: 1.000000
+fitness_values in initialize_swarm_with_population(): [-3.03373547e-01 -4.19141710e-04 -1.00000000e+00]
+self.optimizer.swarm.pbest_cost in initialize_swarm_with_population(): [-3.03373547e-01 -4.19141710e-04 -1.00000000e+00]
+self.optimizer.swarm.best_cost in initialize_swarm_with_population(): -1.0
+✅ Enxame inicializado com 3 partículas
+
+→ Iniciando loop alternado AFSA-PSO
+   Iterações AFSA: 2, Iterações PSO por ciclo: 1
+
+🔄 AFSA-PSO Iteração 1/2
+
+→ AFSA aplicando comportamentos (iteração 1)
+
+      🔄 PSO ANTES DO AFSA:
+         • Melhor OACE (gbest): 1.000000
+         • OACE médio (pbest): 0.434598
+
+      ============================================================
+      📋 ESTADO ANTES DO AFSA APLICAR COMPORTAMENTOS
+      ============================================================
+      • Número de partículas: 3
+🎯 Cache HIT! Candidato já avaliado (total hits: 4)
+🎯 Cache HIT! Candidato já avaliado (total hits: 5)
+🎯 Cache HIT! Candidato já avaliado (total hits: 6)
+      • Fitness ANTES (OACE): ['0.303374', '0.000419', '1.000000']
+      • Melhor fitness ANTES: 1.000000
+      • Fitness médio ANTES: 0.434598
+
+      🐟 AFSA APLICANDO COMPORTAMENTOS
+      • Iteração: 1
+      • Visual: 40
+      • Step: 5
+      • Try times: 1
+🎯 Cache HIT! Candidato já avaliado (total hits: 7)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.39185926294771684, 'num_layers': 11, 'min_channels': 32, 'max_channels': 763, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.001834
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[32, 105, 178, 251, 324, 397, 470, 543, 616, 689, 763], dropout=0.39185926294771684, num_layers=11
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (51.4s): Train Loss: 2.2394, Train Acc: 15.15%, Valid Loss: 2.1586, Valid Acc: 16.27%, LR: 0.001834
+✓ Treinamento concluído em 51.4s
+✓ Melhor acurácia de validação: 16.27%
+Teste: Loss: 2.1596, Top-1 Acc: 16.27%, Top-5 Acc: 67.42%, Precision (macro): 0.0181, Recall (macro): 0.1111, F1 (macro): 0.0311, Params: 1.81e+07, Inference Time: 0.0012s, Memory: 69.19MB, GFLOPs: 0.3923
+Resultados salvos em: results/cnn_experiments/experiment_b950b857-85bc-47c5-ad4b-bd2595b7777e.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1595826256175643, 'top1_acc': 16.26525369299936, 'top5_acc': 67.4213230571612, 'precision_macro': 0.01807250410333262, 'recall_macro': 0.1111111111111111, 'f1_macro': 0.03108840092682104, 'total_params': 18136700.0, 'avg_inference_time': np.float64(0.0011857383105219627), 'memory_used_mb': 69.18601989746094, 'gflops': 0.392294811}
+   💾 Resultado salvo no cache. Total cached: 7
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 16.249197174052664, 'max': 19.81374438021837}, 'top5_acc': {'min': 67.40526653821452, 'max': 70.7931920359666}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.18015968573860924}, 'recall_macro': {'min': 0.11100142590764506, 'max': 0.16115388012345425}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.13318354401988958}}
+      • Limites custo: {'total_params': {'min': 4215429.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0007318233957096022), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 16.080585479736328, 'max': 148.88418579101562}, 'gflops': {'min': 0.151468157, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.249197
+top5_acc           67.405267
+precision_macro     0.018058
+recall_macro        0.111001
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           19.813744
+top5_acc           70.793192
+precision_macro     0.180160
+recall_macro        0.161154
+f1_macro            0.133184
+dtype: float64
+c_min:  total_params          4.215429e+06
+avg_inference_time    7.318234e-04
+memory_used_mb        1.608059e+01
+gflops                1.514682e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [4.50450450e-03 4.73933649e-03 9.21712827e-05 2.18703561e-03
+ 2.58512537e-04]
+norm_c (MTP, TPI, MS, GFlops):  [0.39987948 0.40266663 0.39987948 0.47631764]
+a_m:  0.0015551256729608783
+c_m_normalized:  0.5951638055124386
+s_phi_score:  0.4170812015605953
+      • Score OACE calculado: 0.417081
+   🎯 Score OACE calculado: 0.417081
+🎯 Cache HIT! Candidato já avaliado (total hits: 8)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.5, 'num_layers': 11, 'min_channels': 8, 'max_channels': 456, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000100
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[8, 52, 97, 142, 187, 232, 276, 321, 366, 411, 456], dropout=0.5, num_layers=11
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (46.5s): Train Loss: 2.4794, Train Acc: 12.24%, Valid Loss: 2.1596, Valid Acc: 16.17%, LR: 0.000100
+✓ Treinamento concluído em 46.5s
+✓ Melhor acurácia de validação: 16.17%
+Teste: Loss: 2.1595, Top-1 Acc: 15.96%, Top-5 Acc: 67.32%, Precision (macro): 0.0280, Recall (macro): 0.1092, F1 (macro): 0.0315, Params: 6.34e+06, Inference Time: 0.0011s, Memory: 24.18MB, GFLOPs: 0.1303
+Resultados salvos em: results/cnn_experiments/experiment_9858438a-f4fa-4839-b403-a2359b4b5773.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1595364083980395, 'top1_acc': 15.960179833012203, 'top5_acc': 67.32498394348106, 'precision_macro': 0.027971020188919022, 'recall_macro': 0.1092184838017662, 'f1_macro': 0.03148771508437818, 'total_params': 6339377.0, 'avg_inference_time': np.float64(0.0011170688940554249), 'memory_used_mb': 24.182804107666016, 'gflops': 0.130292232}
+   💾 Resultado salvo no cache. Total cached: 9
+   📊 Calculando score OACE...
+   📊 Atualizado limite top1_acc: [16.2492, 19.8137] → [15.9602, 19.8137]
+   📊 Atualizado limite top5_acc: [67.4053, 70.7932] → [67.3250, 70.7932]
+   📊 Atualizado limite recall_macro: [0.1110, 0.1612] → [0.1092, 0.1612]
+   📊 Atualizado limite gflops: [0.1515, 0.6571] → [0.1303, 0.6571]
+      • Limites assertividade: {'top1_acc': {'min': 15.960179833012203, 'max': 19.81374438021837}, 'top5_acc': {'min': 67.32498394348106, 'max': 70.7931920359666}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.18015968573860924}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.16115388012345425}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.13318354401988958}}
+      • Limites custo: {'total_params': {'min': 4215429.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0007318233957096022), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 16.080585479736328, 'max': 148.88418579101562}, 'gflops': {'min': 0.130292232, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           15.960180
+top5_acc           67.324984
+precision_macro     0.018058
+recall_macro        0.109218
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           19.813744
+top5_acc           70.793192
+precision_macro     0.180160
+recall_macro        0.161154
+f1_macro            0.133184
+dtype: float64
+c_min:  total_params          4.215429e+06
+avg_inference_time    7.318234e-04
+memory_used_mb        1.608059e+01
+gflops                1.302922e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.         0.         0.06115563 0.         0.0041687 ]
+norm_c (MTP, TPI, MS, GFlops):  [0.06100903 0.34175019 0.06100903 0.        ]
+a_m:  0.031899053750880424
+c_m_normalized:  0.8687532152058689
+s_phi_score:  0.6176969667693724
+      • Score OACE calculado: 0.617697
+   🎯 Score OACE calculado: 0.617697
+🎯 Cache HIT! Candidato já avaliado (total hits: 9)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.19076737581322778, 'num_layers': 7, 'min_channels': 55, 'max_channels': 777, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.003971
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[55, 175, 295, 416, 536, 656, 777], dropout=0.19076737581322778, num_layers=7
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (48.8s): Train Loss: 2.1967, Train Acc: 15.62%, Valid Loss: 2.1554, Valid Acc: 17.65%, LR: 0.003971
+✓ Treinamento concluído em 48.8s
+✓ Melhor acurácia de validação: 17.65%
+Teste: Loss: 2.1505, Top-1 Acc: 17.71%, Top-5 Acc: 68.35%, Precision (macro): 0.1174, Recall (macro): 0.1381, F1 (macro): 0.1062, Params: 1.15e+07, Inference Time: 0.0009s, Memory: 43.96MB, GFLOPs: 0.4669
+Resultados salvos em: results/cnn_experiments/experiment_b8f35737-bdc1-43ca-aa64-bef301853ad3.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.150528979439267, 'top1_acc': 17.71034039820167, 'top5_acc': 68.35260115606937, 'precision_macro': 0.11739078474425511, 'recall_macro': 0.1380775619259095, 'f1_macro': 0.10623766429461136, 'total_params': 11522772.0, 'avg_inference_time': np.float64(0.0008795553324173908), 'memory_used_mb': 43.95588684082031, 'gflops': 0.466949081}
+   💾 Resultado salvo no cache. Total cached: 11
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 15.960179833012203, 'max': 19.81374438021837}, 'top5_acc': {'min': 67.32498394348106, 'max': 70.7931920359666}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.18015968573860924}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.16115388012345425}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.13318354401988958}}
+      • Limites custo: {'total_params': {'min': 4215429.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0007318233957096022), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 16.080585479736328, 'max': 148.88418579101562}, 'gflops': {'min': 0.130292232, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           15.960180
+top5_acc           67.324984
+precision_macro     0.018058
+recall_macro        0.109218
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           19.813744
+top5_acc           70.793192
+precision_macro     0.180160
+recall_macro        0.161154
+f1_macro            0.133184
+dtype: float64
+c_min:  total_params          4.215429e+06
+avg_inference_time    7.318234e-04
+memory_used_mb        1.608059e+01
+gflops                1.302922e-01
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.45416667 0.2962963  0.61278175 0.55567263 0.73613912]
+norm_c (MTP, TPI, MS, GFlops):  [0.20989869 0.13105258 0.20989869 0.63908812]
+a_m:  0.57304476851939
+c_m_normalized:  0.7870469083981655
+s_phi_score:  0.7228462664345328
+      • Score OACE calculado: 0.722846
+   🎯 Score OACE calculado: 0.722846
+🎯 Cache HIT! Candidato já avaliado (total hits: 10)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.0, 'num_layers': 2, 'min_channels': 64, 'max_channels': 575, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000228
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[64, 575], dropout=0.0, num_layers=2
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (43.2s): Train Loss: 2.1092, Train Acc: 20.55%, Valid Loss: 2.0712, Valid Acc: 22.68%, LR: 0.000228
+✓ Treinamento concluído em 43.2s
+✓ Melhor acurácia de validação: 22.68%
+Teste: Loss: 2.0736, Top-1 Acc: 21.56%, Top-5 Acc: 73.47%, Precision (macro): 0.2042, Recall (macro): 0.1769, F1 (macro): 0.1449, Params: 4.09e+05, Inference Time: 0.0005s, Memory: 1.56MB, GFLOPs: 0.0875
+Resultados salvos em: results/cnn_experiments/experiment_872587d1-bb26-4c38-b010-70875c95134f.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.0736305319351804, 'top1_acc': 21.563904945407835, 'top5_acc': 73.47463070006422, 'precision_macro': 0.2041769354049181, 'recall_macro': 0.1769456034976535, 'f1_macro': 0.14492739343855296, 'total_params': 409351.0, 'avg_inference_time': np.float64(0.0004863690356818997), 'memory_used_mb': 1.5615501403808594, 'gflops': 0.087520255}
+   💾 Resultado salvo no cache. Total cached: 13
+   📊 Calculando score OACE...
+   📊 Atualizado limite top1_acc: [15.9602, 19.8137] → [15.9602, 21.5639]
+   📊 Atualizado limite top5_acc: [67.3250, 70.7932] → [67.3250, 73.4746]
+   📊 Atualizado limite precision_macro: [0.0181, 0.1802] → [0.0181, 0.2042]
+   📊 Atualizado limite recall_macro: [0.1092, 0.1612] → [0.1092, 0.1769]
+   📊 Atualizado limite f1_macro: [0.0311, 0.1332] → [0.0311, 0.1449]
+   📊 Atualizado limite total_params: [4215429.0000, 39029096.0000] → [409351.0000, 39029096.0000]
+   📊 Atualizado limite avg_inference_time: [0.0007, 0.0019] → [0.0005, 0.0019]
+   📊 Atualizado limite memory_used_mb: [16.0806, 148.8842] → [1.5616, 148.8842]
+   📊 Atualizado limite gflops: [0.1303, 0.6571] → [0.0875, 0.6571]
+      • Limites assertividade: {'top1_acc': {'min': 15.960179833012203, 'max': 21.563904945407835}, 'top5_acc': {'min': 67.32498394348106, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.2041769354049181}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1769456034976535}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.14492739343855296}}
+      • Limites custo: {'total_params': {'min': 409351.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 1.5615501403808594, 'max': 148.88418579101562}, 'gflops': {'min': 0.087520255, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           15.960180
+top5_acc           67.324984
+precision_macro     0.018058
+recall_macro        0.109218
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.204177
+recall_macro        0.176946
+f1_macro            0.144927
+dtype: float64
+c_min:  total_params          409351.000000
+avg_inference_time         0.000486
+memory_used_mb             1.561550
+gflops                     0.087520
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [1. 1. 1. 1. 1.]
+norm_c (MTP, TPI, MS, GFlops):  [0. 0. 0. 0.]
+a_m:  1.0
+c_m_normalized:  1.0
+s_phi_score:  1.0
+      • Score OACE calculado: 1.000000
+   🎯 Score OACE calculado: 1.000000
+🎯 Cache HIT! Candidato já avaliado (total hits: 11)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.2768136376895152, 'num_layers': 15, 'min_channels': 34, 'max_channels': 858, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.022551
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[34, 92, 151, 210, 269, 328, 387, 446, 504, 563, 622, 681, 740, 799, 858], dropout=0.2768136376895152, num_layers=15
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (49.4s): Train Loss: 2.1966, Train Acc: 15.81%, Valid Loss: 2.1574, Valid Acc: 16.27%, LR: 0.022551
+✓ Treinamento concluído em 49.4s
+✓ Melhor acurácia de validação: 16.27%
+Teste: Loss: 2.1576, Top-1 Acc: 16.27%, Top-5 Acc: 67.41%, Precision (macro): 0.0181, Recall (macro): 0.1111, F1 (macro): 0.0311, Params: 3.21e+07, Inference Time: 0.0015s, Memory: 122.57MB, GFLOPs: 0.5889
+Resultados salvos em: results/cnn_experiments/experiment_2f25957f-2ebd-4188-8960-80635ac3c48a.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1575710551434018, 'top1_acc': 16.26525369299936, 'top5_acc': 67.40526653821452, 'precision_macro': 0.01807250410333262, 'recall_macro': 0.1111111111111111, 'f1_macro': 0.03108840092682104, 'total_params': 32129979.0, 'avg_inference_time': np.float64(0.0014788350280450315), 'memory_used_mb': 122.56614303588867, 'gflops': 0.588891002}
+   💾 Resultado salvo no cache. Total cached: 15
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 15.960179833012203, 'max': 21.563904945407835}, 'top5_acc': {'min': 67.32498394348106, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.018057562942740395, 'max': 0.2041769354049181}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1769456034976535}, 'f1_macro': {'min': 0.031062001227747087, 'max': 0.14492739343855296}}
+      • Limites custo: {'total_params': {'min': 409351.0, 'max': 39029096.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0018590956318135165)}, 'memory_used_mb': {'min': 1.5615501403808594, 'max': 148.88418579101562}, 'gflops': {'min': 0.087520255, 'max': 0.657069117}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           15.960180
+top5_acc           67.324984
+precision_macro     0.018058
+recall_macro        0.109218
+f1_macro            0.031062
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.204177
+recall_macro        0.176946
+f1_macro            0.144927
+dtype: float64
+c_min:  total_params          409351.000000
+avg_inference_time         0.000486
+memory_used_mb             1.561550
+gflops                     0.087520
+dtype: float64
+c_max:  total_params          3.902910e+07
+avg_inference_time    1.859096e-03
+memory_used_mb        1.488842e+02
+gflops                6.570691e-01
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [5.44412607e-02 1.30548303e-02 8.02772994e-05 2.79448959e-02
+ 2.31850069e-04]
+norm_c (MTP, TPI, MS, GFlops):  [0.82135778 0.72298883 0.82135778 0.88029453]
+a_m:  0.01651364429234679
+c_m_normalized:  0.20117633115220726
+s_phi_score:  0.14577752509424913
+      • Score OACE calculado: 0.145778
+   🎯 Score OACE calculado: 0.145778
+🎯 Cache HIT! Candidato já avaliado (total hits: 12)
+🎯 Cache HIT! Candidato já avaliado (total hits: 13)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.0, 'num_layers': 40, 'min_channels': 8, 'max_channels': 1024, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.100000
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[8, 34, 60, 86, 112, 138, 164, 190, 216, 242, 268, 294, 320, 346, 372, 398, 424, 450, 476, 502, 529, 555, 581, 607, 633, 659, 685, 711, 737, 763, 789, 815, 841, 867, 893, 919, 945, 971, 997, 1024], dropout=0.0, num_layers=40
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (46.2s): Train Loss: 2.1901, Train Acc: 15.39%, Valid Loss: 2.1740, Valid Acc: 12.40%, LR: 0.100000
+✓ Treinamento concluído em 46.2s
+✓ Melhor acurácia de validação: 12.40%
+Teste: Loss: 2.1803, Top-1 Acc: 12.38%, Top-5 Acc: 65.61%, Precision (macro): 0.0175, Recall (macro): 0.1101, F1 (macro): 0.0248, Params: 1.24e+08, Inference Time: 0.0032s, Memory: 471.28MB, GFLOPs: 1.9871
+Resultados salvos em: results/cnn_experiments/experiment_80bd84f6-ee7d-4f30-95f3-6ac9344c0c44.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1802630718503155, 'top1_acc': 12.379576107899807, 'top5_acc': 65.60693641618496, 'precision_macro': 0.017543165941742454, 'recall_macro': 0.11009644129295296, 'f1_macro': 0.02483211799118362, 'total_params': 123542403.0, 'avg_inference_time': np.float64(0.0031724024792106785), 'memory_used_mb': 471.2768669128418, 'gflops': 1.987128896}
+   💾 Resultado salvo no cache. Total cached: 17
+   📊 Calculando score OACE...
+   📊 Atualizado limite top1_acc: [15.9602, 21.5639] → [12.3796, 21.5639]
+   📊 Atualizado limite top5_acc: [67.3250, 73.4746] → [65.6069, 73.4746]
+   📊 Atualizado limite precision_macro: [0.0181, 0.2042] → [0.0175, 0.2042]
+   📊 Atualizado limite f1_macro: [0.0311, 0.1449] → [0.0248, 0.1449]
+   📊 Atualizado limite total_params: [409351.0000, 39029096.0000] → [409351.0000, 123542403.0000]
+   📊 Atualizado limite avg_inference_time: [0.0005, 0.0019] → [0.0005, 0.0032]
+   📊 Atualizado limite memory_used_mb: [1.5616, 148.8842] → [1.5616, 471.2769]
+   📊 Atualizado limite gflops: [0.0875, 0.6571] → [0.0875, 1.9871]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 65.60693641618496, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2041769354049181}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1769456034976535}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.14492739343855296}}
+      • Limites custo: {'total_params': {'min': 409351.0, 'max': 123542403.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0031724024792106785)}, 'memory_used_mb': {'min': 1.5615501403808594, 'max': 471.2768669128418}, 'gflops': {'min': 0.087520255, 'max': 1.987128896}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           65.606936
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.204177
+recall_macro        0.176946
+f1_macro            0.144927
+dtype: float64
+c_min:  total_params          409351.000000
+avg_inference_time         0.000486
+memory_used_mb             1.561550
+gflops                     0.087520
+dtype: float64
+c_max:  total_params          1.235424e+08
+avg_inference_time    3.172402e-03
+memory_used_mb        4.712769e+02
+gflops                1.987129e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.         0.         0.         0.01296316 0.        ]
+norm_c (MTP, TPI, MS, GFlops):  [1. 1. 1. 1.]
+a_m:  0.0008215600705740746
+c_m_normalized:  0.0
+s_phi_score:  0.00024646802117222235
+      • Score OACE calculado: 0.000246
+   🎯 Score OACE calculado: 0.000246
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.5, 'num_layers': 40, 'min_channels': 64, 'max_channels': 1024, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.100000
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[64, 88, 113, 137, 162, 187, 211, 236, 260, 285, 310, 334, 359, 384, 408, 433, 457, 482, 507, 531, 556, 580, 605, 630, 654, 679, 704, 728, 753, 777, 802, 827, 851, 876, 900, 925, 950, 974, 999, 1024], dropout=0.5, num_layers=40
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (46.2s): Train Loss: 2.2174, Train Acc: 15.50%, Valid Loss: 2.1650, Valid Acc: 16.27%, LR: 0.100000
+✓ Treinamento concluído em 46.2s
+✓ Melhor acurácia de validação: 16.27%
+Teste: Loss: 2.1651, Top-1 Acc: 16.27%, Top-5 Acc: 64.29%, Precision (macro): 0.0181, Recall (macro): 0.1111, F1 (macro): 0.0311, Params: 1.31e+08, Inference Time: 0.0033s, Memory: 498.81MB, GFLOPs: 2.1431
+Resultados salvos em: results/cnn_experiments/experiment_129a9aa5-c1e3-48d9-8dad-441bfd4c45fc.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1651152474189614, 'top1_acc': 16.26525369299936, 'top5_acc': 64.29030186255619, 'precision_macro': 0.01807250410333262, 'recall_macro': 0.1111111111111111, 'f1_macro': 0.03108840092682104, 'total_params': 130761079.0, 'avg_inference_time': np.float64(0.0033328922427430445), 'memory_used_mb': 498.8139305114746, 'gflops': 2.14307128}
+   💾 Resultado salvo no cache. Total cached: 19
+   📊 Calculando score OACE...
+   📊 Atualizado limite top5_acc: [65.6069, 73.4746] → [64.2903, 73.4746]
+   📊 Atualizado limite total_params: [409351.0000, 123542403.0000] → [409351.0000, 130761079.0000]
+   📊 Atualizado limite avg_inference_time: [0.0005, 0.0032] → [0.0005, 0.0033]
+   📊 Atualizado limite memory_used_mb: [1.5616, 471.2769] → [1.5616, 498.8139]
+   📊 Atualizado limite gflops: [0.0875, 1.9871] → [0.0875, 2.1431]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2041769354049181}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1769456034976535}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.14492739343855296}}
+      • Limites custo: {'total_params': {'min': 409351.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 1.5615501403808594, 'max': 498.8139305114746}, 'gflops': {'min': 0.087520255, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.204177
+recall_macro        0.176946
+f1_macro            0.144927
+dtype: float64
+c_min:  total_params          409351.000000
+avg_inference_time         0.000486
+memory_used_mb             1.561550
+gflops                     0.087520
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.42307692 0.         0.00283624 0.0279449  0.05209433]
+norm_c (MTP, TPI, MS, GFlops):  [1. 1. 1. 1.]
+a_m:  0.12057866693580767
+c_m_normalized:  0.0
+s_phi_score:  0.0361736000807423
+      • Score OACE calculado: 0.036174
+   🎯 Score OACE calculado: 0.036174
+🎯 Cache HIT! Candidato já avaliado (total hits: 14)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.0, 'num_layers': 40, 'min_channels': 8, 'max_channels': 1024, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.100000
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[8, 34, 60, 86, 112, 138, 164, 190, 216, 242, 268, 294, 320, 346, 372, 398, 424, 450, 476, 502, 529, 555, 581, 607, 633, 659, 685, 711, 737, 763, 789, 815, 841, 867, 893, 919, 945, 971, 997, 1024], dropout=0.0, num_layers=40
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (44.0s): Train Loss: 2.1882, Train Acc: 15.46%, Valid Loss: 2.3565, Valid Acc: 16.17%, LR: 0.100000
+✓ Treinamento concluído em 44.0s
+✓ Melhor acurácia de validação: 16.17%
+Teste: Loss: 2.3875, Top-1 Acc: 16.15%, Top-5 Acc: 67.26%, Precision (macro): 0.0320, Recall (macro): 0.1110, F1 (macro): 0.0344, Params: 1.24e+08, Inference Time: 0.0029s, Memory: 471.28MB, GFLOPs: 1.9871
+Resultados salvos em: results/cnn_experiments/experiment_9d7de0f6-baa3-4d2c-a55a-268945cd9bfa.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.387482630417909, 'top1_acc': 16.152858060372512, 'top5_acc': 67.26075786769428, 'precision_macro': 0.032046249566076525, 'recall_macro': 0.11098499728686159, 'f1_macro': 0.034351596010314886, 'total_params': 123542403.0, 'avg_inference_time': np.float64(0.002853558987987285), 'memory_used_mb': 471.2768669128418, 'gflops': 1.987128896}
+   💾 Resultado salvo no cache. Total cached: 21
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2041769354049181}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1769456034976535}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.14492739343855296}}
+      • Limites custo: {'total_params': {'min': 409351.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 1.5615501403808594, 'max': 498.8139305114746}, 'gflops': {'min': 0.087520255, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.204177
+recall_macro        0.176946
+f1_macro            0.144927
+dtype: float64
+c_min:  total_params          409351.000000
+avg_inference_time         0.000486
+memory_used_mb             1.561550
+gflops                     0.087520
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.41083916 0.32342657 0.07770879 0.02608281 0.07926605]
+norm_c (MTP, TPI, MS, GFlops):  [0.94462155 0.83160747 0.94462155 0.92413597]
+a_m:  0.16994208626871982
+c_m_normalized:  0.08614343087490713
+s_phi_score:  0.11128302749305093
+      • Score OACE calculado: 0.111283
+   🎯 Score OACE calculado: 0.111283
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.0, 'num_layers': 34, 'min_channels': 64, 'max_channels': 1024, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.100000
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[64, 93, 122, 151, 180, 209, 238, 267, 296, 325, 354, 384, 413, 442, 471, 500, 529, 558, 587, 616, 645, 674, 704, 733, 762, 791, 820, 849, 878, 907, 936, 965, 994, 1024], dropout=0.0, num_layers=34
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (49.7s): Train Loss: 2.1888, Train Acc: 15.22%, Valid Loss: 2.1666, Valid Acc: 16.27%, LR: 0.100000
+✓ Treinamento concluído em 49.7s
+✓ Melhor acurácia de validação: 16.27%
+Teste: Loss: 2.1667, Top-1 Acc: 16.27%, Top-5 Acc: 65.85%, Precision (macro): 0.0181, Recall (macro): 0.1111, F1 (macro): 0.0311, Params: 1.11e+08, Inference Time: 0.0027s, Memory: 422.03MB, GFLOPs: 1.8281
+Resultados salvos em: results/cnn_experiments/experiment_220b8a8f-cc49-4428-9c1d-3af1242998cf.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.166696523042849, 'top1_acc': 16.26525369299936, 'top5_acc': 65.84778420038536, 'precision_macro': 0.01807250410333262, 'recall_macro': 0.1111111111111111, 'f1_macro': 0.03108840092682104, 'total_params': 110631529.0, 'avg_inference_time': np.float64(0.002713006369921626), 'memory_used_mb': 422.0257911682129, 'gflops': 1.828057696}
+   💾 Resultado salvo no cache. Total cached: 23
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2041769354049181}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1769456034976535}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.14492739343855296}}
+      • Limites custo: {'total_params': {'min': 409351.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 1.5615501403808594, 'max': 498.8139305114746}, 'gflops': {'min': 0.087520255, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.204177
+recall_macro        0.176946
+f1_macro            0.144927
+dtype: float64
+c_min:  total_params          409351.000000
+avg_inference_time         0.000486
+memory_used_mb             1.561550
+gflops                     0.087520
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.42307692 0.16958042 0.00283624 0.0279449  0.05209433]
+norm_c (MTP, TPI, MS, GFlops):  [0.84557512 0.78223052 0.84557512 0.84674981]
+a_m:  0.12623166086606907
+c_m_normalized:  0.17096896684894328
+s_phi_score:  0.15754777505408102
+      • Score OACE calculado: 0.157548
+   🎯 Score OACE calculado: 0.157548
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.0, 'num_layers': 36, 'min_channels': 64, 'max_channels': 64, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000100
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64], dropout=0.0, num_layers=36
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (48.3s): Train Loss: 2.1924, Train Acc: 14.72%, Valid Loss: 2.1608, Valid Acc: 16.24%, LR: 0.000100
+✓ Treinamento concluído em 48.3s
+✓ Melhor acurácia de validação: 16.24%
+Teste: Loss: 2.1584, Top-1 Acc: 15.82%, Top-5 Acc: 67.95%, Precision (macro): 0.0659, Recall (macro): 0.1146, F1 (macro): 0.0559, Params: 1.31e+06, Inference Time: 0.0021s, Memory: 4.98MB, GFLOPs: 0.0442
+Resultados salvos em: results/cnn_experiments/experiment_0e7f78b9-b2a2-4f7b-bd2d-7b6f0da9efb5.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.158445834654145, 'top1_acc': 15.815671162491972, 'top5_acc': 67.95118818240205, 'precision_macro': 0.06591204078806318, 'recall_macro': 0.11459223578536208, 'f1_macro': 0.055896252811015436, 'total_params': 1306313.0, 'avg_inference_time': np.float64(0.0021165974286137795), 'memory_used_mb': 4.983188629150391, 'gflops': 0.04421088}
+   💾 Resultado salvo no cache. Total cached: 25
+   📊 Calculando score OACE...
+   📊 Atualizado limite gflops: [0.0875, 2.1431] → [0.0442, 2.1431]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2041769354049181}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1769456034976535}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.14492739343855296}}
+      • Limites custo: {'total_params': {'min': 409351.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 1.5615501403808594, 'max': 498.8139305114746}, 'gflops': {'min': 0.04421088, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.204177
+recall_macro        0.176946
+f1_macro            0.144927
+dtype: float64
+c_min:  total_params          409351.000000
+avg_inference_time         0.000486
+memory_used_mb             1.561550
+gflops                     0.044211
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.37412587 0.3986014  0.25916465 0.07934417 0.25866242]
+norm_c (MTP, TPI, MS, GFlops):  [0.00688109 0.57270863 0.00688109 0.        ]
+a_m:  0.2824138755516863
+c_m_normalized:  0.8451386723827246
+s_phi_score:  0.676321233333413
+      • Score OACE calculado: 0.676321
+   🎯 Score OACE calculado: 0.676321
+      📊 Comportamentos aplicados:
+         • Cluster: 2 partículas
+         • Foraging: 0 partículas
+         • Random: 0 partículas
+         • Sem modificação: 1 partículas
+
+      📋 ESTADO DEPOIS DO AFSA APLICAR COMPORTAMENTOS
+      ============================================================
+🎯 Cache HIT! Candidato já avaliado (total hits: 15)
+🎯 Cache HIT! Candidato já avaliado (total hits: 16)
+🎯 Cache HIT! Candidato já avaliado (total hits: 17)
+      • Fitness DEPOIS (OACE): ['0.617697', '1.000000', '1.000000']
+      • Melhor fitness DEPOIS: 1.000000
+      • Fitness médio DEPOIS: 0.872566
+
+      📈 COMPARAÇÃO ANTES vs DEPOIS:
+         • Melhor fitness: 1.000000 → 1.000000 (+0.000000)
+         • Fitness médio: 0.434598 → 0.872566 (+0.437968)
+         • Partícula 1: modificada (distância: 1.827683)
+         • Partícula 2: modificada (distância: 1.710276)
+         ✅ 2 partículas modificadas
+      ============================================================
+
+
+      🔄 ATUALIZANDO ENXAME DO PSO COM POPULAÇÃO DO AFSA
+         • Substituindo 3 partículas do PSO
+         • Partículas antigas do PSO foram substituídas pelas do AFSA
+         • Recalculando fitness das partículas modificadas...
+🎯 Cache HIT! Candidato já avaliado (total hits: 18)
+🎯 Cache HIT! Candidato já avaliado (total hits: 19)
+🎯 Cache HIT! Candidato já avaliado (total hits: 20)
+         • pbest atualizado: 2/3 partículas
+         • gbest mantido: 1.000000
+
+      ⚙️  PSO REFINANDO SOLUÇÕES MODIFICADAS PELO AFSA
+         • Executando 1 iteração do PSO...
+🎯 Cache HIT! Candidato já avaliado (total hits: 21)
+🎯 Cache HIT! Candidato já avaliado (total hits: 22)
+🎯 Cache HIT! Candidato já avaliado (total hits: 23)
+         • ✅ PSO executou 1 iteração com sucesso
+
+      📊 RESULTADO DO REFINAMENTO DO PSO:
+         • gbest ANTES do refinamento: 1.000000
+         • gbest DEPOIS do refinamento: 1.000000
+         • Mudança no gbest: +0.000000
+         • Fitness médio ANTES: 0.872566
+         • Fitness médio DEPOIS: 0.872566
+         • Mudança no fitness médio: +0.000000
+
+      📈 RESUMO DO CICLO AFSA-PSO (Iteração 1):
+         • OACE inicial (antes do AFSA): 1.000000
+         • OACE após AFSA: 1.000000
+         • OACE após PSO refinar: 1.000000
+         • Melhoria total no ciclo: +0.000000
+      ============================================================
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.29670585949957395, 'num_layers': 10, 'min_channels': 14, 'max_channels': 422, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000272
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[14, 59, 104, 150, 195, 240, 286, 331, 376, 422], dropout=0.29670585949957395, num_layers=10
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (42.0s): Train Loss: 2.2831, Train Acc: 14.47%, Valid Loss: 2.1566, Valid Acc: 15.66%, LR: 0.000272
+✓ Treinamento concluído em 42.0s
+✓ Melhor acurácia de validação: 15.66%
+Teste: Loss: 2.1562, Top-1 Acc: 16.10%, Top-5 Acc: 68.77%, Precision (macro): 0.0688, Recall (macro): 0.1231, F1 (macro): 0.0637, Params: 4.97e+06, Inference Time: 0.0011s, Memory: 18.94MB, GFLOPs: 0.1138
+Resultados salvos em: results/cnn_experiments/experiment_e940e2d2-a6bd-417a-bd79-8e2f86b4b9c9.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1562025326524856, 'top1_acc': 16.104688503532433, 'top5_acc': 68.77007064868337, 'precision_macro': 0.06884997274612727, 'recall_macro': 0.12309995488015549, 'f1_macro': 0.06371784425582787, 'total_params': 4965707.0, 'avg_inference_time': np.float64(0.001141964172830387), 'memory_used_mb': 18.942668914794922, 'gflops': 0.113768166}
+   💾 Resultado salvo no cache. Total cached: 27
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2041769354049181}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1769456034976535}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.14492739343855296}}
+      • Limites custo: {'total_params': {'min': 409351.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 1.5615501403808594, 'max': 498.8139305114746}, 'gflops': {'min': 0.04421088, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.204177
+recall_macro        0.176946
+f1_macro            0.144927
+dtype: float64
+c_min:  total_params          409351.000000
+avg_inference_time         0.000486
+memory_used_mb             1.561550
+gflops                     0.044211
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.40559441 0.48776224 0.27490634 0.20496178 0.32379064]
+norm_c (MTP, TPI, MS, GFlops):  [0.03495432 0.23031435 0.03495432 0.0331405 ]
+a_m:  0.31804881550786906
+c_m_normalized:  0.91392232300058
+s_phi_score:  0.7351602707527667
+      • Score OACE calculado: 0.735160
+   🎯 Score OACE calculado: 0.735160
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.3294766868975233, 'num_layers': 2, 'min_channels': 59, 'max_channels': 588, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000275
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[59, 588], dropout=0.3294766868975233, num_layers=2
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (40.6s): Train Loss: 2.3278, Train Acc: 14.48%, Valid Loss: 2.1317, Valid Acc: 19.13%, LR: 0.000275
+✓ Treinamento concluído em 40.6s
+✓ Melhor acurácia de validação: 19.13%
+Teste: Loss: 2.1256, Top-1 Acc: 19.03%, Top-5 Acc: 70.55%, Precision (macro): 0.1899, Recall (macro): 0.1558, F1 (macro): 0.1400, Params: 3.92e+05, Inference Time: 0.0005s, Memory: 1.50MB, GFLOPs: 0.0825
+Resultados salvos em: results/cnn_experiments/experiment_8a055934-303b-4c24-a811-79513f790a1b.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1255774040136415, 'top1_acc': 19.026974951830443, 'top5_acc': 70.55234425176621, 'precision_macro': 0.1899080761871535, 'recall_macro': 0.15579948700673824, 'f1_macro': 0.14003164868922624, 'total_params': 391924.0, 'avg_inference_time': np.float64(0.0005392590347601442), 'memory_used_mb': 1.4950714111328125, 'gflops': 0.082520524}
+   💾 Resultado salvo no cache. Total cached: 29
+   📊 Calculando score OACE...
+   📊 Atualizado limite total_params: [409351.0000, 130761079.0000] → [391924.0000, 130761079.0000]
+   📊 Atualizado limite memory_used_mb: [1.5616, 498.8139] → [1.4951, 498.8139]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2041769354049181}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1769456034976535}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.14492739343855296}}
+      • Limites custo: {'total_params': {'min': 391924.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 1.4950714111328125, 'max': 498.8139305114746}, 'gflops': {'min': 0.04421088, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.204177
+recall_macro        0.176946
+f1_macro            0.144927
+dtype: float64
+c_min:  total_params          391924.000000
+avg_inference_time         0.000486
+memory_used_mb             1.495071
+gflops                     0.044211
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.72377622 0.68181818 0.92354621 0.68777476 0.95923449]
+norm_c (MTP, TPI, MS, GFlops):  [0.         0.01858056 0.         0.01825259]
+a_m:  0.852909070228156
+c_m_normalized:  0.9941190508727573
+s_phi_score:  0.9517560566793768
+      • Score OACE calculado: 0.951756
+   🎯 Score OACE calculado: 0.951756
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.317594836678631, 'num_layers': 4, 'min_channels': 52, 'max_channels': 728, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000428
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[52, 277, 502, 728], dropout=0.317594836678631, num_layers=4
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (45.3s): Train Loss: 2.2520, Train Acc: 15.79%, Valid Loss: 2.1026, Valid Acc: 20.51%, LR: 0.000428
+✓ Treinamento concluído em 45.3s
+✓ Melhor acurácia de validação: 20.51%
+Teste: Loss: 2.1040, Top-1 Acc: 20.97%, Top-5 Acc: 70.09%, Precision (macro): 0.1815, Recall (macro): 0.1830, F1 (macro): 0.1658, Params: 4.77e+06, Inference Time: 0.0008s, Memory: 18.19MB, GFLOPs: 0.1681
+Resultados salvos em: results/cnn_experiments/experiment_929f0fd4-0d02-41e4-8caf-3e92a03c5956.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1039873980985826, 'top1_acc': 20.969813744380218, 'top5_acc': 70.08670520231213, 'precision_macro': 0.18147585659655163, 'recall_macro': 0.1830064426199357, 'f1_macro': 0.16580905111078711, 'total_params': 4769477.0, 'avg_inference_time': np.float64(0.0007762033112195074), 'memory_used_mb': 18.194110870361328, 'gflops': 0.168115512}
+   💾 Resultado salvo no cache. Total cached: 31
+   📊 Calculando score OACE...
+   📊 Atualizado limite recall_macro: [0.1092, 0.1769] → [0.1092, 0.1830]
+   📊 Atualizado limite f1_macro: [0.0248, 0.1449] → [0.0248, 0.1658]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2041769354049181}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1830064426199357}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.16580905111078711}}
+      • Limites custo: {'total_params': {'min': 391924.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 1.4950714111328125, 'max': 498.8139305114746}, 'gflops': {'min': 0.04421088, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.204177
+recall_macro        0.183006
+f1_macro            0.165809
+dtype: float64
+c_min:  total_params          391924.000000
+avg_inference_time         0.000486
+memory_used_mb             1.495071
+gflops                     0.044211
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.93531469 0.63111888 0.87836564 1.         1.        ]
+norm_c (MTP, TPI, MS, GFlops):  [0.03357813 0.10182045 0.03357813 0.05903424]
+a_m:  0.9084124750624165
+c_m_normalized:  0.9471212946926226
+s_phi_score:  0.9355086488035607
+      • Score OACE calculado: 0.935509
+   🎯 Score OACE calculado: 0.935509
+
+🔄 AFSA-PSO Iteração 2/2
+
+→ AFSA aplicando comportamentos (iteração 2)
+
+      🔄 PSO ANTES DO AFSA:
+         • Melhor OACE (gbest): 1.000000
+         • OACE médio (pbest): 0.872566
+
+      ============================================================
+      📋 ESTADO ANTES DO AFSA APLICAR COMPORTAMENTOS
+      ============================================================
+      • Número de partículas: 3
+🎯 Cache HIT! Candidato já avaliado (total hits: 24)
+🎯 Cache HIT! Candidato já avaliado (total hits: 25)
+🎯 Cache HIT! Candidato já avaliado (total hits: 26)
+      • Fitness ANTES (OACE): ['0.735160', '0.951756', '0.935509']
+      • Melhor fitness ANTES: 0.951756
+      • Fitness médio ANTES: 0.874142
+
+      🐟 AFSA APLICANDO COMPORTAMENTOS
+      • Iteração: 2
+      • Visual: 40
+      • Step: 5
+      • Try times: 1
+🎯 Cache HIT! Candidato já avaliado (total hits: 27)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.32353576178807714, 'num_layers': 3, 'min_channels': 56, 'max_channels': 658, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000343
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[56, 357, 658], dropout=0.32353576178807714, num_layers=3
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (41.6s): Train Loss: 2.2825, Train Acc: 15.15%, Valid Loss: 2.1138, Valid Acc: 20.08%, LR: 0.000343
+✓ Treinamento concluído em 41.6s
+✓ Melhor acurácia de validação: 20.08%
+Teste: Loss: 2.1140, Top-1 Acc: 20.01%, Top-5 Acc: 70.91%, Precision (macro): 0.2065, Recall (macro): 0.1695, F1 (macro): 0.1549, Params: 2.38e+06, Inference Time: 0.0006s, Memory: 9.09MB, GFLOPs: 0.1838
+Resultados salvos em: results/cnn_experiments/experiment_c8f5eee2-7ba2-42b2-abaa-881f71f9d4d4.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.114034493151734, 'top1_acc': 20.006422607578678, 'top5_acc': 70.90558766859345, 'precision_macro': 0.2065366110051393, 'recall_macro': 0.16951789126070954, 'f1_macro': 0.15485768294516677, 'total_params': 2383505.0, 'avg_inference_time': np.float64(0.0006165236842875578), 'memory_used_mb': 9.092350006103516, 'gflops': 0.183776178}
+   💾 Resultado salvo no cache. Total cached: 33
+   📊 Calculando score OACE...
+   📊 Atualizado limite precision_macro: [0.0175, 0.2042] → [0.0175, 0.2065]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1830064426199357}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.16580905111078711}}
+      • Limites custo: {'total_params': {'min': 391924.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 1.4950714111328125, 'max': 498.8139305114746}, 'gflops': {'min': 0.04421088, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.183006
+f1_macro            0.165809
+dtype: float64
+c_min:  total_params          391924.000000
+avg_inference_time         0.000486
+memory_used_mb             1.495071
+gflops                     0.044211
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.83041958 0.72027972 1.         0.81719848 0.92231801]
+norm_c (MTP, TPI, MS, GFlops):  [0.01527647 0.04572408 0.01527647 0.06649575]
+a_m:  0.924725883751921
+c_m_normalized:  0.9739084447673737
+s_phi_score:  0.959153676462738
+      • Score OACE calculado: 0.959154
+   🎯 Score OACE calculado: 0.959154
+🎯 Cache HIT! Candidato já avaliado (total hits: 28)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.3015650668109844, 'num_layers': 9, 'min_channels': 22, 'max_channels': 465, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000283
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[22, 77, 132, 188, 243, 298, 354, 409, 465], dropout=0.3015650668109844, num_layers=9
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (42.4s): Train Loss: 2.2975, Train Acc: 14.14%, Valid Loss: 2.1679, Valid Acc: 16.29%, LR: 0.000283
+✓ Treinamento concluído em 42.4s
+✓ Melhor acurácia de validação: 16.29%
+Teste: Loss: 2.1841, Top-1 Acc: 15.99%, Top-5 Acc: 68.24%, Precision (macro): 0.0345, Recall (macro): 0.1126, F1 (macro): 0.0495, Params: 5.42e+06, Inference Time: 0.0010s, Memory: 20.69MB, GFLOPs: 0.1430
+Resultados salvos em: results/cnn_experiments/experiment_f41ddd1a-f71c-42db-992f-ac9eef4e750c.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1841035268975895, 'top1_acc': 15.992292870905588, 'top5_acc': 68.24020552344251, 'precision_macro': 0.034484403998874376, 'recall_macro': 0.11262713985545031, 'f1_macro': 0.049498509744557224, 'total_params': 5423150.0, 'avg_inference_time': np.float64(0.0010257034885640048), 'memory_used_mb': 20.68767547607422, 'gflops': 0.142972593}
+   💾 Resultado salvo no cache. Total cached: 35
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1830064426199357}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.16580905111078711}}
+      • Limites custo: {'total_params': {'min': 391924.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 1.4950714111328125, 'max': 498.8139305114746}, 'gflops': {'min': 0.04421088, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.183006
+f1_macro            0.165809
+dtype: float64
+c_min:  total_params          391924.000000
+avg_inference_time         0.000486
+memory_used_mb             1.495071
+gflops                     0.044211
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.39335664 0.43006993 0.08963929 0.04619529 0.17496757]
+norm_c (MTP, TPI, MS, GFlops):  [0.03859215 0.1894713  0.03859215 0.04705492]
+a_m:  0.188661414242569
+c_m_normalized:  0.9213792863476405
+s_phi_score:  0.7015639247161191
+      • Score OACE calculado: 0.701564
+   🎯 Score OACE calculado: 0.701564
+🎯 Cache HIT! Candidato já avaliado (total hits: 29)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.0, 'num_layers': 40, 'min_channels': 8, 'max_channels': 64, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.100000
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[8, 9, 10, 12, 13, 15, 16, 18, 19, 20, 22, 23, 25, 26, 28, 29, 30, 32, 33, 35, 36, 38, 39, 41, 42, 43, 45, 46, 48, 49, 51, 52, 53, 55, 56, 58, 59, 61, 62, 64], dropout=0.0, num_layers=40
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (45.5s): Train Loss: 2.1865, Train Acc: 15.45%, Valid Loss: 2.1615, Valid Acc: 16.22%, LR: 0.100000
+✓ Treinamento concluído em 45.5s
+✓ Melhor acurácia de validação: 16.22%
+Teste: Loss: 2.1619, Top-1 Acc: 16.12%, Top-5 Acc: 65.85%, Precision (macro): 0.0180, Recall (macro): 0.1101, F1 (macro): 0.0310, Params: 5.47e+05, Inference Time: 0.0027s, Memory: 2.09MB, GFLOPs: 0.0094
+Resultados salvos em: results/cnn_experiments/experiment_e6e06a5f-d90a-4e08-a7e2-9e610c1d1d39.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1619288631946367, 'top1_acc': 16.120745022479127, 'top5_acc': 65.84778420038536, 'precision_macro': 0.018030637717077025, 'recall_macro': 0.11012394427991663, 'f1_macro': 0.030987654320987656, 'total_params': 547017.0, 'avg_inference_time': np.float64(0.002739872251238142), 'memory_used_mb': 2.0867042541503906, 'gflops': 0.009395072}
+   💾 Resultado salvo no cache. Total cached: 37
+   📊 Calculando score OACE...
+   📊 Atualizado limite gflops: [0.0442, 2.1431] → [0.0094, 2.1431]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1830064426199357}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.16580905111078711}}
+      • Limites custo: {'total_params': {'min': 391924.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 1.4950714111328125, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.183006
+f1_macro            0.165809
+dtype: float64
+c_min:  total_params          391924.000000
+avg_inference_time         0.000486
+memory_used_mb             1.495071
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.40734266 0.16958042 0.00257931 0.01227111 0.04366343]
+norm_c (MTP, TPI, MS, GFlops):  [0.00118964 0.79166866 0.00118964 0.        ]
+a_m:  0.11990466846256334
+c_m_normalized:  0.7916115742379362
+s_phi_score:  0.5900995025053243
+      • Score OACE calculado: 0.590100
+   🎯 Score OACE calculado: 0.590100
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.0, 'num_layers': 2, 'min_channels': 8, 'max_channels': 1024, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.007252
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[8, 1024], dropout=0.0, num_layers=2
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (46.2s): Train Loss: 2.1485, Train Acc: 18.02%, Valid Loss: 2.2643, Valid Acc: 17.20%, LR: 0.007252
+✓ Treinamento concluído em 46.2s
+✓ Melhor acurácia de validação: 17.20%
+Teste: Loss: 2.2817, Top-1 Acc: 16.51%, Top-5 Acc: 70.05%, Precision (macro): 0.1050, Recall (macro): 0.1348, F1 (macro): 0.0990, Params: 2.09e+05, Inference Time: 0.0005s, Memory: 0.80MB, GFLOPs: 0.0204
+Resultados salvos em: results/cnn_experiments/experiment_ea7f6db2-ed3c-4218-8144-2c523c39b482.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.281668462734921, 'top1_acc': 16.506101477199742, 'top5_acc': 70.05459216441875, 'precision_macro': 0.10500838650037009, 'recall_macro': 0.1348452222478157, 'f1_macro': 0.09896307695022273, 'total_params': 208625.0, 'avg_inference_time': np.float64(0.0004893030439104353), 'memory_used_mb': 0.7958412170410156, 'gflops': 0.020376192}
+   💾 Resultado salvo no cache. Total cached: 39
+   📊 Calculando score OACE...
+   📊 Atualizado limite total_params: [391924.0000, 130761079.0000] → [208625.0000, 130761079.0000]
+   📊 Atualizado limite memory_used_mb: [1.4951, 498.8139] → [0.7958, 498.8139]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1830064426199357}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.16580905111078711}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.183006
+f1_macro            0.165809
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000486
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.4493007  0.62762238 0.462795   0.34730244 0.52583751]
+norm_c (MTP, TPI, MS, GFlops):  [0.         0.00103073 0.         0.00514657]
+a_m:  0.46557228102849685
+c_m_normalized:  0.9994452095008796
+s_phi_score:  0.8392833309591647
+      • Score OACE calculado: 0.839283
+   🎯 Score OACE calculado: 0.839283
+🎯 Cache HIT! Candidato já avaliado (total hits: 30)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.30715034808910247, 'num_layers': 7, 'min_channels': 33, 'max_channels': 575, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000341
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[33, 123, 213, 304, 394, 484, 575], dropout=0.30715034808910247, num_layers=7
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (48.8s): Train Loss: 2.2716, Train Acc: 15.06%, Valid Loss: 2.1468, Valid Acc: 16.75%, LR: 0.000341
+✓ Treinamento concluído em 48.8s
+✓ Melhor acurácia de validação: 16.75%
+Teste: Loss: 2.1444, Top-1 Acc: 16.51%, Top-5 Acc: 69.41%, Precision (macro): 0.0969, Recall (macro): 0.1275, F1 (macro): 0.0782, Params: 6.23e+06, Inference Time: 0.0010s, Memory: 23.78MB, GFLOPs: 0.2453
+Resultados salvos em: results/cnn_experiments/experiment_151eed56-5db6-4404-a95e-b5634b45c164.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1444395516419457, 'top1_acc': 16.506101477199742, 'top5_acc': 69.41233140655106, 'precision_macro': 0.09690381382599081, 'recall_macro': 0.12745839936395184, 'f1_macro': 0.07816342017201808, 'total_params': 6234326.0, 'avg_inference_time': np.float64(0.0009524335666578643), 'memory_used_mb': 23.782066345214844, 'gflops': 0.245261103}
+   💾 Resultado salvo no cache. Total cached: 41
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1830064426199357}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.16580905111078711}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.183006
+f1_macro            0.165809
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000486
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.4493007  0.55769231 0.41991217 0.24719366 0.37829807]
+norm_c (MTP, TPI, MS, GFlops):  [0.0461554  0.16373115 0.0461554  0.11054444]
+a_m:  0.41587663232489264
+c_m_normalized:  0.9194563146522279
+s_phi_score:  0.7683824099540273
+      • Score OACE calculado: 0.768382
+   🎯 Score OACE calculado: 0.768382
+🎯 Cache HIT! Candidato já avaliado (total hits: 31)
+🎯 Cache HIT! Candidato já avaliado (total hits: 32)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.5, 'num_layers': 2, 'min_channels': 8, 'max_channels': 1024, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000100
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[8, 1024], dropout=0.5, num_layers=2
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (47.1s): Train Loss: 2.6363, Train Acc: 12.24%, Valid Loss: 2.1683, Valid Acc: 15.42%, LR: 0.000100
+✓ Treinamento concluído em 47.1s
+✓ Melhor acurácia de validação: 15.42%
+Teste: Loss: 2.1695, Top-1 Acc: 15.13%, Top-5 Acc: 65.48%, Precision (macro): 0.1078, Recall (macro): 0.1189, F1 (macro): 0.0854, Params: 2.09e+05, Inference Time: 0.0005s, Memory: 0.80MB, GFLOPs: 0.0204
+Resultados salvos em: results/cnn_experiments/experiment_8176d87a-25bf-4b25-8897-b7e354ce7859.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.169491767730174, 'top1_acc': 15.1252408477842, 'top5_acc': 65.47848426461144, 'precision_macro': 0.10778085246258673, 'recall_macro': 0.11886949853569839, 'f1_macro': 0.08542436024220477, 'total_params': 208625.0, 'avg_inference_time': np.float64(0.0005403002914117308), 'memory_used_mb': 0.7958412170410156, 'gflops': 0.020376192}
+   💾 Resultado salvo no cache. Total cached: 43
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.1830064426199357}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.16580905111078711}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.183006
+f1_macro            0.165809
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000486
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.29895105 0.12937063 0.47746464 0.1307939  0.42980253]
+norm_c (MTP, TPI, MS, GFlops):  [0.         0.01894636 0.         0.00514657]
+a_m:  0.39106164927859816
+c_m_normalized:  0.9947477105512991
+s_phi_score:  0.8136418921694888
+      • Score OACE calculado: 0.813642
+   🎯 Score OACE calculado: 0.813642
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.10467906966096985, 'num_layers': 2, 'min_channels': 64, 'max_channels': 1024, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000100
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[64, 1024], dropout=0.10467906966096985, num_layers=2
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (41.1s): Train Loss: 2.2100, Train Acc: 16.95%, Valid Loss: 2.0782, Valid Acc: 21.28%, LR: 0.000100
+✓ Treinamento concluído em 41.1s
+✓ Melhor acurácia de validação: 21.28%
+Teste: Loss: 2.0834, Top-1 Acc: 21.52%, Top-5 Acc: 72.83%, Precision (macro): 0.1956, Recall (macro): 0.1860, F1 (macro): 0.1717, Params: 7.26e+05, Inference Time: 0.0005s, Memory: 2.77MB, GFLOPs: 0.1543
+Resultados salvos em: results/cnn_experiments/experiment_fbf08901-bae9-4bce-840b-95019992fa5d.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.083402433453574, 'top1_acc': 21.51573538856776, 'top5_acc': 72.83236994219654, 'precision_macro': 0.19564835582628456, 'recall_macro': 0.18602191565174744, 'f1_macro': 0.1716623710426736, 'total_params': 726345.0, 'avg_inference_time': np.float64(0.0005360160555158343), 'memory_used_mb': 2.7707862854003906, 'gflops': 0.154274432}
+   💾 Resultado salvo no cache. Total cached: 45
+   📊 Calculando score OACE...
+   📊 Atualizado limite recall_macro: [0.1092, 0.1830] → [0.1092, 0.1860]
+   📊 Atualizado limite f1_macro: [0.0248, 0.1658] → [0.0248, 0.1717]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.18602191565174744}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.1716623710426736}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.186022
+f1_macro            0.171662
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000486
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.99475524 0.93006993 0.94238819 1.         1.        ]
+norm_c (MTP, TPI, MS, GFlops):  [0.00396561 0.01744128 0.00396561 0.06790129]
+a_m:  0.9667532936203949
+c_m_normalized:  0.9889663373732167
+s_phi_score:  0.9823024242473701
+      • Score OACE calculado: 0.982302
+   🎯 Score OACE calculado: 0.982302
+🎯 Cache HIT! Candidato já avaliado (total hits: 33)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.3130912731985486, 'num_layers': 6, 'min_channels': 37, 'max_channels': 505, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000273
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[37, 130, 224, 317, 411, 505], dropout=0.3130912731985486, num_layers=6
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (45.7s): Train Loss: 2.2793, Train Acc: 14.75%, Valid Loss: 2.1456, Valid Acc: 16.00%, LR: 0.000273
+✓ Treinamento concluído em 45.7s
+✓ Melhor acurácia de validação: 16.00%
+Teste: Loss: 2.1440, Top-1 Acc: 17.31%, Top-5 Acc: 69.32%, Precision (macro): 0.0592, Recall (macro): 0.1355, F1 (macro): 0.0809, Params: 4.06e+06, Inference Time: 0.0009s, Memory: 15.47MB, GFLOPs: 0.2258
+Resultados salvos em: results/cnn_experiments/experiment_0d104c62-d0e4-446f-a7b9-29a7471326d1.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.143998954107766, 'top1_acc': 17.30892742453436, 'top5_acc': 69.3159922928709, 'precision_macro': 0.05921954415751866, 'recall_macro': 0.1355077118642888, 'f1_macro': 0.08090372946539233, 'total_params': 4055452.0, 'avg_inference_time': np.float64(0.0008670188942734076), 'memory_used_mb': 15.470321655273438, 'gflops': 0.225839161}
+   💾 Resultado salvo no cache. Total cached: 47
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.18602191565174744}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.1716623710426736}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.186022
+f1_macro            0.171662
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000486
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.53671329 0.5472028  0.22051759 0.34229236 0.38188051]
+norm_c (MTP, TPI, MS, GFlops):  [0.02946576 0.13372449 0.02946576 0.10144186]
+a_m:  0.34262224835023547
+c_m_normalized:  0.9392182431118453
+s_phi_score:  0.7602394446833624
+      • Score OACE calculado: 0.760239
+   🎯 Score OACE calculado: 0.760239
+🎯 Cache HIT! Candidato já avaliado (total hits: 34)
+🎯 Cache HIT! Candidato já avaliado (total hits: 35)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.0, 'num_layers': 40, 'min_channels': 8, 'max_channels': 1024, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000100
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[8, 34, 60, 86, 112, 138, 164, 190, 216, 242, 268, 294, 320, 346, 372, 398, 424, 450, 476, 502, 529, 555, 581, 607, 633, 659, 685, 711, 737, 763, 789, 815, 841, 867, 893, 919, 945, 971, 997, 1024], dropout=0.0, num_layers=40
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (45.7s): Train Loss: 2.1798, Train Acc: 15.73%, Valid Loss: 2.3294, Valid Acc: 15.53%, LR: 0.000100
+✓ Treinamento concluído em 45.7s
+✓ Melhor acurácia de validação: 15.53%
+Teste: Loss: 2.3077, Top-1 Acc: 15.96%, Top-5 Acc: 65.80%, Precision (macro): 0.0733, Recall (macro): 0.1407, F1 (macro): 0.0827, Params: 1.24e+08, Inference Time: 0.0028s, Memory: 471.28MB, GFLOPs: 1.9871
+Resultados salvos em: results/cnn_experiments/experiment_3eae1db0-ecab-48e6-83c4-5ce2d14e6c84.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.30767486764593, 'top1_acc': 15.960179833012203, 'top5_acc': 65.79961464354528, 'precision_macro': 0.0733026737764495, 'recall_macro': 0.1407492143378629, 'f1_macro': 0.08273087284806808, 'total_params': 123542403.0, 'avg_inference_time': np.float64(0.002819795997775331), 'memory_used_mb': 471.2768669128418, 'gflops': 1.987128896}
+   💾 Resultado salvo no cache. Total cached: 49
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.18602191565174744}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.1716623710426736}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.0004863690356818997), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.186022
+f1_macro            0.171662
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000486
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.38986014 0.16433566 0.29503408 0.41053804 0.39432442]
+norm_c (MTP, TPI, MS, GFlops):  [0.9447067  0.81974633 0.9447067  0.92691375]
+a_m:  0.3356005049334982
+c_m_normalized:  0.08904175047263355
+s_phi_score:  0.16300937681089295
+      • Score OACE calculado: 0.163009
+   🎯 Score OACE calculado: 0.163009
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.5, 'num_layers': 2, 'min_channels': 64, 'max_channels': 716, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000100
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[64, 716], dropout=0.5, num_layers=2
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (49.3s): Train Loss: 2.6265, Train Acc: 12.87%, Valid Loss: 2.1581, Valid Acc: 17.32%, LR: 0.000100
+✓ Treinamento concluído em 49.3s
+✓ Melhor acurácia de validação: 17.32%
+Teste: Loss: 2.1569, Top-1 Acc: 17.16%, Top-5 Acc: 67.18%, Precision (macro): 0.1574, Recall (macro): 0.1510, F1 (macro): 0.1349, Params: 5.09e+05, Inference Time: 0.0005s, Memory: 1.94MB, GFLOPs: 0.1085
+Resultados salvos em: results/cnn_experiments/experiment_dc18cc8f-5c07-4f4d-936f-ad8a651343aa.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1568505647631127, 'top1_acc': 17.16441875401413, 'top5_acc': 67.18047527296082, 'precision_macro': 0.157391369055436, 'recall_macro': 0.1510257900489026, 'f1_macro': 0.1348796126110882, 'total_params': 508897.0, 'avg_inference_time': np.float64(0.000464889467978964), 'memory_used_mb': 1.9412879943847656, 'gflops': 0.108483148}
+   💾 Resultado salvo no cache. Total cached: 51
+   📊 Calculando score OACE...
+   📊 Atualizado limite avg_inference_time: [0.0005, 0.0033] → [0.0005, 0.0033]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.18602191565174744}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.1716623710426736}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.000464889467978964), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.186022
+f1_macro            0.171662
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000465
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.52097902 0.31468531 0.73996325 0.54434164 0.74948788]
+norm_c (MTP, TPI, MS, GFlops):  [0.00230001 0.         0.00230001 0.04644007]
+a_m:  0.657352996193293
+c_m_normalized:  0.9958627501680063
+s_phi_score:  0.8943098239755922
+      • Score OACE calculado: 0.894310
+   🎯 Score OACE calculado: 0.894310
+🎯 Cache HIT! Candidato já avaliado (total hits: 36)
+🎯 Cache HIT! Candidato já avaliado (total hits: 37)
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.5, 'num_layers': 2, 'min_channels': 64, 'max_channels': 1024, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000100
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[64, 1024], dropout=0.5, num_layers=2
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (45.5s): Train Loss: 2.5600, Train Acc: 13.71%, Valid Loss: 2.1680, Valid Acc: 15.56%, LR: 0.000100
+✓ Treinamento concluído em 45.5s
+✓ Melhor acurácia de validação: 15.56%
+Teste: Loss: 2.1709, Top-1 Acc: 15.21%, Top-5 Acc: 65.62%, Precision (macro): 0.1531, Recall (macro): 0.1404, F1 (macro): 0.1200, Params: 7.26e+05, Inference Time: 0.0005s, Memory: 2.77MB, GFLOPs: 0.1543
+Resultados salvos em: results/cnn_experiments/experiment_29a9a8a0-a26f-401c-8ce9-640c98dbbe1b.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1708536664108933, 'top1_acc': 15.205523442517663, 'top5_acc': 65.62299293513166, 'precision_macro': 0.1531043872218045, 'recall_macro': 0.1403517543295213, 'f1_macro': 0.11999306829133086, 'total_params': 726345.0, 'avg_inference_time': np.float64(0.0004934680705167809), 'memory_used_mb': 2.7707862854003906, 'gflops': 0.154274432}
+   💾 Resultado salvo no cache. Total cached: 53
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.18602191565174744}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.1716623710426736}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.000464889467978964), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.186022
+f1_macro            0.171662
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000465
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.30769231 0.1451049  0.71728002 0.40536301 0.64810179]
+norm_c (MTP, TPI, MS, GFlops):  [0.00396561 0.00996464 0.00396561 0.06790129]
+a_m:  0.56240907962371
+c_m_normalized:  0.990926723613776
+s_phi_score:  0.8623714304167561
+      • Score OACE calculado: 0.862371
+   🎯 Score OACE calculado: 0.862371
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.5, 'num_layers': 40, 'min_channels': 8, 'max_channels': 1024, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000100
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[8, 34, 60, 86, 112, 138, 164, 190, 216, 242, 268, 294, 320, 346, 372, 398, 424, 450, 476, 502, 529, 555, 581, 607, 633, 659, 685, 711, 737, 763, 789, 815, 841, 867, 893, 919, 945, 971, 997, 1024], dropout=0.5, num_layers=40
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (43.5s): Train Loss: 2.3864, Train Acc: 13.65%, Valid Loss: 2.1583, Valid Acc: 16.27%, LR: 0.000100
+✓ Treinamento concluído em 43.5s
+✓ Melhor acurácia de validação: 16.27%
+Teste: Loss: 2.1584, Top-1 Acc: 16.27%, Top-5 Acc: 67.41%, Precision (macro): 0.0181, Recall (macro): 0.1111, F1 (macro): 0.0311, Params: 1.24e+08, Inference Time: 0.0028s, Memory: 471.28MB, GFLOPs: 1.9871
+Resultados salvos em: results/cnn_experiments/experiment_d974b1ac-ab50-44c1-994b-627939534b26.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.158362817825533, 'top1_acc': 16.26525369299936, 'top5_acc': 67.40526653821452, 'precision_macro': 0.01807250410333262, 'recall_macro': 0.1111111111111111, 'f1_macro': 0.03108840092682104, 'total_params': 123542403.0, 'avg_inference_time': np.float64(0.0028423435833989357), 'memory_used_mb': 471.2768669128418, 'gflops': 1.987128896}
+   💾 Resultado salvo no cache. Total cached: 55
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.2065366110051393}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.18602191565174744}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.1716623710426736}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.000464889467978964), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.206537
+recall_macro        0.186022
+f1_macro            0.171662
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000465
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.42307692 0.33916084 0.00280083 0.02464248 0.04260895]
+norm_c (MTP, TPI, MS, GFlops):  [0.9447067  0.82895809 0.9447067  0.92691375]
+a_m:  0.13043380933510473
+c_m_normalized:  0.08662641560115925
+s_phi_score:  0.09976863372134288
+      • Score OACE calculado: 0.099769
+   🎯 Score OACE calculado: 0.099769
+      📊 Comportamentos aplicados:
+         • Cluster: 1 partículas
+         • Foraging: 1 partículas
+         • Random: 0 partículas
+         • Sem modificação: 1 partículas
+
+      📋 ESTADO DEPOIS DO AFSA APLICAR COMPORTAMENTOS
+      ============================================================
+🎯 Cache HIT! Candidato já avaliado (total hits: 38)
+🎯 Cache HIT! Candidato já avaliado (total hits: 39)
+🎯 Cache HIT! Candidato já avaliado (total hits: 40)
+      • Fitness DEPOIS (OACE): ['0.839283', '0.982302', '0.935509']
+      • Melhor fitness DEPOIS: 0.982302
+      • Fitness médio DEPOIS: 0.919031
+
+      📈 COMPARAÇÃO ANTES vs DEPOIS:
+         • Melhor fitness: 0.951756 → 0.982302 (+0.030546)
+         • Fitness médio: 0.874142 → 0.919031 (+0.044890)
+         • Partícula 1: modificada (distância: 1.378491)
+         • Partícula 2: modificada (distância: 1.088460)
+         ✅ 2 partículas modificadas
+      ============================================================
+
+
+      🔄 ATUALIZANDO ENXAME DO PSO COM POPULAÇÃO DO AFSA
+         • Substituindo 3 partículas do PSO
+         • Partículas antigas do PSO foram substituídas pelas do AFSA
+         • Recalculando fitness das partículas modificadas...
+🎯 Cache HIT! Candidato já avaliado (total hits: 41)
+🎯 Cache HIT! Candidato já avaliado (total hits: 42)
+🎯 Cache HIT! Candidato já avaliado (total hits: 43)
+         • pbest atualizado: 1/3 partículas
+         • gbest mantido: 1.000000
+
+      ⚙️  PSO REFINANDO SOLUÇÕES MODIFICADAS PELO AFSA
+         • Executando 1 iteração do PSO...
+🎯 Cache HIT! Candidato já avaliado (total hits: 44)
+🎯 Cache HIT! Candidato já avaliado (total hits: 45)
+🎯 Cache HIT! Candidato já avaliado (total hits: 46)
+         • ✅ PSO executou 1 iteração com sucesso
+
+      📊 RESULTADO DO REFINAMENTO DO PSO:
+         • gbest ANTES do refinamento: 1.000000
+         • gbest DEPOIS do refinamento: 1.000000
+         • Mudança no gbest: +0.000000
+         • Fitness médio ANTES: 0.946428
+         • Fitness médio DEPOIS: 0.946428
+         • Mudança no fitness médio: +0.000000
+
+      📈 RESUMO DO CICLO AFSA-PSO (Iteração 2):
+         • OACE inicial (antes do AFSA): 1.000000
+         • OACE após AFSA: 1.000000
+         • OACE após PSO refinar: 1.000000
+         • Melhoria total no ciclo: +0.000000
+      ============================================================
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.2973300228798841, 'num_layers': 3, 'min_channels': 31, 'max_channels': 826, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.010584
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[31, 428, 826], dropout=0.2973300228798841, num_layers=3
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (40.8s): Train Loss: 2.1743, Train Acc: 16.07%, Valid Loss: 2.1314, Valid Acc: 17.32%, LR: 0.010584
+✓ Treinamento concluído em 40.8s
+✓ Melhor acurácia de validação: 17.32%
+Teste: Loss: 2.1300, Top-1 Acc: 17.50%, Top-5 Acc: 70.30%, Precision (macro): 0.2123, Recall (macro): 0.1280, F1 (macro): 0.0824, Params: 3.41e+06, Inference Time: 0.0006s, Memory: 13.02MB, GFLOPs: 0.2360
+Resultados salvos em: results/cnn_experiments/experiment_688e90bc-46f4-48a4-afb0-0450a2ee808c.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.129981737528846, 'top1_acc': 17.501605651894668, 'top5_acc': 70.29543994861913, 'precision_macro': 0.21230610412126139, 'recall_macro': 0.12803243302953174, 'f1_macro': 0.0824280356880102, 'total_params': 3411844.0, 'avg_inference_time': np.float64(0.0006197934248009507), 'memory_used_mb': 13.015151977539062, 'gflops': 0.235956826}
+   💾 Resultado salvo no cache. Total cached: 57
+   📊 Calculando score OACE...
+   📊 Atualizado limite precision_macro: [0.0175, 0.2065] → [0.0175, 0.2123]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.21230610412126139}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.18602191565174744}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.1716623710426736}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.000464889467978964), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.212306
+recall_macro        0.186022
+f1_macro            0.171662
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000465
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.55769231 0.65384615 1.         0.24496235 0.39226192]
+norm_c (MTP, TPI, MS, GFlops):  [0.02453588 0.05401109 0.02453588 0.10618376]
+a_m:  0.7465623075319279
+c_m_normalized:  0.963221743246675
+s_phi_score:  0.8982239125322509
+      • Score OACE calculado: 0.898224
+   🎯 Score OACE calculado: 0.898224
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.26307455769095567, 'num_layers': 4, 'min_channels': 59, 'max_channels': 638, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000421
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[59, 252, 445, 638], dropout=0.26307455769095567, num_layers=4
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (42.0s): Train Loss: 2.2238, Train Acc: 16.53%, Valid Loss: 2.0976, Valid Acc: 20.12%, LR: 0.000421
+✓ Treinamento concluído em 42.0s
+✓ Melhor acurácia de validação: 20.12%
+Teste: Loss: 2.0966, Top-1 Acc: 20.44%, Top-5 Acc: 71.32%, Precision (macro): 0.3232, Recall (macro): 0.1687, F1 (macro): 0.1343, Params: 3.79e+06, Inference Time: 0.0007s, Memory: 14.44MB, GFLOPs: 0.1421
+Resultados salvos em: results/cnn_experiments/experiment_f00ed164-e381-42fc-8834-ec1ed66f6c5f.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.096562870052585, 'top1_acc': 20.439948619139372, 'top5_acc': 71.32305716120744, 'precision_macro': 0.3232219343418443, 'recall_macro': 0.16867037284265254, 'f1_macro': 0.13431940934108277, 'total_params': 3785852.0, 'avg_inference_time': np.float64(0.0007298917186503508), 'memory_used_mb': 14.441879272460938, 'gflops': 0.142103766}
+   💾 Resultado salvo no cache. Total cached: 59
+   📊 Calculando score OACE...
+   📊 Atualizado limite precision_macro: [0.0175, 0.2123] → [0.0175, 0.3232]
+      • Limites assertividade: {'top1_acc': {'min': 12.379576107899807, 'max': 21.563904945407835}, 'top5_acc': {'min': 64.29030186255619, 'max': 73.47463070006422}, 'precision_macro': {'min': 0.017543165941742454, 'max': 0.3232219343418443}, 'recall_macro': {'min': 0.1092184838017662, 'max': 0.18602191565174744}, 'f1_macro': {'min': 0.02483211799118362, 'max': 0.1716623710426736}}
+      • Limites custo: {'total_params': {'min': 208625.0, 'max': 130761079.0}, 'avg_inference_time': {'min': np.float64(0.000464889467978964), 'max': np.float64(0.0033328922427430445)}, 'memory_used_mb': {'min': 0.7958412170410156, 'max': 498.8139305114746}, 'gflops': {'min': 0.009395072, 'max': 2.14307128}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.379576
+top5_acc           64.290302
+precision_macro     0.017543
+recall_macro        0.109218
+f1_macro            0.024832
+dtype: float64
+s_max:  top1_acc           21.563905
+top5_acc           73.474631
+precision_macro     0.323222
+recall_macro        0.186022
+f1_macro            0.171662
+dtype: float64
+c_min:  total_params          208625.000000
+avg_inference_time         0.000465
+memory_used_mb             0.795841
+gflops                     0.009395
+dtype: float64
+c_max:  total_params          1.307611e+08
+avg_inference_time    3.332892e-03
+memory_used_mb        4.988139e+02
+gflops                2.143071e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.87762238 0.76573427 1.         0.77407855 0.74567256]
+norm_c (MTP, TPI, MS, GFlops):  [0.02740069 0.09239958 0.02740069 0.0621972 ]
+a_m:  0.9130687166724034
+c_m_normalized:  0.9536327821268091
+s_phi_score:  0.9414635624904872
+      • Score OACE calculado: 0.941464
+   🎯 Score OACE calculado: 0.941464
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.3161125868479509, 'num_layers': 4, 'min_channels': 52, 'max_channels': 719, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.000390
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[52, 274, 496, 719], dropout=0.3161125868479509, num_layers=4
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+ Recall (macro): 0.1575, F1 (macro): 0.1450, Params: 1.05e+05, Inference Time: 0.0005s, Memory: 0.40MB, GFLOPs: 0.0207
+Resultados salvos em: results/cnn_experiments/experiment_c1c61506-5592-486a-8f37-92b0aa229f2f.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1306820855970634, 'top1_acc': 18.208092485549134, 'top5_acc': 69.47655748233782, 'precision_macro': 0.16132287982903837, 'recall_macro': 0.15753992110167675, 'f1_macro': 0.14498317233950414, 'total_params': 104625.0, 'avg_inference_time': np.float64(0.0005313206692131199), 'memory_used_mb': 0.3991127014160156, 'gflops': 0.02069384}
+   💾 Resultado salvo no cache. Total cached: 59
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.491971740526655, 'max': 21.644187540141296}, 'top5_acc': {'min': 63.77649325626204, 'max': 73.49068721901092}, 'precision_macro': {'min': 0.013879968600585171, 'max': 0.22288952669367745}, 'recall_macro': {'min': 0.11055637409243066, 'max': 0.19553046511312278}, 'f1_macro': {'min': 0.024677260760617884, 'max': 0.18139105951319498}}
+      • Limites custo: {'total_params': {'min': 14705.0, 'max': 123542403.0}, 'avg_inference_time': {'min': np.float64(0.0004628945370109714), 'max': np.float64(0.004172468671993334)}, 'memory_used_mb': {'min': 0.056095123291015625, 'max': 471.2768669128418}, 'gflops': {'min': 0.001513152, 'max': 1.987128896}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.491972
+top5_acc           63.776493
+precision_macro     0.013880
+recall_macro        0.110556
+f1_macro            0.024677
+dtype: float64
+s_max:  top1_acc           21.644188
+top5_acc           73.490687
+precision_macro     0.222890
+recall_macro        0.195530
+f1_macro            0.181391
+dtype: float64
+c_min:  total_params          14705.000000
+avg_inference_time        0.000463
+memory_used_mb            0.056095
+gflops                    0.001513
+dtype: float64
+c_max:  total_params          1.235424e+08
+avg_inference_time    4.172469e-03
+memory_used_mb        4.712769e+02
+gflops                1.987129e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.6245614  0.58677686 0.70543621 0.55291615 0.76767912]
+norm_c (MTP, TPI, MS, GFlops):  [0.00072793 0.01844582 0.00072793 0.00965982]
+a_m:  0.6786936716179597
+c_m_normalized:  0.994132611691269
+s_phi_score:  0.8995009296692761
+      • Score OACE calculado: 0.899501
+   🎯 Score OACE calculado: 0.899501
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.3774410908479161, 'max_channels': 299, 'num_layers': 2, 'min_channels': 64, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.018393
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[64, 299], dropout=0.3774410908479161, num_layers=2
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/1 (47.3s): Train Loss: 2.1703, Train Acc: 15.92%, Valid Loss: 2.1421, Valid Acc: 16.88%, LR: 0.018393
+✓ Treinamento concluído em 47.3s
+✓ Melhor acurácia de validação: 16.88%
+Teste: Loss: 2.1423, Top-1 Acc: 17.24%, Top-5 Acc: 68.83%, Precision (macro): 0.0636, Recall (macro): 0.1268, F1 (macro): 0.0668, Params: 2.14e+05, Inference Time: 0.0005s, Memory: 0.82MB, GFLOPs: 0.0465
+Resultados salvos em: results/cnn_experiments/experiment_31e3f1d6-6512-469b-98c9-5681a414a5e6.json
+--- Warm-up da CNN Genérica Concluído ---
+   📊 Métricas obtidas: {'loss': 2.1423318729082133, 'top1_acc': 17.24470134874759, 'top5_acc': 68.83429672447014, 'precision_macro': 0.06357100114006546, 'recall_macro': 0.12683404330692477, 'f1_macro': 0.06676353153087938, 'total_params': 214495.0, 'avg_inference_time': np.float64(0.0005237812898596938), 'memory_used_mb': 0.8182334899902344, 'gflops': 0.046486507}
+   💾 Resultado salvo no cache. Total cached: 61
+   📊 Calculando score OACE...
+      • Limites assertividade: {'top1_acc': {'min': 12.491971740526655, 'max': 21.644187540141296}, 'top5_acc': {'min': 63.77649325626204, 'max': 73.49068721901092}, 'precision_macro': {'min': 0.013879968600585171, 'max': 0.22288952669367745}, 'recall_macro': {'min': 0.11055637409243066, 'max': 0.19553046511312278}, 'f1_macro': {'min': 0.024677260760617884, 'max': 0.18139105951319498}}
+      • Limites custo: {'total_params': {'min': 14705.0, 'max': 123542403.0}, 'avg_inference_time': {'min': np.float64(0.0004628945370109714), 'max': np.float64(0.004172468671993334)}, 'memory_used_mb': {'min': 0.056095123291015625, 'max': 471.2768669128418}, 'gflops': {'min': 0.001513152, 'max': 1.987128896}}
+      • Lambda (trade-off): 0.3
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           12.491972
+top5_acc           63.776493
+precision_macro     0.013880
+recall_macro        0.110556
+f1_macro            0.024677
+dtype: float64
+s_max:  top1_acc           21.644188
+top5_acc           73.490687
+precision_macro     0.222890
+recall_macro        0.195530
+f1_macro            0.181391
+dtype: float64
+c_min:  total_params          14705.000000
+avg_inference_time        0.000463
+memory_used_mb            0.056095
+gflops                    0.001513
+dtype: float64
+c_max:  total_params          1.235424e+08
+avg_inference_time    4.172469e-03
+memory_used_mb        4.712769e+02
+gflops                1.987129e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [0.51929825 0.52066116 0.23774526 0.19156038 0.26855498]
+norm_c (MTP, TPI, MS, GFlops):  [0.00161737 0.01641341 0.00161737 0.02264958]
+a_m:  0.32184884433805633
+c_m_normalized:  0.993340315190392
+s_phi_score:  0.7918928739346912
+      • Score OACE calculado: 0.791893
+   🎯 Score OACE calculado: 0.791893
+🆕 Novo candidato avaliado
+   🏗️  Arquitetura: CNN
+   ⚙️  Parâmetros: {'dropout_rate': 0.39179906626990946, 'max_channels': 118, 'num_layers': 2, 'min_channels': 55, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.030337
+   🔥 Iniciando treinamento...
+
+--- Iniciando warm-up da CNN Genérica ---
+CNN: channels=[55, 118], dropout=0.39179906626990946, num_layers=2
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
