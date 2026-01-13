@@ -367,3 +367,88 @@ EfficientNet: base_channels=179, layers=[3, 3, 3], dropout=0.24309077998070966, 
 Epoch 1/8 (48.2s): Train Loss: 2.1453, Train Acc: 17.94%, Valid Loss: 2.0618, Valid Acc: 23.74%, LR: 0.005499
 Epoch 2/8 (48.8s): Train Loss: 2.0298, Train Acc: 24.60%, Valid Loss: 1.9458, Valid Acc: 27.19%, LR: 0.005499
 Epoch 3/8 (48.3s): Train Loss: 1.9379, Train Acc: 28.58%, Valid Loss: 1.8529, Valid Acc: 31.86%, LR: 0.005499
+Epoch 4/8 (48.5s): Train Loss: 1.8661, Train Acc: 31.70%, Valid Loss: 1.7973, Valid Acc: 34.87%, LR: 0.005499
+Epoch 5/8 (47.5s): Train Loss: 1.7973, Train Acc: 34.79%, Valid Loss: 1.7168, Valid Acc: 38.67%, LR: 0.005499
+Epoch 6/8 (49.0s): Train Loss: 1.7503, Train Acc: 36.79%, Valid Loss: 1.6654, Valid Acc: 40.57%, LR: 0.005499
+Epoch 7/8 (47.5s): Train Loss: 1.7154, Train Acc: 38.16%, Valid Loss: 1.6374, Valid Acc: 41.40%, LR: 0.005499
+Epoch 8/8 (48.2s): Train Loss: 1.6816, Train Acc: 39.88%, Valid Loss: 1.6023, Valid Acc: 43.40%, LR: 0.005499
+✓ Treinamento concluído em 386.0s
+✓ Melhor acurácia de validação: 43.40%
+Teste: Loss: 1.6044, Top-1 Acc: 43.64%, Top-5 Acc: 85.84%, Precision (macro): 0.4561, Recall (macro): 0.4114, F1 (macro): 0.4068, Params: 4.53e+07, Inference Time: 0.0022s, Memory: 172.81MB, GFLOPs: 2.1568
+Resultados salvos em: results/efficientnet_experiments/experiment_68a49076-6c70-44ed-91c1-4c89aa379868.json
+   📊 Métricas obtidas: {'loss': 1.604401421148806, 'top1_acc': 43.641618497109825, 'top5_acc': 85.83815028901734, 'precision_macro': 0.45609035635245143, 'recall_macro': 0.4113749189575681, 'f1_macro': 0.4067809048441053, 'total_params': 45300118.0, 'avg_inference_time': np.float64(0.002185064919140874), 'memory_used_mb': 172.80623626708984, 'gflops': 2.156793375}
+   💾 Resultado salvo no cache. Total cached: 4
+   📊 Calculando score OACE...
+   📊 Atualizado limite top1_acc: [16.2653, 31.3423] → [16.2653, 43.6416]
+   📊 Atualizado limite top5_acc: [67.6622, 80.0096] → [67.6622, 85.8382]
+   📊 Atualizado limite precision_macro: [0.0181, 0.3080] → [0.0181, 0.4561]
+   📊 Atualizado limite recall_macro: [0.1111, 0.2860] → [0.1111, 0.4114]
+   📊 Atualizado limite f1_macro: [0.0311, 0.2743] → [0.0311, 0.4068]
+   📊 Atualizado limite avg_inference_time: [0.0011, 0.0018] → [0.0011, 0.0022]
+      • Limites assertividade: {'top1_acc': {'min': 16.26525369299936, 'max': 43.641618497109825}, 'top5_acc': {'min': 67.66217084136159, 'max': 85.83815028901734}, 'precision_macro': {'min': 0.01807250410333262, 'max': 0.45609035635245143}, 'recall_macro': {'min': 0.1111111111111111, 'max': 0.4113749189575681}, 'f1_macro': {'min': 0.03108840092682104, 'max': 0.4067809048441053}}
+      • Limites custo: {'total_params': {'min': 99373.0, 'max': 61625952.0}, 'avg_inference_time': {'min': np.float64(0.0011435114607519033), 'max': np.float64(0.002185064919140874)}, 'memory_used_mb': {'min': 0.3790779113769531, 'max': 235.0843505859375}, 'gflops': {'min': 0.009903296, 'max': 4.72859544}}
+      • Lambda (trade-off): 0.8
+Calculando score OACE...
+
+Avaliação OACE (máximos e mínimos):
+
+s_min:  top1_acc           16.265254
+top5_acc           67.662171
+precision_macro     0.018073
+recall_macro        0.111111
+f1_macro            0.031088
+dtype: float64
+s_max:  top1_acc           43.641618
+top5_acc           85.838150
+precision_macro     0.456090
+recall_macro        0.411375
+f1_macro            0.406781
+dtype: float64
+c_min:  total_params          99373.000000
+avg_inference_time        0.001144
+memory_used_mb            0.379078
+gflops                    0.009903
+dtype: float64
+c_max:  total_params          6.162595e+07
+avg_inference_time    2.185065e-03
+memory_used_mb        2.350844e+02
+gflops                4.728595e+00
+dtype: float64
+norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro):  [1. 1. 1. 1. 1.]
+norm_c (MTP, TPI, MS, GFlops):  [0.73465396 1.         0.73465396 0.45497566]
+a_m (Assertiveness):  1.0
+c_m_negative (Cost - negativo):  -0.788765860653991
+c_m_normalized (para [0,1]):  0.211234139346009
+s_phi_score:  0.8422468278692018
+      • Score OACE calculado: 0.842247
+
+📋 Candidato #4
+   🏗️  Arquitetura: EfficientNet
+   ⚙️  Parâmetros: {'max_channels': 319, 'num_layers': 12, 'min_channels': 40, 'dropout_rate': 0.24309077998070966, 'num_classes': 9, 'batch_norm': True}
+   🎯 Score OACE: 0.842247
+   📊 Métricas de Assertividade:
+      • Top-1 Accuracy: 43.6416
+      • Top-5 Accuracy: 85.8382
+      • Precision Macro: 0.4561
+      • Recall Macro: 0.4114
+      • F1 Macro: 0.4068
+   💰 Métricas de Custo:
+      • Total Parâmetros: 45,300,118.0
+      • Tempo Inferência: 0.0022s
+      • Memória Usada: 172.81 MB
+      • GFLOPs: 2.16
+Warm-up:  20%|██        | 4/20 [25:03<1:40:59, 378.71s/it]
+🔄 Avaliando candidato 5/20
+   🏗️  Arquitetura: EfficientNet
+   ⚙️  Parâmetros: {'max_channels': 372, 'num_layers': 3, 'min_channels': 27, 'dropout_rate': 0.18275672765485818, 'num_classes': 9, 'batch_norm': True}
+   📈 Learning Rate: 0.003026
+   🔥 Iniciando treinamento...
+EfficientNet: base_channels=199, layers=[1, 1, 1], dropout=0.18275672765485818, num_layers=3
+✓ Usando GPU única: NVIDIA A100-SXM4-40GB
+💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)
+Epoch 1/8 (41.7s): Train Loss: 2.1213, Train Acc: 18.71%, Valid Loss: 2.1064, Valid Acc: 21.65%, LR: 0.003026
+Epoch 2/8 (40.4s): Train Loss: 2.0377, Train Acc: 24.40%, Valid Loss: 1.9752, Valid Acc: 27.62%, LR: 0.003026
+Epoch 3/8 (39.5s): Train Loss: 1.9693, Train Acc: 27.55%, Valid Loss: 1.9290, Valid Acc: 29.19%, LR: 0.003026
+Epoch 4/8 (39.9s): Train Loss: 1.9062, Train Acc: 29.88%, Valid Loss: 1.8510, Valid Acc: 31.93%, LR: 0.003026
+Epoch 5/8 (44.3s): Train Loss: 1.8658, Train Acc: 31.51%, Valid Loss: 1.8146, Valid Acc: 33.81%, LR: 0.003026
+Epoch 6/8 (44.0s): Train Loss: 1.8279, Train Acc: 33.47%, Valid Loss: 1.7947, Valid Acc: 35.22%, LR: 0.003026

@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+oace/
 # C extensions
 *.so
 
@@ -52,6 +53,8 @@ coverage.xml
 .pytest_cache/
 cover/
 results/
+report.log
+results_*.log
 # Translations
 *.mo
 *.pot
@@ -174,8 +177,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-
-results_*.log
+.vscode/
 article-afsagapso-base.pdf
 efficientnet_train_result*.log
-report.log
+
