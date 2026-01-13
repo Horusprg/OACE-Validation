@@ -324,18 +324,18 @@ if __name__ == "__main__":
     
     # Parâmetros otimizados encontrados pelo algoritmo AFSA-GA-PSO
     optimized_params = {
-        "num_classes": 10,
-        "min_channels": 32,
-        "max_channels": 128,
-        "dropout_rate": 0.5,
-        "num_layers": 7,
+        "num_classes": 9,
+        "min_channels": 35,
+        "max_channels": 390,
+        "dropout_rate": 0.10479287877952236,
+        "num_layers": 2,
         "batch_norm": True
     }
     
     # Configurações de treinamento
     training_config = {
-        'num_epochs': 2,
-        'learning_rate': 0.001,
+        'num_epochs': 150,
+        'learning_rate': 0.000303,
         'weight_decay': 1e-4,
         'use_mixed_precision': True,
         'use_compile': True,

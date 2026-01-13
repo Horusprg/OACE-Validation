@@ -29,8 +29,7 @@ def calculate_oace_score(
     if not 0.0 <= lambda_param <= 1.0:
         raise ValueError("O parâmetro lambda_param deve estar no intervalo [0, 1].")
     print("Calculando score OACE...")
-    # --- 1. Preparação dos Dados com Pandas ---
-    # Converte os dicionários em pandas Series para facilitar os cálculos vetorizados.
+    # --- 1. Preparação dos Dados ---
     s_metrics = pd.Series(assertiveness_metrics)
     s_weights = pd.Series(assertiveness_weights)
     s_min = pd.Series({k: v['min'] for k, v in assertiveness_min_max.items()})
@@ -48,7 +47,6 @@ def calculate_oace_score(
     print("c_max: ", c_max)
 
     # --- 2. Normalização Vetorizada ---
-    # Evita divisão por zero. Onde max == min, a normalização é 1 se o valor for >= min, senão 0.
     s_range = s_max - s_min
     c_range = c_max - c_min
 
@@ -60,22 +58,29 @@ def calculate_oace_score(
     print("norm_c (MTP, TPI, MS, GFlops): ", norm_c)
 
     # --- 3. Cálculo Agregado Vetorizado ---
-    # Multiplicação elemento a elemento e soma, tudo em uma única operação.
+    # A(m) = Σ w_a^i · a_i(m)  [maximizar]
     a_m = np.sum(norm_s * s_weights)
-    c_m_normalized = np.sum((1.0 - norm_c) * c_weights)
 
-    print("a_m: ", a_m)
-    print("c_m_normalized: ", c_m_normalized)
+    #Cost: C(m) = Σ w_c^j · c_j(m)
+    #c_m_normalized = np.sum((1.0 - norm_c) * c_w
+    
+    # Cost: C(m) = -Σ w_c^j · c_j(m) 
+    c_m_negative = -np.sum(norm_c * c_weights)  # ∈ [-1, 0]
+
+    #print("a_m: ", a_m)
+    #print("c_m_normalized: ", c_m_normalized)
+    print("a_m (Assertiveness): ", a_m)
+    print("c_m_negative (Cost - negativo): ", c_m_negative)
+    print("c_m_normalized (para [0,1]): ", 1 + c_m_negative)
 
     # --- 4. Cálculo do Score Final Sϕ(m) ---
-    s_phi_score = (lambda_param * a_m) + ((1 - lambda_param) * c_m_normalized)
-
+    #s_phi_score = (lambda_param * a_m) + ((1 - lambda_param) * c_m_normalized)
+    # Fórmula: S_φ(m) = λ · A(m) + (1-λ) · C(m)
+    s_phi_score = (lambda_param * a_m) + ((1 - lambda_param) * (1 + c_m_negative))
     print("s_phi_score: ", s_phi_score)
-
     return s_phi_score
 
 
-# --- Exemplo de Uso ---
 if __name__ == '__main__':
     print("🧪 Executando exemplo de teste para a função OACE...")
 

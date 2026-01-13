@@ -14,7 +14,6 @@ def train_model(
     optimizer: torch.optim.Optimizer, 
     num_epochs: int, 
     device: torch.device,
-    # Novos parâmetros de otimização
     use_mixed_precision: bool = False,
     gradient_accumulation_steps: int = 1,
     max_grad_norm: float = 1.0,
@@ -44,12 +43,8 @@ def train_model(
         List[Dict[str, float]]: Lista de dicionários com métricas por época
             (train_loss, train_acc, valid_loss, valid_acc).
     """
-    # Verificar se há múltiplas GPUs e tentar usar DataParallel
     use_data_parallel = False
-    original_model = model  # Guarda referência ao modelo original
-    
-    # Verificar variável de ambiente para habilitar/desabilitar DataParallel
-    # Por padrão, DataParallel está DESABILITADO devido a problemas com NCCL
+    original_model = model  
     # Para habilitar, defina USE_DATAPARALLEL=1
     enable_dp = os.environ.get('USE_DATAPARALLEL', '0').lower() in ('1', 'true', 'yes')
     
@@ -90,8 +85,6 @@ def train_model(
         if device.type == 'cuda':
             print(f"✓ Usando GPU única: {torch.cuda.get_device_name(0)}")
     
-    # Compilar modelo para otimização (PyTorch 2.0+)
-    # Nota: torch.compile pode não funcionar bem com DataParallel, então compilamos antes se necessário
     if compile_model and hasattr(torch, 'compile') and not use_data_parallel:
         try:
             model = torch.compile(model)
@@ -290,10 +283,12 @@ def get_optimized_scheduler(optimizer, scheduler_type: str = 'cosine', **kwargs)
     elif scheduler_type == 'plateau':
         return torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
-            mode='max',
+            #mode='max',
+            mode=kwargs.get('mode', 'max'),
             factor=kwargs.get('factor', 0.1),
-            patience=kwargs.get('patience', 5),
-            verbose=True
+            #patience=kwargs.get('patience', 5),
+            #verbose=kwargs.get('verbose', True),
+            patience=kwargs.get('patience', 5)
         )
     else:
         raise ValueError(f"Scheduler não suportado: {scheduler_type}")
@@ -347,7 +342,7 @@ def train_model_optimized_example(model, train_dataset, val_dataset, num_epochs=
         eta_min=1e-6
     )
     
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)  # Label smoothing
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)  
     
     # Treinamento otimizado
     metrics = train_model(
@@ -360,7 +355,7 @@ def train_model_optimized_example(model, train_dataset, val_dataset, num_epochs=
         device=device,
         # Parâmetros de otimização
         use_mixed_precision=True,
-        gradient_accumulation_steps=1,  # Aumentar se precisar de batch maior
+        gradient_accumulation_steps=1,  
         max_grad_norm=1.0,
         early_stopping_patience=15,
         scheduler=scheduler,

@@ -1,15 +1,10 @@
 import numpy as np
 from deap import base, creator, tools, algorithms
 
-# Corrige a criação dos tipos do DEAP para evitar múltiplas criações
-#if not hasattr(creator, "FitnessMin"):
-#    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-#if not hasattr(creator, "Individual"):
-#    creator.create("Individual", np.ndarray, fitness=creator.FitnessMin)
 if not hasattr(creator, "FitnessMax"):
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))  # ✅ POSITIVO
+    creator.create("FitnessMax", base.Fitness, weights=(1.0,))  
 if not hasattr(creator, "Individual"):
-    creator.create("Individual", np.ndarray, fitness=creator.FitnessMax)  # ✅ FitnessMax
+    creator.create("Individual", np.ndarray, fitness=creator.FitnessMax)  
     
 class GA:
     """
@@ -46,7 +41,7 @@ class GA:
         # Inicialização da população
         self.population = None
         self.best_solution = None
-        self.best_fitness = float('-inf')  # ✅ Mudança para -inf (maximização)
+        self.best_fitness = float('-inf') 
 
     def _setup_deap(self):
         """
@@ -54,12 +49,8 @@ class GA:
         """
         # Configurar o toolbox
         self.toolbox = base.Toolbox()
-        
-        # Registrar atributos
         self.toolbox.register("attr_float", np.random.uniform, 
                             self.lower_bound, self.upper_bound)
-        
-        # Registrar estrutura e inicialização
         self.toolbox.register("individual", tools.initRepeat, creator.Individual,
                             self.toolbox.attr_float, n=self.n_dim)
         self.toolbox.register("population", tools.initRepeat, list,
@@ -147,23 +138,34 @@ class GA:
         """
         Calcula a taxa de crossover adaptativa (fórmula 16).
         
+        ESTRATÉGIA: Exploração → Explotação
+        - Fase Inicial (Exploração): Taxa alta para garantir diversidade e evitar convergência prematura
+        - Fase Final (Explotação): Taxa baixa para refinar soluções promissoras sem destruir estruturas
+        
         Args:
             iter_num (int): Número da iteração atual.
             
         Returns:
-            float: Taxa de crossover adaptativa.
+            float: Taxa de crossover adaptativa (decresce de inicial para mínimo de 30%).
         """
-        return self.initial_crossover_rate * (1 - iter_num / self.max_iter)
+        if self.max_iter <= 1:
+            return self.initial_crossover_rate
+        
+        # Decaimento linear: começa com taxa inicial, termina com 30% da inicial
+        min_rate = max(0.30, 0.3 * self.initial_crossover_rate)  # Mínimo 30% ou 30% da inicial
+        rate = self.initial_crossover_rate * (1 - 0.7 * iter_num / (self.max_iter - 1))
+        return max(min_rate, rate)  
 
     def adaptive_mutation_rate(self, iter_num):
         """
         Calcula a taxa de mutação adaptativa (fórmula 17 - estratégia invertida).
         
-        ESTRATÉGIA INVERTIDA: A mutação começa ALTA (maior exploração) no início
+        A mutação começa ALTA (maior exploração) no início
         e diminui gradualmente (refinamento) ao longo das iterações.
         
         Segue o padrão da Fórmula 16 (crossover adaptativo): decrescente.
-        Mantém um mínimo de 10% da taxa inicial para evitar mutação zero.
+        Mantém um mínimo de 20% da taxa inicial para garantir exploração suficiente
+        mesmo nas iterações finais (importante para poucas iterações, ex: 20).
         
         Args:
             iter_num (int): Número da iteração atual (0-indexed).
@@ -174,15 +176,12 @@ class GA:
         if self.max_iter <= 1:
             return self.initial_mutation_rate
         
-        # ESTRATÉGIA INVERTIDA: Começa com 100% da taxa inicial e diminui até 10%
-        # iter_num=0 -> initial_mutation_rate (alta exploração)
-        # iter_num=max_iter-1 -> 0.1 * initial_mutation_rate (refinamento)
-        max_mutation = self.initial_mutation_rate  # 100% no início
-        min_mutation = 0.1 * self.initial_mutation_rate  # 10% no final (mínimo)
-        # Interpolação linear DECRESCENTE: iter_num=0 -> max, iter_num=max_iter-1 -> min
+        # Começa com 100% da taxa inicial e diminui até 20%
+        max_mutation = self.initial_mutation_rate # 100% no início
+        min_mutation = 0.2 * self.initial_mutation_rate  
         # Fórmula: Pm(t) = Pm(0) * (1 - t/T) + Pm_min
         base_rate = self.initial_mutation_rate * (1 - iter_num / (self.max_iter - 1))
-        mutation_rate = max(base_rate, min_mutation)  # Garante mínimo de 10%
+        mutation_rate = max(base_rate, min_mutation)  
         
         return mutation_rate
 
@@ -219,8 +218,7 @@ class GA:
         print(f"🔍 DEBUG GA: População criada com {len(self.population)} indivíduos")
         print(f"🔍 DEBUG GA: Primeiro indivíduo: {self.population[0]}")
         print(f"🔍 DEBUG GA: Fitness do primeiro: {self.population[0].fitness.values}")
-        
-        # Atualiza a melhor solução
+
         self._update_best_solution()
         print(f"🔍 DEBUG GA: Melhor solução atualizada: {self.best_fitness}")
 
@@ -289,16 +287,16 @@ class GA:
                                        mutpb=mutation_rate)
             print(f"🔍 DEBUG GA: Offspring gerado com {len(offspring)} indivíduos")
             
-            # CORREÇÃO: Avalia os indivíduos usando a função de fitness correta
+            # Avalia os indivíduos usando a função de fitness correta
             print(f"🔍 DEBUG GA: Avaliando offspring...")
             for i, ind in enumerate(offspring):
                 print(f"🔍 DEBUG GA: Offspring {i} - Fitness antes: {ind.fitness.values}")
                 
-                # CORREÇÃO: Chama diretamente a função de fitness em vez de usar toolbox.evaluate
+                # Chama diretamente a função de fitness em vez de usar toolbox.evaluate
                 fitness_value = self.fitness_function(ind)
                 print(f"🔍 DEBUG GA: Offspring {i} - Fitness calculado: {fitness_value}")
                 
-                # CORREÇÃO: Garante que o fitness seja uma tupla com valor numérico
+                # Garante que o fitness seja uma tupla com valor numérico
                 if isinstance(fitness_value, tuple) and len(fitness_value) > 0:
                     if isinstance(fitness_value[0], (int, float, np.number)):
                         ind.fitness.values = fitness_value

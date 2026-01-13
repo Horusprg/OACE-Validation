@@ -174,3 +174,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+results_*.log
+article-afsagapso-base.pdf
+efficientnet_train_result*.log
+report.log

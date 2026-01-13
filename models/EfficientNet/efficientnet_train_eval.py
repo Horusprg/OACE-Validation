@@ -21,7 +21,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from models.EfficientNet.efficientnet_architecture import EfficientNet, generate_efficientnet_architecture, EfficientNetParams
 from utils.training_utils import train_model, get_optimized_scheduler
 from utils.evaluate_utils import evaluate_model
-from utils.data_loader import get_cifar10_dataloaders
+from utils.data_loader import get_cifar10_dataloaders, get_wildshapes_dataloaders
 
 def warm_up_efficientnet(
     train_loader: torch.utils.data.DataLoader,
@@ -147,10 +147,10 @@ def train_efficientnet_specialized(
     # Valores padrão para parâmetros otimizados (encontrados pelo AFSA-GA-PSO)
     if optimized_params is None:
         optimized_params = {
-            "num_classes": 10,
-            "min_channels": 63,
-            "max_channels": 158,
-            "dropout_rate": 0.0049128517086229374,
+            "num_classes": 9,
+            "min_channels": 35,
+            "max_channels": 390,
+            "dropout_rate": 0.10479287877952236,
             "num_layers": 2,
             "batch_norm": True
         }
@@ -159,7 +159,7 @@ def train_efficientnet_specialized(
     if training_config is None:
         training_config = {
             'num_epochs': 100,
-            'learning_rate': 0.001,
+            'learning_rate': 0.000303,
             'weight_decay': 1e-4,
             'use_mixed_precision': True,
             'use_compile': True,
@@ -178,8 +178,9 @@ def train_efficientnet_specialized(
     print(f"🔧 Dispositivo: {device}")
     
     # Carrega dados
-    print(f"\n📊 Carregando dados CIFAR-10...")
-    train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders()
+    print(f"\n📊 Carregando dados")
+    train_loader, val_loader, test_loader, classes = get_wildshapes_dataloaders(batch_size=64, num_workers=2)
+    #train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders()
     print(f"   • Classes: {len(classes)}")
     print(f"   • Train batches: {len(train_loader)}")
     print(f"   • Val batches: {len(val_loader)}")
@@ -217,17 +218,20 @@ def train_efficientnet_specialized(
     )
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
     
-    # Scheduler configurável
+    # Scheduler configurável (pode ser desativado passando None ou 'none')
     scheduler_type = training_config.get('scheduler_type', 'cosine')
-    scheduler_kwargs = training_config.get('scheduler_kwargs', None)
-    if scheduler_kwargs is None:
-        scheduler_kwargs = {'T_max': training_config['num_epochs'], 'eta_min': 1e-6}
+    scheduler = None
     
-    scheduler = get_optimized_scheduler(
-        optimizer=optimizer,
-        scheduler_type=scheduler_type,
-        **scheduler_kwargs
-    )
+    if scheduler_type is not None and scheduler_type.lower() != 'none':
+        scheduler_kwargs = training_config.get('scheduler_kwargs', None)
+        if scheduler_kwargs is None:
+            scheduler_kwargs = {'T_max': training_config['num_epochs'], 'eta_min': 1e-6}
+        
+        scheduler = get_optimized_scheduler(
+            optimizer=optimizer,
+            scheduler_type=scheduler_type,
+            **scheduler_kwargs
+        )
     
     try:
         # Treinamento usando train_model diretamente
@@ -369,26 +373,31 @@ if __name__ == "__main__":
     
     # Parâmetros otimizados encontrados pelo algoritmo AFSA-GA-PSO
     optimized_params = {
-        "num_classes": 10,
-        "min_channels": 63,
-        "max_channels": 158,
-        "dropout_rate": 0.0049128517086229374,
-        "num_layers": 2,
+        "num_classes": 9,
+        "min_channels": 35,
+        "max_channels": 390,
+        "dropout_rate": 0.30479287877952236,
+        "num_layers": 6,
         "batch_norm": True
     }
     
     # Configurações de treinamento
     training_config = {
-        'num_epochs': 2,
+        'num_epochs': 150,
         'learning_rate': 0.001,
-        'weight_decay': 1e-4,
+        'weight_decay': 5e-4,#1e-4,#
         'use_mixed_precision': True,
         'use_compile': True,
-        'early_stopping_patience': 5,
+        'early_stopping_patience': 10,
         'save_best_model': True,
         'experiment_name': "efficientnet_best",
-        'scheduler_type': 'cosine',
-        'scheduler_kwargs': {'T_max': 100, 'eta_min': 1e-6}
+        #'scheduler_type': 'cosine',
+        #'scheduler_kwargs': {'T_max': 100, 'eta_min': 1e-6}
+        #'scheduler_type': None,  # None = desativado (LR constante), 'plateau' = reduz quando estagna, 'cosine' = decaimento suave
+        #'scheduler_kwargs': {'factor': 0.2, 'patience': 5, 'mode': 'max'}  # Apenas se scheduler_type não for None
+        # ATIVAR SCHEDULER
+        'scheduler_type': 'plateau', 
+        'scheduler_kwargs': {'factor': 0.8, 'patience': 5, 'mode': 'max'}
     }
     
     # Executa o treinamento especializado com os parâmetros
@@ -396,3 +405,5 @@ if __name__ == "__main__":
         optimized_params=optimized_params,
         training_config=training_config
     )
+
+# nohup python3 -X utf8 -u -m models.EfficientNet.efficientnet_train_eval > efficientnet_train_result2.log 2>&1 & disown

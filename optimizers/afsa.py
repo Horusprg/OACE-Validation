@@ -39,19 +39,6 @@ class AFSA:
                                Formato: (population_size, n_dim)
         fitness (np.ndarray): O valor de aptidão (fitness) para cada peixe.
                              Formato: (population_size,)
-
-    Exemplo de uso:
-        >>> afsa = AFSA(
-        ...     population_size=30,
-        ...     n_dim=2,
-        ...     visual=0.5,
-        ...     step=0.1,
-        ...     try_times=5,
-        ...     max_iter=100,
-        ...     lower_bound=-10,
-        ...     upper_bound=10
-        ... )
-        >>> temppbest = afsa.optimize()  # Retorna as posições otimizadas para o PSO
     """
 
     def __init__(self, population_size, n_dim, visual, step, try_times, max_iter, lower_bound, upper_bound):
@@ -200,9 +187,7 @@ class AFSA:
         """
         current_fitness = fitness_function(particle)
         
-        # OTIMIZAÇÃO: Limita a 1 tentativa para reduzir treinamentos
-        # Em problemas com fitness caro (treinar rede), é melhor fazer 1 tentativa
-        # e deixar o PSO refinar depois, em vez de tentar múltiplas vezes
+        # Limita a 1 tentativa para reduzir treinamentos
         for _ in range(min(self.try_times, 1)):  # Máximo 1 tentativa
             # Fórmula 13: Exploração de nova posição
             exploratory_position = particle + np.random.uniform(-1, 1, self.n_dim) * self.visual
@@ -211,7 +196,7 @@ class AFSA:
             exploratory_fitness = fitness_function(exploratory_position)
             
             # Se encontrou posição melhor, move em direção a ela (fórmula 14)
-            if exploratory_fitness > current_fitness:  # Maximização (OACE)
+            if exploratory_fitness > current_fitness:  
                 direction = exploratory_position - particle
                 norm = np.linalg.norm(direction)
                 if norm > 1e-10:  # Evita divisão por zero

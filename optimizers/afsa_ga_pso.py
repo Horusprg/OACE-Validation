@@ -1,6 +1,5 @@
 # source oace/bin/activate
 # nohup python3 -X utf8 -u -m optimizers.afsa_ga_pso > results_3.log 2>&1 &
-# source oace/bin/activate
 # python3 -X utf8 -u -m optimizers.afsa_ga_pso 2>&1 | tee teste5.log
 import numpy as np
 from optimizers.afsa import AFSA
@@ -43,24 +42,6 @@ class AFSAGAPSO:
         log_dir: str = "results",
         device: torch.device = None
     ):
-        """
-        Inicializa o otimizador híbrido.
-
-        Args:
-        population_size (int): Tamanho da população para cada algoritmo.
-        max_iter (int): Número máximo de iterações para cada algoritmo.
-            train_loader: DataLoader para treinamento.
-            val_loader: DataLoader para validação.
-            test_loader: DataLoader para teste.
-            classes (List[str]): Lista de classes do problema.
-            lambda_param (float): Parâmetro de trade-off λ para o OACE (entre 0 e 1).
-        afsa_params (dict): Parâmetros para o AFSA.
-        pso_params (dict): Parâmetros para o PSO.
-        ga_params (dict): Parâmetros para o GA.
-            architectures_to_optimize (List[str]): Lista de arquiteturas a otimizar. Se None, usa todas disponíveis.
-            log_dir (str): Diretório para salvar os logs da otimização.
-            device (torch.device, optional): Dispositivo para treinamento. Se None, detecta automaticamente.
-        """
         # Arquiteturas disponíveis para otimização
         if architectures_to_optimize is None:
             self.architectures_to_optimize = list(archictectures.keys())
@@ -69,7 +50,7 @@ class AFSAGAPSO:
 
         print(f"📋 Arquiteturas para otimização: {self.architectures_to_optimize}")
 
-        # Todas as arquiteturas e informações
+        # Arquiteturas e informações
         self.all_architectures = {
             name: archictectures[name] for name in self.architectures_to_optimize
         }
@@ -90,9 +71,8 @@ class AFSAGAPSO:
             self.device = device
         print(f"🔧 Dispositivo configurado: {self.device}")
 
-        # Define os limites do espaço de busca considerando todas as arquiteturas
+        # limites do espaço de busca
         self.param_bounds = self._get_unified_param_bounds()
-        # +1 dimensão para escolha da arquitetura (architecture_index)
         self.n_dim = len(self.param_bounds) + 1
         
         print(f"🎯 Dimensões do espaço de busca: {self.n_dim}")
@@ -103,23 +83,23 @@ class AFSAGAPSO:
             afsa_params = {"visual": 0.5, "step": 0.1, "try_times": 5, "max_iter": 50}
         self.afsa_params = afsa_params
         
-        # Parâmetros padrão para o PSO (ajustados para mais diversidade)
+        # Parâmetros para o PSO 
         if pso_params is None:
             pso_params = {
-                "c1": 1.5,    # Aumentado para mais exploração individual
-                "c2": 1.5,    # Aumentado para mais exploração social
-                "w": 0.7,     # Reduzido um pouco para mais controle
+                "c1": 1.5,    
+                "c2": 1.5,    
+                "w": 0.7,     
                 "k": 3, 
                 "p": 2
             }
         self.pso_params = pso_params
         
-        # Parâmetros padrão para o GA
+        # Parâmetros para o GA
         if ga_params is None:
             ga_params = {
-                "initial_crossover_rate": 0.8,    # Respeita limite (0.7 + 0.25 = 0.95)
-                "initial_mutation_rate": 0.15,    # Respeita limite
-                "tournament_size": 3,             # Seleção balanceada
+                "initial_crossover_rate": 0.8,    
+                "initial_mutation_rate": 0.15,   
+                "tournament_size": 3,             
                 "max_iter": 6
             }
         self.ga_params = ga_params
@@ -129,7 +109,7 @@ class AFSAGAPSO:
         self.pso = None
         self.ga = None
         self.best_solution = None
-        self.best_fitness = float("-inf")  # O OACE é maximizado
+        self.best_fitness = float("-inf") 
         self.history = []
 
         # Métricas e limites
@@ -144,7 +124,6 @@ class AFSAGAPSO:
         # Inicializa o logger
         self.logger = OptimizationLogger(log_dir=log_dir)
         
-        # Atribui as funções de print como métodos da classe
         from utils.log_prints import (
             _print_header, _print_section, _print_step, _print_configuration,
             _print_iteration_header, _print_candidate_details, _print_population_summary,
@@ -161,7 +140,6 @@ class AFSAGAPSO:
         self._print_phase_summary = lambda phase, best_fitness, best_architecture, best_params, total_time=None: _print_phase_summary(self, phase, best_fitness, best_architecture, best_params, total_time)
         self._print_final_results = lambda best_architecture, best_params, best_fitness, final_metrics: _print_final_results(self, best_architecture, best_params, best_fitness, final_metrics)
         
-        # Configuração inicial do experimento
         experiment_config = {
             "population_size": population_size,
             "max_iter": max_iter,
@@ -181,7 +159,7 @@ class AFSAGAPSO:
         bounds = {}
         all_param_names = set()
 
-        # Coleta todos os parâmetros únicos de todas as arquiteturas
+        # Coleta parâmetros de todas as arquiteturas
         for arch_name, arch_info in self.all_architectures.items():
             params_class = type(arch_info["params"])
             for field_name in params_class.model_fields.keys():
@@ -193,36 +171,24 @@ class AFSAGAPSO:
                 ]:
                     all_param_names.add(field_name)
 
-        # Define limites unificados que cobrem todas as arquiteturas
+        # Define limites unificados
         for param_name in all_param_names:
             if param_name == "dropout_rate":
                 bounds[param_name] = (0.0, 0.5)
             elif param_name == "min_channels":
-                # Unifica os limites: min de todos os mínimos, max de todos os máximos
-                bounds[param_name] = (
-                    8,
-                    64,
-                )  # Cobre tanto CNN (8-64) quanto MobileNet (16-64)
+                bounds[param_name] = (16, 64,)
             elif param_name == "max_channels":
-                # Unifica os limites para cobrir todas as arquiteturas
-                bounds[param_name] = (
-                    64,
-                    1024,
-                )  # Cobre CNN (128-512) e MobileNet (512-2048)
+                bounds[param_name] = (64, 512,)  
             elif param_name == "num_layers":
-                # Unifica os limites para cobrir todas as arquiteturas
-                bounds[param_name] = (2, 40)  # Cobre CNN (2-8) e MobileNet (8-20)
+                bounds[param_name] = (2, 25)  
             elif param_name == "width_multiplier":
                 bounds[param_name] = (0.5, 1.5)
             elif param_name == "resolution_multiplier":
                 bounds[param_name] = (0.5, 1.0)
             else:
-                # Para parâmetros não mapeados, usa valores padrão
                 bounds[param_name] = (0.0, 1.0)
 
-        # Adiciona Learning Rate como hiperparâmetro otimizável
-        # Range logarítmico: 1e-5 (0.00001) a 1e-2 (0.01)
-        bounds["learning_rate"] = (1e-4, 1e-1)
+        bounds["learning_rate"] = (1e-4, 1e-2)
 
         return bounds
 
@@ -252,10 +218,8 @@ class AFSAGAPSO:
         architecture_name = self.architectures_to_optimize[architecture_index]
 
         # Extrai os parâmetros (resto do vetor, exceto o último que é LR)
-        # O vetor agora é: [architecture_index, param1, param2, ..., paramN, learning_rate]
-        params_vector = x[1:-1]  # Remove primeiro (arquitetura) e último (LR)
+        params_vector = x[1:-1] 
 
-        # Converte parâmetros para a arquitetura específica
         architecture_params = self._convert_params_for_architecture(
             params_vector, architecture_name
         )
@@ -274,15 +238,10 @@ class AFSAGAPSO:
         """
         # O último elemento do vetor é o learning rate normalizado [0, 1]
         lr_normalized = x[-1]
-        
-        # Obtém os limites do learning rate
         lr_min, lr_max = self.param_bounds["learning_rate"]
-        
-        # Conversão logarítmica: LR varia em escala logarítmica
         # log10(lr) = normalized * (log10(max) - log10(min)) + log10(min)
         log_lr = lr_normalized * (np.log10(lr_max) - np.log10(lr_min)) + np.log10(lr_min)
         learning_rate = 10 ** log_lr
-        
         # Garante que está dentro dos limites (por segurança)
         learning_rate = max(lr_min, min(lr_max, learning_rate))
         
@@ -307,16 +266,11 @@ class AFSAGAPSO:
         params = {}
 
         # Converte cada parâmetro do vetor unificado para os parâmetros específicos da arquitetura
-        # O params_vector já não contém o learning_rate (foi removido em _get_architecture_from_vector)
         param_index = 0
         for param_name, (min_val, max_val) in self.param_bounds.items():
-            # Ignora learning_rate - será extraído separadamente
             if param_name == "learning_rate":
                 continue
-            
-            # Verifica se este parâmetro existe na arquitetura atual
             if param_name in params_class.model_fields:
-                # Normaliza o valor para o intervalo [min_val, max_val]
                 normalized_value = (
                     params_vector[param_index] * (max_val - min_val) + min_val
                 )
@@ -334,13 +288,9 @@ class AFSAGAPSO:
                 else:
                     params[param_name] = normalized_value
 
-                # Incrementa índice apenas se o parâmetro foi processado
                 param_index += 1
 
-        # Adiciona parâmetros fixos
         params["num_classes"] = len(self.classes)
-
-        # Adiciona batch_norm como True por padrão se existir no modelo
         if "batch_norm" in params_class.model_fields:
             params["batch_norm"] = True
 
@@ -371,7 +321,7 @@ class AFSAGAPSO:
         Returns:
             Tuple[np.ndarray, List[Tuple[np.ndarray, Dict[str, float]]]]: (candidatos, lista de tuplas (candidato, métricas))
         """
-        # Inicializa o AFSA com os parâmetros corretos
+        # Inicializa o AFSA 
         afsa = AFSA(
             population_size=self.population_size,
             n_dim=self.n_dim,
@@ -383,28 +333,21 @@ class AFSAGAPSO:
             upper_bound=1.0,
         )
 
-        # Define a função de fitness para o AFSA que incentiva a diversidade
+        # Função de fitness para o AFSA 
         def afsa_fitness(x):
-            # Converte os valores normalizados para parâmetros reais
             architecture_name, params = self._convert_to_architecture_params(x)
-
-            # Calcula a diversidade baseada na variação dos parâmetros
             diversity_score = 0
-
-            # Para a escolha da arquitetura (primeira dimensão)
             arch_diversity = (
                 abs(x[0] - 0.5) * 2
-            )  # Incentiva diversidade na escolha da arquitetura
+            ) 
             diversity_score += arch_diversity
 
-            # Para cada parâmetro, calcula sua contribuição para a diversidade
             # Pula o índice da arquitetura (x[0]) e o learning_rate (x[-1])
-            param_vector = x[1:-1]  # Remove primeiro (arquitetura) e último (LR)
+            param_vector = x[1:-1]  
             param_index = 0
             for param_name, (min_val, max_val) in self.param_bounds.items():
-                # Determina o valor normalizado do parâmetro
                 if param_name == "learning_rate":
-                    # Considera LR na diversidade (último elemento)
+                    # Considera LR na diversidade
                     normalized_value = x[-1]
                 elif param_index < len(param_vector):
                     normalized_value = param_vector[param_index]
@@ -413,13 +356,10 @@ class AFSAGAPSO:
                     continue
 
                 # Incentiva exploração de todo o espaço de busca
-                # Valores próximos aos extremos (0 ou 1) recebem pontuação maior
                 edge_bonus = min(normalized_value, 1 - normalized_value) * 2
                 diversity_score += (
                     1 - edge_bonus
-                )  # Inverte para dar mais pontos aos extremos
-
-                # Adiciona variação baseada no tipo de parâmetro
+                )  
                 if param_name in ["min_channels", "max_channels", "num_layers"]:
                     # Para parâmetros estruturais, incentiva mais variação
                     diversity_score += abs(normalized_value - 0.5) * 2
@@ -451,7 +391,6 @@ class AFSAGAPSO:
         self._print_step(f"Executando AFSA por {self.afsa_params['max_iter']} iterações")
         candidates = afsa.optimize()
 
-        # Exibe resumo da diversidade dos candidatos gerados
         print(f"\n✅ AFSA concluído!")
         print(f"   • {len(candidates)} candidatos gerados com diversidade de arquiteturas")
         architectures_used = set()
@@ -461,15 +400,12 @@ class AFSAGAPSO:
         print(f"  • Arquiteturas exploradas: {list(architectures_used)}")
         print(f"  • Parâmetros otimizados: {len(self.param_bounds)} parâmetros")
 
-        # Realiza o warm-up dos candidatos para obter suas métricas
         self._print_section("WARM-UP: Treinando e avaliando candidatos AFSA")
         candidates_metrics = []
         for i, candidate in enumerate(tqdm(candidates, desc="Warm-up"), 1):
             print(f"\n🔄 Avaliando candidato {i}/{len(candidates)}")
             metrics = self._warm_up_candidate(candidate)
             candidates_metrics.append((candidate, metrics))
-            
-            # Mostra detalhes do candidato
             arch_name, arch_params = self._convert_to_architecture_params(candidate)
             oace_score = self._calculate_oace_score(metrics)
             self._print_candidate_details(candidate, metrics, arch_name, arch_params, oace_score, i)
@@ -487,11 +423,8 @@ class AFSAGAPSO:
         Returns:
             Dict[str, float]: Métricas do candidato após o warm-up.
         """
-        # Cria uma chave única para o candidato baseada nos valores arredondados
-        # Isso evita problemas de precisão de ponto flutuante
+
         candidate_key = tuple(np.round(candidate_vector, decimals=4))
-        
-        # Verifica se já avaliamos este candidato
         if candidate_key in self.candidates_cache:
             self.cache_hits += 1
             print(f"🎯 Cache HIT! Candidato já avaliado (total hits: {self.cache_hits})")
@@ -499,9 +432,8 @@ class AFSAGAPSO:
         
         self.cache_misses += 1
         
-        # Extrai learning rate do vetor (último elemento)
+        # Extrai learning rate do vetor 
         learning_rate = self._extract_learning_rate(candidate_vector)
-        
         # Extrai arquitetura e parâmetros do vetor (sem o LR)
         architecture_name, architecture_params = self._convert_to_architecture_params(
             candidate_vector
@@ -511,27 +443,23 @@ class AFSAGAPSO:
         print(f"   ⚙️  Parâmetros: {architecture_params}")
         print(f"   📈 Learning Rate: {learning_rate:.6f}")
 
-        # Obtém informações da arquitetura
         architecture_info = self.all_architectures[architecture_name]
         params_class = type(architecture_info["params"])
-
-        # Cria uma instância dos parâmetros da arquitetura
         params = params_class(**architecture_params)
 
-        # Realiza o warm-up usando a função do loader
+        # Realiza o warm-up
         print(f"   🔥 Iniciando treinamento...")
         test_metrics = architecture_info["warm_up"](
             train_loader=self.train_loader,
             val_loader=self.val_loader,
             test_loader=self.test_loader,
             classes=self.classes,
-            num_epochs=1,
-            device=self.device,  # Usa o device configurado
+            num_epochs=8,
+            device=self.device, 
             params=params,
-            learning_rate=learning_rate,  # ✅ Passa LR otimizado
+            learning_rate=learning_rate, 
         )
 
-        # Salva no cache
         self.candidates_cache[candidate_key] = test_metrics
         
         print(f"   📊 Métricas obtidas: {test_metrics}")
@@ -549,13 +477,8 @@ class AFSAGAPSO:
             candidates_metrics (List[Tuple[np.ndarray, Dict[str, float]]]): Lista de tuplas (candidato, métricas).
         """
         print("Calculando limites das métricas...")
-
-        # Extrai apenas as métricas da lista
         all_metrics = [metrics for _, metrics in candidates_metrics]
-
-        # Salva no histórico
         self.metrics_history.extend(candidates_metrics)
-
         # Calcula os limites para cada métrica (excluindo loss por comportamento inverso)
         assertiveness_ranges = {
             "top1_acc": {
@@ -614,31 +537,23 @@ class AFSAGAPSO:
         Returns:
             float: Score OACE (entre 0 e 1)
         """
-        # Converte o vetor para string para usar como chave do cache
         cache_key = str(x.tolist())
-        
-        # Verifica se já foi avaliado
         if cache_key in self.candidates_cache:
             self.cache_hits += 1
             print(f"🎯 Cache HIT! Candidato já avaliado (total hits: {self.cache_hits})")
             return self.candidates_cache[cache_key]
-        
-        # Se não está no cache, avalia o candidato
         self.cache_misses += 1
         print(f"🆕 Novo candidato avaliado")
         
         # Treina e avalia o candidato
         metrics = self._warm_up_candidate(x)
-        
         # Calcula o score OACE
         score = self._calculate_oace_score(metrics)
-        
         # Armazena no cache
         self.candidates_cache[cache_key] = score
         
         print(f"   🎯 Score OACE calculado: {score:.6f}")
-        
-        # Garante que o score está dentro do range válido
+
         if score > 1.0:
             print(f"   ⚠️  AVISO: Score OACE inválido ({score:.6f}) > 1.0. Corrigindo...")
             score = 1.0
@@ -660,11 +575,10 @@ class AFSAGAPSO:
             step=self.afsa_params["step"],
             try_times=self.afsa_params["try_times"],
             max_iter=self.afsa_params["max_iter"],
-            lower_bound=0.0,  # Normalizado para [0,1]
+            lower_bound=0.0,  
             upper_bound=1.0,
         )
-        
-        # Inicializa o PSO com logger
+        # Inicializa o PSO 
         self.pso = PSO(
             population_size=self.population_size,
             n_dim=self.n_dim,
@@ -712,7 +626,6 @@ class AFSAGAPSO:
             self._print_step("Inicializando componentes do algoritmo híbrido")
             self.initialize_components()
 
-            # Inicia o experimento no logger
             config = {
                 "population_size": self.population_size,
                 "max_iter": self.max_iter,
@@ -741,7 +654,6 @@ class AFSAGAPSO:
                            f"Iterações: {self.max_iter}, Parâmetros: {self.pso_params}")
             phase1_solutions = self._execute_afsa_pso_phase(initial_population, candidates_metrics)
             
-            # Resumo da Fase 1
             best_idx = np.argmax([self.fitness_function(x) for x in phase1_solutions])
             best_arch, best_params = self._convert_to_architecture_params(phase1_solutions[best_idx])
             best_fitness = self.fitness_function(phase1_solutions[best_idx])
@@ -768,16 +680,12 @@ class AFSAGAPSO:
             # Obtém as métricas finais
             self._print_step("Avaliando solução final para métricas completas")
             final_metrics = self._warm_up_candidate(best_position)
-
-            # Registra os resultados finais
             self.logger.log_final_results(
                 best_architecture=best_architecture_name,
                 best_params=best_architecture_params,
                 best_fitness=best_fitness,
                 final_metrics=final_metrics
             )
-
-            # Imprime resultados finais formatados
             self._print_final_results(best_architecture_name, best_architecture_params, 
                                     best_fitness, final_metrics)
 
@@ -785,7 +693,6 @@ class AFSAGAPSO:
             
         except Exception as e:
             print(f"\n❌ Erro durante a otimização: {str(e)}")
-            # Tenta salvar o log mesmo em caso de erro
             if hasattr(self, 'logger'):
                 try:
                     self.logger._save_log()
@@ -811,7 +718,7 @@ class AFSAGAPSO:
         """
         self._print_section("AFSA-PSO: Iniciando Fase 1 com otimização integrada")
         
-        # 1. Calcula fitness inicial dos candidatos (warm-up)
+        # 1. Calcula fitness inicial dos candidatos
         self._print_step("Calculando fitness dos candidatos iniciais com OACE")
         initial_fitness = []
         for i, (candidate, metrics) in enumerate(candidates_metrics, 1):
@@ -823,7 +730,6 @@ class AFSAGAPSO:
         initial_fitness = np.array(initial_fitness)
         best_idx = np.argmax(initial_fitness)
         
-        # Mostra resumo da população inicial
         self._print_population_summary(initial_population, initial_fitness, "AFSA-PSO Inicial")
         
         print(f"\n🏆 Melhor candidato inicial:")
@@ -843,7 +749,7 @@ class AFSAGAPSO:
             oace_score=initial_fitness[best_idx]
         )
 
-        # 2. Configura função de fitness para o PSO (minimização, então negativa do OACE)
+        # 2. Configura função de fitness para o PSO
         def pso_fitness_function(x):
             """Função de fitness para o PSO (minimização)"""
             if x.ndim == 1:
@@ -870,12 +776,11 @@ class AFSAGAPSO:
                 visual=self.afsa_params.get('visual', 0.5),
                 step=self.afsa_params.get('step', 0.1),
                 try_times=self.afsa_params.get('try_times', 5),
-                max_iter=self.afsa_params.get('max_iter', 3),  # Será usado no loop
+                max_iter=self.afsa_params.get('max_iter', 3), 
                 lower_bound=self.pso.lower_bound,
                 upper_bound=self.pso.upper_bound
             )
         else:
-            # Atualiza parâmetros do AFSA existente para trabalhar sobre PSO
             self.afsa.population_size = self.population_size
             self.afsa.n_dim = self.n_dim
             self.afsa.visual = self.afsa_params.get('visual', 0.5)
@@ -884,7 +789,7 @@ class AFSAGAPSO:
             self.afsa.lower_bound = self.pso.lower_bound
             self.afsa.upper_bound = self.pso.upper_bound
         
-        # Configura AFSA para usar função de fitness do PSO (OACE)
+        # Configura AFSA para usar função de fitness do PSO 
         self.afsa.fitness_function = self.fitness_function
         
         # 5. Loop alternado: AFSA modifica → PSO executa
@@ -899,8 +804,6 @@ class AFSAGAPSO:
             
             # 5a. AFSA aplica comportamentos nas partículas do PSO
             self._print_step(f"AFSA aplicando comportamentos (iteração {afsa_iter + 1})")
-            
-            # 📊 LOG: Estado do PSO ANTES do AFSA
             pso_fitness_before_afsa = -self.pso.optimizer.swarm.pbest_cost.copy()  # Converte para OACE
             pso_gbest_before_afsa = -float(self.pso.optimizer.swarm.best_cost)
             
@@ -917,7 +820,7 @@ class AFSAGAPSO:
             print(f"         • Recalculando fitness das partículas modificadas...")
             
             self.pso.optimizer.swarm.position = afsa_optimized_population.copy()
-            
+    
             # 5c. Recalcula fitness das partículas modificadas
             fitness_values = self.pso.fitness_function(afsa_optimized_population)
             
@@ -957,7 +860,6 @@ class AFSAGAPSO:
                 print(f"         • ✅ PSO executou 1 iteração com sucesso")
             except Exception as e:
                 print(f"         • ⚠️  Erro ao executar PSO: {e}")
-                # Continua mesmo com erro
             
             pso_gbest_after_refine = -float(self.pso.optimizer.swarm.best_cost)
             pso_fitness_after_refine = -np.mean(self.pso.optimizer.swarm.pbest_cost)
@@ -987,7 +889,7 @@ class AFSAGAPSO:
                 fitness_values=current_fitness,
                 best_position=self.pso.optimizer.swarm.best_pos,
                 best_fitness=-float(self.pso.optimizer.swarm.best_cost),
-                metrics=None,  # Não recalcula métricas a cada iteração
+                metrics=None, 
                 oace_score=-float(self.pso.optimizer.swarm.best_cost)
             )
         
@@ -1024,11 +926,11 @@ class AFSAGAPSO:
         Returns:
             np.ndarray: População otimizada pelo GA (formato: (population_size, n_dim))
         """
-        # 1. Obtém partículas atuais do PSO (usa pso_phase2 se disponível, senão usa pso)
+        # 1. Obtém partículas atuais do PSO
         pso_instance = getattr(self, 'pso_phase2', self.pso)
         current_particles = pso_instance.optimizer.swarm.position.copy()
         
-        # 📊 LOG: Estado ANTES do GA
+        # LOG: Estado ANTES do GA
         print(f"\n      {'='*60}")
         print(f"      📋 ESTADO ANTES DO GA APLICAR OPERADORES")
         print(f"      {'='*60}")
@@ -1053,10 +955,8 @@ class AFSAGAPSO:
         from deap import creator
         population_individuals = []
         for particle in current_particles:
-            # Garante que é numpy array
             particle_array = np.array(particle).copy()
             ind = creator.Individual(particle_array)
-            # Avalia fitness inicial
             try:
                 fitness_value = self.fitness_function(particle_array)
                 if isinstance(fitness_value, (int, float)):
@@ -1071,20 +971,19 @@ class AFSAGAPSO:
             population_individuals.append(ind)
         
         # 4. Aplica operadores genéticos usando DEAP varOr
-        # varOr gera lambda_ novos indivíduos aplicando crossover e mutação
         print(f"      • Aplicando varOr com {len(population_individuals)} indivíduos...")
         
         from deap import algorithms
         offspring = algorithms.varOr(
             population_individuals,
             self.ga.toolbox,
-            lambda_=len(population_individuals),  # Gera mesma quantidade de indivíduos
+            lambda_=len(population_individuals), 
             cxpb=crossover_rate,
             mutpb=mutation_rate
         )
         
         print(f"      ✅ varOr gerou {len(offspring)} novos indivíduos")
-        
+
         # Conta quantos foram modificados
         num_crossover = 0
         num_mutation = 0
@@ -1105,7 +1004,6 @@ class AFSAGAPSO:
                     print(f"      ⚠️  Erro ao avaliar fitness do offspring {idx}: {e}")
                     ind.fitness.values = (0.0,)
             
-            # Verifica se foi modificado (comparação aproximada)
             original = current_particles[idx]
             new = np.array(ind)
             if not np.allclose(original, new, atol=1e-6):
@@ -1213,9 +1111,7 @@ class AFSAGAPSO:
             original_particle = particle.copy()
             current_fitness = self.fitness_function(particle)
             
-            # OTIMIZAÇÃO: Aplica apenas 1 comportamento por partícula (o melhor encontrado)
-            # Isso garante exatamente 1 candidato por partícula, reduzindo treinamentos
-            
+            # Aplica apenas 1 comportamento por partícula 
             best_pos = original_particle
             best_fitness = current_fitness
             best_behavior = 'unchanged'
@@ -1232,7 +1128,6 @@ class AFSAGAPSO:
                 best_behavior = 'cluster'
             
             # 2. Se cluster não melhorou o suficiente, tenta foraging
-            # (mas só se cluster não foi melhor)
             if best_behavior != 'cluster':
                 foraging_pos = self.afsa.foraging_behavior_on_particle(particle, self.fitness_function)
                 foraging_fitness = self.fitness_function(foraging_pos)
@@ -1275,7 +1170,7 @@ class AFSAGAPSO:
         print(f"         • Random: {behaviors_applied['random']} partículas")
         print(f"         • Sem modificação: {behaviors_applied['unchanged']} partículas")
         
-        # 📊 LOG: Estado DEPOIS do AFSA
+        # LOG: Estado DEPOIS do AFSA
         print(f"\n      📋 ESTADO DEPOIS DO AFSA APLICAR COMPORTAMENTOS")
         print(f"      {'='*60}")
         
@@ -1336,7 +1231,7 @@ class AFSAGAPSO:
         print(f"   • Shape das soluções: {np.array(phase1_solutions).shape}")
         print(f"   • Primeira solução: {phase1_solutions[0]}")
         
-        # Configura função de fitness para o PSO (minimização, então negativa do OACE)
+        # Configura função de fitness para o PSO 
         def pso_fitness_function(x):
             """Função de fitness para o PSO (minimização)"""
             if x.ndim == 1:
@@ -1349,14 +1244,12 @@ class AFSAGAPSO:
                 return -np.array(scores)
         
         # 1. Inicializa PSO com soluções da Fase 1
-        # Cria uma nova instância do PSO para a Fase 2 (evita conflitos com Fase 1)
         self._print_step("Inicializando PSO para Fase 2 com soluções da Fase 1")
-        
         # Cria novo PSO para Fase 2 (pode reutilizar parâmetros, mas é uma instância separada)
         pso_phase2 = PSO(
             population_size=self.population_size,
             n_dim=self.n_dim,
-            max_iter=1,  # Usaremos apenas 1 iteração por ciclo no loop
+            max_iter=1, 
             lower_bound=0.0,
             upper_bound=1.0,
             afsa_params=None,  # Não usa AFSA na Fase 2
@@ -1371,12 +1264,10 @@ class AFSAGAPSO:
         
         # Avalia fitness inicial
         initial_fitness = np.array([self.fitness_function(x) for x in phase1_solutions])
-        initial_pso_fitness = -initial_fitness  # PSO usa minimização
+        initial_pso_fitness = -initial_fitness  
         
         best_idx = np.argmax(initial_fitness)
         best_metrics = self._warm_up_candidate(phase1_solutions[best_idx])
-        
-        # Mostra resumo das soluções iniciais
         self._print_population_summary(phase1_solutions, initial_fitness, "GA-PSO Inicial")
         
         print(f"\n🏆 Melhor solução inicial da Fase 1:")
@@ -1411,7 +1302,7 @@ class AFSAGAPSO:
             # 2a. GA aplica operadores genéticos nas partículas do PSO
             self._print_step(f"GA aplicando operadores genéticos (iteração {ga_iter + 1})")
             
-            # 📊 LOG: Estado do PSO ANTES do GA
+            # LOG: Estado do PSO ANTES do GA
             pso_instance = getattr(self, 'pso_phase2', self.pso)
             pso_fitness_before_ga = -pso_instance.optimizer.swarm.pbest_cost.copy()  # Converte para OACE
             pso_gbest_before_ga = -float(pso_instance.optimizer.swarm.best_cost)
@@ -1493,8 +1384,6 @@ class AFSAGAPSO:
             print(f"         • Fitness médio DEPOIS: {np.mean(pso_fitness_after_refine):.6f}")
             avg_refine_improvement = np.mean(pso_fitness_after_refine) - np.mean(pso_fitness_before_refine)
             print(f"         • Mudança no fitness médio: {('+' if avg_refine_improvement >= 0 else '')}{avg_refine_improvement:.6f}")
-            
-            # Resumo completo do ciclo
             print(f"\n      📈 RESUMO DO CICLO GA-PSO (Iteração {ga_iter + 1}):")
             print(f"         • OACE inicial (antes do GA): {pso_gbest_before_ga:.6f}")
             print(f"         • OACE após GA: {pso_gbest_before_refine:.6f}")
@@ -1503,7 +1392,7 @@ class AFSAGAPSO:
             print(f"         • Melhoria total no ciclo: {('+' if total_improvement >= 0 else '')}{total_improvement:.6f}")
             print(f"      {'='*60}\n")
             
-            # 2g. Calcula OACE para logging (converte de minimização para maximização)
+            # 2g. Calcula OACE para logging 
             current_oace_fitness = -pso_instance.optimizer.swarm.pbest_cost
             best_oace_score = -float(pso_instance.optimizer.swarm.best_cost)
             
@@ -1526,12 +1415,11 @@ class AFSAGAPSO:
                     metrics=best_metrics_current,
                     oace_score=best_oace_score,
                     pbest_pos=pso_instance.optimizer.swarm.pbest_pos,
-                    pbest_cost=-pso_instance.optimizer.swarm.pbest_cost,  # Converte para OACE
+                    pbest_cost=-pso_instance.optimizer.swarm.pbest_cost,  
                     gbest_pos=pso_instance.optimizer.swarm.best_pos,
                     gbest_cost=best_oace_score
                 )
             
-            # Mostra progresso
         print(f"         • Melhor OACE atual: {best_oace_score:.6f}")
         
         # 3. Retorna melhor solução do PSO
@@ -1554,10 +1442,7 @@ class AFSAGAPSO:
             print(f"⚠️  AVISO: Score OACE inválido ({best_fitness_oace:.6f}) < 0.0. Corrigindo...")
             best_fitness_oace = 0.0
         
-        # Obtém métricas finais do melhor candidato
         best_metrics = self._warm_up_candidate(best_pos)
-        
-        # Mostra resumo final
         pso_instance = getattr(self, 'pso_phase2', self.pso)
         final_population = pso_instance.optimizer.swarm.position
         final_fitness = -pso_instance.optimizer.swarm.pbest_cost
@@ -1580,27 +1465,11 @@ class AFSAGAPSO:
             float: Score OACE (entre 0 e 1)
         """
         print(f"   📊 Calculando score OACE...")
-        
-        """
-        assertiveness_weights = {
-            "top1_acc": 0.4,        # Peso maior para acurácia principal
-            "top5_acc": 0.15,       
-            "precision_macro": 0.25,
-            "recall_macro": 0.15,
-            "f1_macro": 0.05,       # Peso menor pois f1 é derivado de precision/recall
-        }
-        cost_weights = {
-            "total_params": 0.25,
-            "avg_inference_time": 0.25,
-            "memory_used_mb": 0.25,
-            "gflops": 0.25,
-        }
-        """
+
         assertiveness_weights, cost_weights, rc_a, rc_c = limited_scenario_weights()
         #assertiveness_weights, cost_weights, rc_a, rc_c = equilibrium_scenario_weights()
         #assertiveness_weights, cost_weights, rc_a, rc_c = critical_scenario_weights()
 
-        # Atualiza os limites dinamicamente para incluir novos valores
         self._update_metrics_ranges(metrics)
         
         print(f"      • Limites assertividade: {self.metrics_ranges['assertiveness']}")
@@ -1644,7 +1513,6 @@ class AFSAGAPSO:
                     print(f"     {key}: {metrics[key]:.4f}")
             print(f"   Limites de assertividade: {self.metrics_ranges['assertiveness']}")
             print(f"   Limites de custo: {self.metrics_ranges['cost']}")
-            # Clipa o valor para o range válido
             score = max(0.0, min(1.0, score))
             print(f"   Score corrigido: {score:.6f}")
         
@@ -1713,8 +1581,5 @@ class AFSAGAPSO:
                 if old_min != self.metrics_ranges["cost"][metric]["min"] or old_max != self.metrics_ranges["cost"][metric]["max"]:
                     print(f"   📊 Atualizado limite {metric}: [{old_min:.4f}, {old_max:.4f}] → [{self.metrics_ranges['cost'][metric]['min']:.4f}, {self.metrics_ranges['cost'][metric]['max']:.4f}]")
 
-
-# O código de execução principal foi movido para main.py
-# Este arquivo agora é apenas um módulo importável
 
 
