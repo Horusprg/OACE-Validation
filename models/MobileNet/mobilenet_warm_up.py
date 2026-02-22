@@ -47,7 +47,8 @@ def warm_up_mobilenet(
         criterion=criterion,
         optimizer=optimizer,
         num_epochs=num_epochs,
-        device=device
+        device=device,
+        use_mixed_precision=True
     )
 
     test_metrics = evaluate_model(

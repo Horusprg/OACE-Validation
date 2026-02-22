@@ -523,8 +523,8 @@ class PSO:
         self.optimizer.swarm.best_pos = self.optimizer.swarm.pbest_pos[best_idx].copy()
         self.optimizer.swarm.best_cost = self.optimizer.swarm.pbest_cost[best_idx]
         
-        print(f"self.optimizer.swarm.pbest_cost in initialize_swarm_with_population(): {self.optimizer.swarm.pbest_cost}")
-        print(f"self.optimizer.swarm.best_cost in initialize_swarm_with_population(): {self.optimizer.swarm.best_cost}")
+        print(f"self.optimizer.swarm.pbest_cost in initialize_swarm_with_population(): {self.optimizer.swarm.pbest_cost}")  # Debug
+        print(f"self.optimizer.swarm.best_cost in initialize_swarm_with_population(): {self.optimizer.swarm.best_cost}")  # Debug
         
         print(f"✅ Enxame inicializado com {len(initial_population)} partículas")
 

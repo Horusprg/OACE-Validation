@@ -20,7 +20,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 from models.EfficientNet.efficientnet_architecture import EfficientNet, generate_efficientnet_architecture, EfficientNetParams
 from utils.training_utils import train_model, get_optimized_scheduler
-from utils.evaluate_utils import evaluate_model
+from utils.evaluate_utils import evaluate_model, plot_confusion_matrix, plot_classwise_metrics
 from utils.data_loader import get_cifar10_dataloaders, get_wildshapes_dataloaders
 
 def warm_up_efficientnet(
@@ -49,7 +49,8 @@ def warm_up_efficientnet(
     Returns:
         dict: Métricas de avaliação da rede
     """
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Configuração randômica
     model = generate_efficientnet_architecture(params).to(device)
 
@@ -64,6 +65,7 @@ def warm_up_efficientnet(
         optimizer=optimizer,
         num_epochs=num_epochs,
         device=device,
+        use_mixed_precision=True,
     )
 
     test_metrics = evaluate_model(
@@ -180,7 +182,7 @@ def train_efficientnet_specialized(
     # Carrega dados
     print(f"\n📊 Carregando dados")
     train_loader, val_loader, test_loader, classes = get_wildshapes_dataloaders(batch_size=64, num_workers=2)
-    #train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders()
+    #train_loader, val_loader, test_loader, classes = get_cifar10_dataloaders(batch_size=128, num_workers=2)
     print(f"   • Classes: {len(classes)}")
     print(f"   • Train batches: {len(train_loader)}")
     print(f"   • Val batches: {len(val_loader)}")
@@ -311,6 +313,37 @@ def train_efficientnet_specialized(
             json.dump(results, f, indent=4, default=str)
         print(f"\n💾 Resultados salvos em: {results_file}")
         
+        # Gera visualizações (Matriz de Confusão e Métricas por Classe)
+        print(f"\n📊 Gerando visualizações...")
+        
+        # Define nomes das classes para WildShapes
+        wildshapes_classes = ['Circle', 'Ellipse', 'Hexagon', 'Parallelogram', 'Pentagon', 
+                              'Rectangle', 'Square', 'Trapezoid', 'Triangle']
+        
+        # Matriz de Confusão
+        cm_path = os.path.join(results_dir, f'{training_config.get("experiment_name", "efficientnet_specialized")}_{experiment_id}_confusion_matrix.png')
+        plot_confusion_matrix(
+            model=model,
+            test_loader=test_loader,
+            device=device,
+            class_names=wildshapes_classes,
+            save_path=cm_path
+        )
+        
+        # Métricas por Classe
+        metrics_path = os.path.join(results_dir, f'{training_config.get("experiment_name", "efficientnet_specialized")}_{experiment_id}_classwise_metrics.png')
+        classwise_metrics = plot_classwise_metrics(
+            model=model,
+            test_loader=test_loader,
+            device=device,
+            class_names=wildshapes_classes,
+            save_path=metrics_path
+        )
+        
+        print(f"\n🎨 Visualizações salvas:")
+        print(f"   • Matriz de Confusão: {cm_path}")
+        print(f"   • Métricas por Classe: {metrics_path}")
+        
         # Salva modelo se solicitado
         
         #if training_config.get('save_best_model', True):
@@ -374,23 +407,23 @@ if __name__ == "__main__":
     # Parâmetros otimizados encontrados pelo algoritmo AFSA-GA-PSO
     optimized_params = {
         "num_classes": 9,
-        "min_channels": 35,
-        "max_channels": 390,
-        "dropout_rate": 0.30479287877952236,
-        "num_layers": 6,
+        "min_channels": 47,
+        "max_channels": 192,
+        "dropout_rate": 0.4, #0.21571876498902778
+        "num_layers": 16,
         "batch_norm": True
     }
     
     # Configurações de treinamento
     training_config = {
-        'num_epochs': 150,
+        'num_epochs': 200,
         'learning_rate': 0.001,
-        'weight_decay': 5e-4,#1e-4,#
+        'weight_decay': 1e-2,#1e-4,#5e-4
         'use_mixed_precision': True,
         'use_compile': True,
-        'early_stopping_patience': 10,
+        'early_stopping_patience': 15,
         'save_best_model': True,
-        'experiment_name': "efficientnet_best",
+        'experiment_name': "efficientnet_best_r6",
         #'scheduler_type': 'cosine',
         #'scheduler_kwargs': {'T_max': 100, 'eta_min': 1e-6}
         #'scheduler_type': None,  # None = desativado (LR constante), 'plateau' = reduz quando estagna, 'cosine' = decaimento suave

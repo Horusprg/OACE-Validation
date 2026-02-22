@@ -1,12 +1,20 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
 import numpy as np
 import time
+import os
+import sys
+
+# Adiciona o diretório de pacotes do usuário ao path (para seaborn)
+sys.path.insert(0, os.path.expanduser('~/.local/lib/python3.12/site-packages'))
+
+import seaborn as sns
 from torchinfo import summary
 from thop import profile
-from typing import List, Dict
+from typing import List, Dict, Optional
+import matplotlib.pyplot as plt
 
 def evaluate_model(model: nn.Module, test_loader: DataLoader, criterion: nn.Module, device: torch.device
                    ) -> Dict[str, float]:
@@ -124,4 +132,138 @@ def evaluate_model(model: nn.Module, test_loader: DataLoader, criterion: nn.Modu
           f"GFLOPs: {test_metrics['gflops']:.4f}")
     
     return test_metrics
+
+
+def plot_confusion_matrix(
+    model: nn.Module,
+    test_loader: DataLoader,
+    device: torch.device,
+    class_names: List[str],
+    save_path: Optional[str] = None,
+    figsize: tuple = (12, 10)
+) -> np.ndarray:
+    """
+    Gera e plota a matriz de confusão.
     
+    Args:
+        model: Modelo treinado
+        test_loader: DataLoader de teste
+        device: Dispositivo (cuda/cpu)
+        class_names: Lista com nomes das classes
+        save_path: Caminho para salvar a figura (opcional)
+        figsize: Tamanho da figura
+        
+    Returns:
+        np.ndarray: Matriz de confusão
+    """
+    model.eval()
+    all_labels, all_preds = [], []
+    
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            _, predicted = outputs.max(1)
+            all_labels.extend(labels.cpu().numpy())
+            all_preds.extend(predicted.cpu().numpy())
+    
+    cm = confusion_matrix(all_labels, all_preds)
+    
+    # Plot
+    plt.figure(figsize=figsize)
+    sns.heatmap(
+        cm,
+        annot=True,
+        fmt='d',
+        cmap='RdBu_r',
+        xticklabels=class_names,
+        yticklabels=class_names,
+        cbar_kws={'label': 'Count'}
+    )
+    plt.xlabel('Predicted', fontsize=12)
+    plt.ylabel('True', fontsize=12)
+    plt.title('Confusion Matrix - Comparing true class with predicted class', fontsize=14)
+    plt.xticks(rotation=45, ha='right')
+    plt.yticks(rotation=0)
+    plt.tight_layout()
+    
+    if save_path:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        print(f"✓ Matriz de confusão salva em: {save_path}")
+    
+    plt.close()
+    return cm
+
+
+def plot_classwise_metrics(
+    model: nn.Module,
+    test_loader: DataLoader,
+    device: torch.device,
+    class_names: List[str],
+    save_path: Optional[str] = None,
+    figsize: tuple = (10, 8)
+) -> Dict[str, np.ndarray]:
+    """
+    Gera heatmap de métricas (Precision, Recall, F1) por classe.
+    
+    Args:
+        model: Modelo treinado
+        test_loader: DataLoader de teste
+        device: Dispositivo (cuda/cpu)
+        class_names: Lista com nomes das classes
+        save_path: Caminho para salvar a figura (opcional)
+        figsize: Tamanho da figura
+        
+    Returns:
+        Dict com arrays de precision, recall e f1 por classe
+    """
+    model.eval()
+    all_labels, all_preds = [], []
+    
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            _, predicted = outputs.max(1)
+            all_labels.extend(labels.cpu().numpy())
+            all_preds.extend(predicted.cpu().numpy())
+    
+    # Calcula métricas por classe
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        all_labels, all_preds, average=None, zero_division=0
+    )
+    
+    # Cria matriz de métricas
+    metrics_matrix = np.array([precision, recall, f1]).T  # Shape: (n_classes, 3)
+    
+    # Plot
+    plt.figure(figsize=figsize)
+    sns.heatmap(
+        metrics_matrix,
+        annot=True,
+        fmt='.2f',
+        cmap='RdBu_r',
+        xticklabels=['Precision', 'Recall', 'F1 Score'],
+        yticklabels=class_names,
+        vmin=0,
+        vmax=1,
+        cbar_kws={'label': 'Score'}
+    )
+    plt.xlabel('Metric', fontsize=12)
+    plt.ylabel('Class', fontsize=12)
+    plt.title('Per-Class Metrics Heatmap', fontsize=14)
+    plt.tight_layout()
+    
+    if save_path:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        print(f"✓ Matriz de métricas salva em: {save_path}")
+    
+    plt.close()
+    
+    return {
+        'precision': precision,
+        'recall': recall,
+        'f1': f1
+    }

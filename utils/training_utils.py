@@ -77,13 +77,15 @@ def train_model(
         else:
             # DataParallel desabilitado por padrão - usa GPU única
             model.to(device)
-            print(f"✓ Usando GPU única: {torch.cuda.get_device_name(0)}")
+            gpu_index = device.index if device.index is not None else 0
+            print(f"✓ Usando GPU única: {torch.cuda.get_device_name(gpu_index)}")
             print(f"💡 Dica: Para usar múltiplas GPUs, defina USE_DATAPARALLEL=1 (pode causar erros NCCL)")
     else:
         # Se não houver múltiplas GPUs
         model.to(device)
         if device.type == 'cuda':
-            print(f"✓ Usando GPU única: {torch.cuda.get_device_name(0)}")
+            gpu_index = device.index if device.index is not None else 0
+            print(f"✓ Usando GPU única: {torch.cuda.get_device_name(gpu_index)}")
     
     if compile_model and hasattr(torch, 'compile') and not use_data_parallel:
         try:

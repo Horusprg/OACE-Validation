@@ -28,7 +28,7 @@ def calculate_oace_score(
     """
     if not 0.0 <= lambda_param <= 1.0:
         raise ValueError("O parâmetro lambda_param deve estar no intervalo [0, 1].")
-    print("Calculando score OACE...")
+    # print("Calculando score OACE...")  # Comentado para limpar logs
     # --- 1. Preparação dos Dados ---
     s_metrics = pd.Series(assertiveness_metrics)
     s_weights = pd.Series(assertiveness_weights)
@@ -40,11 +40,12 @@ def calculate_oace_score(
     c_min = pd.Series({k: v['min'] for k, v in cost_min_max.items()})
     c_max = pd.Series({k: v['max'] for k, v in cost_min_max.items()})
 
-    print("\nAvaliação OACE (máximos e mínimos):\n")
-    print("s_min: ", s_min)
-    print("s_max: ", s_max)
-    print("c_min: ", c_min)
-    print("c_max: ", c_max)
+    # Logs de debug comentados para limpar output
+    # print("\nAvaliação OACE (máximos e mínimos):\n")
+    # print("s_min: ", s_min)
+    # print("s_max: ", s_max)
+    # print("c_min: ", c_min)
+    # print("c_max: ", c_max)
 
     # --- 2. Normalização Vetorizada ---
     s_range = s_max - s_min
@@ -54,8 +55,8 @@ def calculate_oace_score(
     norm_s = np.where(s_range == 0, np.where(s_metrics >= s_min, 1.0, 0.0), (s_metrics - s_min) / s_range)
     norm_c = np.where(c_range == 0, 0.0, (c_metrics - c_min) / c_range)
     
-    print("norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro): ", norm_s)
-    print("norm_c (MTP, TPI, MS, GFlops): ", norm_c)
+    # print("norm_s (top1_acc, top5_acc, prec_macro, rec_macro, f1_macro): ", norm_s)
+    # print("norm_c (MTP, TPI, MS, GFlops): ", norm_c)
 
     # --- 3. Cálculo Agregado Vetorizado ---
     # A(m) = Σ w_a^i · a_i(m)  [maximizar]

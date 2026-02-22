@@ -54,7 +54,6 @@ coverage.xml
 cover/
 results/
 report.log
-repost.log
 results_*.log
 # Translations
 *.mo

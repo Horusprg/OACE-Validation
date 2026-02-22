@@ -328,10 +328,10 @@ if __name__ == "__main__":
     # Create a customized EfficientNet model
     params = EfficientNetParams(
         num_classes=10,
-        min_channels=32,
-        max_channels=128,
-        dropout_rate=0.2,
-        num_layers=4,
+        min_channels=58,
+        max_channels=246,
+        dropout_rate=0.21571876498902778,
+        num_layers=5,
         batch_norm=True
     )
     

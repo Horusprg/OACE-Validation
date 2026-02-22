@@ -37,7 +37,8 @@ def warm_up_cnn(
         dict: Métricas de avaliação da rede
     """
     print("\n--- Iniciando warm-up da CNN Genérica ---")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Gera uma nova instância da CNN com base nos parâmetros
     # Assume que generate_cnn_architecture está acessível.
@@ -62,6 +63,7 @@ def warm_up_cnn(
         optimizer=optimizer,
         num_epochs=num_epochs,
         device=device,
+        use_mixed_precision=True,
     )
 
     # Avaliação do modelo

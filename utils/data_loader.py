@@ -3,7 +3,7 @@ import numpy as np
 import torchvision
 from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
-from datasets import load_dataset, DatasetDict
+from datasets import load_dataset, DatasetDict, ClassLabel
 from torch.utils.data import DataLoader
 
 
@@ -69,11 +69,35 @@ class WildShapesDataset(torch.utils.data.Dataset):
         item = self.dataset[idx]
         image = item['image']
         label = item['label']
+
+        # Padroniza o modo para 3 canais (RGB) para evitar falhas nas transforms
+        # (o WildShapes2 contém imagens em modos mistos: RGB, RGBA, L, P, etc.).
+        if hasattr(image, "convert"):
+            image = image.convert("RGB")
         
         if self.transform:
             image = self.transform(image)
             
         return image, label
+
+
+def _ensure_classlabel_for_stratification(dataset, label_column='label'):
+    """
+    Garante que a coluna de rótulo seja ClassLabel para permitir estratificação
+    com Hugging Face `train_test_split(stratify_by_column=...)`.
+    """
+    if label_column not in dataset.column_names:
+        raise ValueError(
+            f"Coluna '{label_column}' não encontrada no dataset. "
+            f"Colunas disponíveis: {dataset.column_names}"
+        )
+
+    label_feature = dataset.features.get(label_column)
+    if isinstance(label_feature, ClassLabel):
+        return dataset
+
+    # Converte Value -> ClassLabel inferindo classes a partir dos dados.
+    return dataset.class_encode_column(label_column)
 
 def get_wildshapes_dataloaders(batch_size=64, num_workers=0):
     """
@@ -89,25 +113,32 @@ def get_wildshapes_dataloaders(batch_size=64, num_workers=0):
         tuple: (train_loader, val_loader, test_loader, classes)
     """
     
-    # Mesmas transformações
+    # Augmentação agressiva para reduzir overfitting (objetivo: >93% accuracy)
     transform_train = transforms.Compose([
         transforms.Resize((32, 32)),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(10),
+        #transforms.RandomHorizontalFlip(),
+        #transforms.RandomRotation(10),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(15),  # Aumentado de 10 para 15
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+        transforms.RandomAffine(degrees=10, translate=(0.1, 0.1), shear=5),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.6970, 0.6714, 0.6550], std=[0.3134, 0.3143, 0.3290]),
+        transforms.RandomErasing(p=0.2, scale=(0.02, 0.2))  # Cutout/Random Erasing
     ])
-    
+    # Mean: [0.6970, 0.6714, 0.6550]
+    # Std:  [0.3134, 0.3143, 0.3290]
     transform_test = transforms.Compose([
         transforms.Resize((32, 32)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.6970, 0.6714, 0.6550], std=[0.3134, 0.3143, 0.3290])
     ])
     
     # Carregar e dividir
-    ds = load_dataset("Horusprg/WildShapes")
-    
-    split1 = ds['train'].train_test_split(test_size=0.3, seed=42, stratify_by_column='label')
+    ds = load_dataset("Horusprg/WildShapes2")
+    train_ds = _ensure_classlabel_for_stratification(ds['train'], label_column='label')
+
+    split1 = train_ds.train_test_split(test_size=0.3, seed=42, stratify_by_column='label')
     split2 = split1['test'].train_test_split(test_size=1/3, seed=42, stratify_by_column='label')
     
     final_ds = DatasetDict({
@@ -144,7 +175,12 @@ def get_wildshapes_dataloaders(batch_size=64, num_workers=0):
         num_workers=num_workers
     )
     
-    classes = [f'class_{i}' for i in range(9)]
+    label_feature = final_ds['train'].features.get('label')
+    if isinstance(label_feature, ClassLabel):
+        classes = list(label_feature.names)
+    else:
+        unique_labels = sorted(final_ds['train'].unique('label'))
+        classes = [str(label) for label in unique_labels]
     
     print(f"WildShapes Dataset")
     print(f"  Train: {len(train_dataset):,}")

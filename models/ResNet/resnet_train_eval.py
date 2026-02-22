@@ -79,6 +79,7 @@ def warm_up_resnet(
         optimizer=optimizer,
         num_epochs=num_epochs,
         device=device,
+        use_mixed_precision=True,
     )
 
     # Avalia o modelo

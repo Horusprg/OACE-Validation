@@ -2,6 +2,7 @@
 # nohup python3 -X utf8 -u -m optimizers.afsa_ga_pso > results_3.log 2>&1 &
 # python3 -X utf8 -u -m optimizers.afsa_ga_pso 2>&1 | tee teste5.log
 import numpy as np
+import gc
 from optimizers.afsa import AFSA
 from optimizers.pso import PSO
 from optimizers.ga import GA
@@ -176,15 +177,15 @@ class AFSAGAPSO:
             if param_name == "dropout_rate":
                 bounds[param_name] = (0.0, 0.5)
             elif param_name == "min_channels":
-                bounds[param_name] = (16, 64,)
+                bounds[param_name] = (32, 64)
             elif param_name == "max_channels":
-                bounds[param_name] = (64, 512,)  
+                bounds[param_name] = (128, 512,)  
             elif param_name == "num_layers":
-                bounds[param_name] = (2, 25)  
+                bounds[param_name] = (5, 20)  #5
             elif param_name == "width_multiplier":
-                bounds[param_name] = (0.5, 1.5)
+                bounds[param_name] = (0.75, 1.25)
             elif param_name == "resolution_multiplier":
-                bounds[param_name] = (0.5, 1.0)
+                bounds[param_name] = (1.0, 1.0)#0.5, 1.0
             else:
                 bounds[param_name] = (0.0, 1.0)
 
@@ -449,16 +450,52 @@ class AFSAGAPSO:
 
         # Realiza o warm-up
         print(f"   🔥 Iniciando treinamento...")
-        test_metrics = architecture_info["warm_up"](
-            train_loader=self.train_loader,
-            val_loader=self.val_loader,
-            test_loader=self.test_loader,
-            classes=self.classes,
-            num_epochs=8,
-            device=self.device, 
-            params=params,
-            learning_rate=learning_rate, 
-        )
+        try:
+            test_metrics = architecture_info["warm_up"](
+                train_loader=self.train_loader,
+                val_loader=self.val_loader,
+                test_loader=self.test_loader,
+                classes=self.classes,
+                num_epochs=8,
+                device=self.device, 
+                params=params,
+                learning_rate=learning_rate, 
+            )
+        except torch.OutOfMemoryError:
+            print("   ⚠️ OOM durante warm-up. Aplicando penalidade ao candidato e continuando.")
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            gc.collect()
+            test_metrics = {
+                "top1_acc": 0.0,
+                "top5_acc": 0.0,
+                "precision_macro": 0.0,
+                "recall_macro": 0.0,
+                "f1_macro": 0.0,
+                "total_params": 1e12,
+                "avg_inference_time": 1e3,
+                "memory_used_mb": 1e6,
+                "gflops": 1e6,
+            }
+        except RuntimeError as e:
+            if "out of memory" in str(e).lower():
+                print("   ⚠️ RuntimeError de OOM durante warm-up. Aplicando penalidade ao candidato e continuando.")
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                gc.collect()
+                test_metrics = {
+                    "top1_acc": 0.0,
+                    "top5_acc": 0.0,
+                    "precision_macro": 0.0,
+                    "recall_macro": 0.0,
+                    "f1_macro": 0.0,
+                    "total_params": 1e12,
+                    "avg_inference_time": 1e3,
+                    "memory_used_mb": 1e6,
+                    "gflops": 1e6,
+                }
+            else:
+                raise
 
         self.candidates_cache[candidate_key] = test_metrics
         
@@ -746,7 +783,11 @@ class AFSAGAPSO:
             best_position=initial_population[best_idx],
             best_fitness=initial_fitness[best_idx],
             metrics=candidates_metrics[best_idx][1],
-            oace_score=initial_fitness[best_idx]
+            oace_score=initial_fitness[best_idx],
+            pbest_pos=initial_population,
+            pbest_cost=initial_fitness,
+            gbest_pos=initial_population[best_idx],
+            gbest_cost=initial_fitness[best_idx]
         )
 
         # 2. Configura função de fitness para o PSO
@@ -882,15 +923,27 @@ class AFSAGAPSO:
             # Log da iteração
             current_population = self.pso.optimizer.swarm.position
             current_fitness = np.array([self.fitness_function(p) for p in current_population])
+            
+            # Obtém métricas do melhor candidato para o log
+            best_pos_afsa = self.pso.optimizer.swarm.best_pos
+            try:
+                best_metrics_afsa = self._warm_up_candidate(best_pos_afsa)
+            except:
+                best_metrics_afsa = None
+            
             self.logger.log_iteration(
                 iteration=afsa_iter + 1,
                 phase="AFSA-PSO",
                 population=current_population,
                 fitness_values=current_fitness,
-                best_position=self.pso.optimizer.swarm.best_pos,
+                best_position=best_pos_afsa,
                 best_fitness=-float(self.pso.optimizer.swarm.best_cost),
-                metrics=None, 
-                oace_score=-float(self.pso.optimizer.swarm.best_cost)
+                metrics=best_metrics_afsa,
+                oace_score=-float(self.pso.optimizer.swarm.best_cost),
+                pbest_pos=self.pso.optimizer.swarm.pbest_pos,
+                pbest_cost=-self.pso.optimizer.swarm.pbest_cost,
+                gbest_pos=self.pso.optimizer.swarm.best_pos,
+                gbest_cost=-float(self.pso.optimizer.swarm.best_cost)
             )
         
         # 6. Retorna melhores soluções do PSO
@@ -1405,7 +1458,7 @@ class AFSAGAPSO:
                 except:
                     best_metrics_current = None
                 
-        self.logger.log_iteration(
+                self.logger.log_iteration(
                     iteration=ga_iter + 1,
                     phase="GA-PSO",
                     population=pso_instance.optimizer.swarm.position,
@@ -1415,7 +1468,7 @@ class AFSAGAPSO:
                     metrics=best_metrics_current,
                     oace_score=best_oace_score,
                     pbest_pos=pso_instance.optimizer.swarm.pbest_pos,
-                    pbest_cost=-pso_instance.optimizer.swarm.pbest_cost,  
+                    pbest_cost=-pso_instance.optimizer.swarm.pbest_cost,
                     gbest_pos=pso_instance.optimizer.swarm.best_pos,
                     gbest_cost=best_oace_score
                 )
